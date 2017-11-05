@@ -1,0 +1,16 @@
+assets/*
+!assets/.gitkeep
+
+bin/*
+!bin/.gitkeep
+
+build/*
+!build/.gitkeep
+
+include/*
+!include/.gitkeep
+
+lib/*
+!lib/.gitkeep
+
+assets/
