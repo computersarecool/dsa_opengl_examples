@@ -8,7 +8,7 @@ build/*
 !build/.gitkeep
 
 include/*
-!include/.gitkeep
+!include/projects/
 
 lib/*
 !lib/.gitkeep
