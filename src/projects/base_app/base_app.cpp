@@ -33,7 +33,7 @@ void Application::init()
 	glfwWindowHint(GLFW_RESIZABLE, m_info.resizeable);
 	glfwWindowHint(GLFW_SAMPLES, m_info.samples);
 
-	m_window = glfwCreateWindow(m_info.window_width, m_info.window_height, m_info.title, nullptr, nullptr);
+	m_window = glfwCreateWindow(m_info.window_width, m_info.window_height, m_info.title.c_str(), nullptr, nullptr);
 	if (!m_window)
 	{
 		std::cerr << "Failed to open window" << std::endl;
@@ -124,26 +124,26 @@ std::string Application::_get_parent_directory(const char* file)
 };
 
 // Function to check OpenGL errors. #defined as check_gl_error
-void Application::_check_gl_error(const char *file, int line)
+void Application::_check_gl_error(const char* file, int line)
 {
 	GLenum err(glGetError());
 	while (err != GL_NO_ERROR) {
-		char error[256];
+		std::string error;
 		switch (err) {
 			case GL_INVALID_OPERATION: 
-				strcpy_s(error, "INVALID_OPERATION");
+				error =  "INVALID_OPERATION";
 				break;
 			case GL_INVALID_ENUM: 
-				strcpy_s(error, "INVALID_ENUM");
+				error = "INVALID_ENUM";
 				break;
 			case GL_INVALID_VALUE:          
-				strcpy_s(error, "INVALID_VALUE");
+				error = "INVALID_VALUE";
 				break;
 			case GL_OUT_OF_MEMORY:          
-				strcpy_s(error, "OUT_OF_MEMORY");
+				error = "OUT_OF_MEMORY";
 				break;
 			case GL_INVALID_FRAMEBUFFER_OPERATION:  
-				strcpy_s(error, "INVALID_FRAMEBUFFER_OPERATION");
+				error = "INVALID_FRAMEBUFFER_OPERATION";
 				break;
 		}
 

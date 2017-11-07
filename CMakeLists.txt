@@ -9,7 +9,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   # Wall: Enable all warnings about constructors
   # Wextra: Enable some extra warnings
   # Werror: Treat all warnings as errors
-  set(warnings "-Wall -Wextra -Werror")
+  #  set(warnings "-Wall -Wextra -Werror")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   # Visual C++ (Microsoft)
   # W4: Show the most warnings
@@ -24,26 +24,32 @@ if (NOT CONFIGURED_ONCE)
   set(CMAKE_CXX_FLAGS "${warnings}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif()
 
-# Set lib directory
+# Set lib and include directory
 set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
-
-# Add include directory
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
+
+# Build and include GLFW on Linux
+if(UNIX)
+  add_subdirectory(${CMAKE_SOURCE_DIR}/lib/glfw)
+  include_directories(${LIB_DIR}/lib/glfw/include)
+endif()
+
+# Add include directories
 include_directories(${INCLUDE_DIR} ${INCLUDE_DIR}/projects)
 
 # Add subdirectories (projects)
 set(PROJECTS_DIR ${CMAKE_SOURCE_DIR}/src/projects)
 add_subdirectory(${PROJECTS_DIR}/basic_cube)
-add_subdirectory(${PROJECTS_DIR}/geometry_shader)
-add_subdirectory(${PROJECTS_DIR}/geometry_shader_normals)
-add_subdirectory(${PROJECTS_DIR}/geometry_shader_quad)
-add_subdirectory(${PROJECTS_DIR}/lighting)
-add_subdirectory(${PROJECTS_DIR}/multiple_attributes_and_buffers)
-add_subdirectory(${PROJECTS_DIR}/tesselation)
-add_subdirectory(${PROJECTS_DIR}/tesselation_bezier)
-add_subdirectory(${PROJECTS_DIR}/tesselation_displacement_map)
-add_subdirectory(${PROJECTS_DIR}/texture2Darray)
-add_subdirectory(${PROJECTS_DIR}/transform_feedback)
+#add_subdirectory(${PROJECTS_DIR}/geometry_shader)
+#add_subdirectory(${PROJECTS_DIR}/geometry_shader_normals)
+#add_subdirectory(${PROJECTS_DIR}/geometry_shader_quad)
+#add_subdirectory(${PROJECTS_DIR}/lighting)
+#add_subdirectory(${PROJECTS_DIR}/multiple_attributes_and_buffers)
+#add_subdirectory(${PROJECTS_DIR}/tesselation)
+#add_subdirectory(${PROJECTS_DIR}/tesselation_bezier)
+#add_subdirectory(${PROJECTS_DIR}/tesselation_displacement_map)
+#add_subdirectory(${PROJECTS_DIR}/texture2Darray)
+#add_subdirectory(${PROJECTS_DIR}/transform_feedback)
 
 # Create a variable that is set to true and cached after the first configuration
 set(CONFIGURED_ONCE TRUE CACHE INTERNAL "A flag showing that CMake has configured at least once.")

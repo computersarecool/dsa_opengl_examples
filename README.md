@@ -14,6 +14,7 @@ These are a collection of examples that I am making while reading The OpenGL Sup
 This project uses CMAKE to build.
 
 ### Things to do
+- Make GLFW a git submodule and see how that affects including glfw3.lib
 - Fix `geometry shader quad`
 - Make one media folder for all examples
 - Make load image a function (a good example of this is the displacement map tesselation)

@@ -18,9 +18,11 @@ set(SOURCES
   ${PROJECTS_SOURCE_DIR}/base_app/camera.cpp
   )
 
-# Use the directory name for the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 if(WIN32)
   target_link_libraries(${PROJECT_NAME} ${LIB_DIR}/glfw3.lib)
+else()
+  target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})
+  target_link_libraries(${PROJECT_NAME} stdc++fs)
 endif()

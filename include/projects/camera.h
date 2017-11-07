@@ -48,9 +48,9 @@ private:
 	glm::vec3 m_up;
 	glm::vec3 m_right;
 	glm::vec3 m_world_up;
-	GLfloat m_movement_speed;
-	GLfloat m_mouse_sensitivity;
-	GLfloat m_zoom;
 	GLfloat m_yaw;
 	GLfloat m_pitch;
+    GLfloat m_movement_speed;
+    GLfloat m_zoom;
+	GLfloat m_mouse_sensitivity;
 };

@@ -2,7 +2,7 @@
 
 #include "camera.h"
 
-// Default values
+// Default constructor values
 const GLfloat near_plane = 0.1f;
 const GLfloat far_plane = 1000.0f;
 

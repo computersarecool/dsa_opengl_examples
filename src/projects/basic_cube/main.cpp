@@ -50,7 +50,7 @@ const GLfloat vertices[]{
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
-class GeometryShaderExample : public Application
+class BasicCubeExample : public Application
 {
 private:
 	virtual void set_info()
@@ -147,7 +147,7 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new GeometryShaderExample;
+        Application* my_app = new BasicCubeExample;
 	my_app->run();
 	delete my_app;
 }

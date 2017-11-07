@@ -29,7 +29,7 @@ protected:
 
 	struct AppInfo
 	{
-		char* title;
+		std::string title;
 		int window_width;
 		int window_height;
 		int major_version;
@@ -45,6 +45,6 @@ protected:
 	static std::string _get_parent_directory(const char* file);
 	#define get_parent_directory() _get_parent_directory(__FILE__);
 
-	static void _check_gl_error(const char *file, int line);
+	static void _check_gl_error(const char* file, int line);
 	#define check_gl_error() _check_gl_error(__FILE__,__LINE__)
 };
