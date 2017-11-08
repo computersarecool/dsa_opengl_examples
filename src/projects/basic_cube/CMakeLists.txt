@@ -21,9 +21,6 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})
 
-#if(WIN32)
-#  target_link_libraries(${PROJECT_NAME} ${LIB_DIR}/glfw3.lib)
-#else()
-
-#target_link_libraries(${PROJECT_NAME} stdc++fs)
-#endif()
+if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  target_link_libraries(${PROJECT_NAME} stdc++fs)
+endif()

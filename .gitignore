@@ -10,9 +10,6 @@ build/*
 include/*
 !include/projects/
 
-lib/*
-!lib/.gitkeep
-
 assets/
 ("opengl_examples.kdev4")
 *kdev4*
