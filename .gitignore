@@ -1,3 +1,5 @@
+include/glad/
+
 assets/*
 !assets/.gitkeep
 
@@ -7,9 +9,4 @@ bin/*
 build/*
 !build/.gitkeep
 
-include/*
-!include/projects/
-
-assets/
-("opengl_examples.kdev4")
 *kdev4*

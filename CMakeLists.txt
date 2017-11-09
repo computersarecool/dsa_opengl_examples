@@ -24,20 +24,22 @@ if (NOT CONFIGURED_ONCE)
   set(CMAKE_CXX_FLAGS "${warnings}" CACHE STRING "Flags used by the compiler during all build types." FORCE)
 endif()
 
-# Set variables used within this file
-set(LIB_DIR ${CMAKE_SOURCE_DIR}/lib)
+# Set variables
 set(INCLUDE_DIR ${CMAKE_SOURCE_DIR}/include)
 set(PROJECTS_DIR ${CMAKE_SOURCE_DIR}/src/projects)
+
+# Add include directories
+include_directories(${INCLUDE_DIR})
+include_directories(${INCLUDE_DIR}/projects)
+include_directories(${INCLUDE_DIR}/glad/include)
 
 # Build and include GLFW
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(${CMAKE_SOURCE_DIR}/lib/glfw)
-include_directories(${LIB_DIR}/lib/glfw/include)
-
-# Add include directories
-include_directories(${INCLUDE_DIR} ${INCLUDE_DIR}/projects)
+add_subdirectory(${INCLUDE_DIR}/glfw)
+include_directories(${INCLUDE_DIR}/glfw/include)
+include_directories(${INCLUDE_DIR}/glfw/deps)
 
 # Add subdirectories (projects)
 add_subdirectory(${PROJECTS_DIR}/basic_cube)

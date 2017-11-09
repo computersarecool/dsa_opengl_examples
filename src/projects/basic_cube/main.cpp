@@ -1,5 +1,5 @@
 ﻿// A basic cube example
-#include "glm/gtc/matrix_transform.hpp"
+#include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
 #include "shader.h"

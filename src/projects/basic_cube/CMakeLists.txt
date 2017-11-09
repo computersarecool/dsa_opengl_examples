@@ -8,8 +8,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(PROJECTS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/projects)
 set(SOURCES
   main.cpp
-  ${INCLUDE_DIR}/glad/glad.c
-  ${INCLUDE_DIR}/glm/gtc/matrix_transform.hpp
+  ${INCLUDE_DIR}/glad/src/glad.c
+  ${INCLUDE_DIR}/glm/glm/gtc/matrix_transform.hpp
   ${INCLUDE_DIR}/projects/base_app.h
   ${INCLUDE_DIR}/projects/shader.h
   ${INCLUDE_DIR}/projects/camera.h

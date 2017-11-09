@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include <glad/glad.h>
-#include <glm/glm.hpp>
+#include "glad/glad.h"
+#include "glm/glm/glm.hpp"
 
 // Default initialization values
 const GLfloat initial_yaw{ -90.0f };

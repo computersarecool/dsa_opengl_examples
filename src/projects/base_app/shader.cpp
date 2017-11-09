@@ -2,7 +2,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "glm/gtc/type_ptr.hpp"
+#include "glm/glm/gtc/type_ptr.hpp"
 
 #include "shader.h"
 
