@@ -42,9 +42,6 @@ protected:
 	AppInfo m_info;
 	GLFWwindow* m_window;
 
-	static std::string _get_parent_directory(const char* file);
-	#define get_parent_directory() _get_parent_directory(__FILE__);
-
 	static void _check_gl_error(const char* file, int line);
 	#define check_gl_error() _check_gl_error(__FILE__,__LINE__)
 };

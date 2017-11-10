@@ -1,5 +1,4 @@
 #include <iostream>
-#include <experimental/filesystem>
 
 #include "base_app.h"
 
@@ -115,13 +114,6 @@ void Application::on_key(int key, int action)
 		glfwSetWindowShouldClose(m_window, true);
 	}
 }
-
-// Return this file's location
-std::string Application::_get_parent_directory(const char* file)
-{
-	std::experimental::filesystem::path file_path{ file };
-	return file_path.parent_path().string().c_str();
-};
 
 // Function to check OpenGL errors. #defined as check_gl_error
 void Application::_check_gl_error(const char* file, int line)

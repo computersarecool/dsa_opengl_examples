@@ -1,5 +1,5 @@
 # Name for this project
-set(PROJECT_NAME "basic_cube")
+set(PROJECT_NAME "point_sprites")
 
 # Choose the library for the final build
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME})
@@ -18,7 +18,6 @@ set(SOURCES
   ${PROJECTS_SOURCE_DIR}/base_app/shader.cpp
   ${PROJECTS_SOURCE_DIR}/base_app/camera.cpp
   )
-
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})

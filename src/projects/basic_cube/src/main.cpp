@@ -62,8 +62,7 @@ private:
 	virtual void setup()
 	{
 		// Create shader
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/cube.vert").c_str(), (this_path + "/shaders/cube.frag").c_str() };
+		m_shader = Shader{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
@@ -140,14 +139,13 @@ private:
 	GLuint m_vbo;
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
-	const GLfloat m_normal_length{ 0.5f};
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 };
 
 int main(int argc, char* argv[])
 {
-        Application* my_app = new BasicCubeExample;
+    Application* my_app = new BasicCubeExample;
 	my_app->run();
 	delete my_app;
 }
