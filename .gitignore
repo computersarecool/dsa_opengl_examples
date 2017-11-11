@@ -1,7 +1,9 @@
-include/glad/
+# Assets
+*.jpg
+*.jpeg
+*.png
 
-assets/
-!assets/.gitkeep
+include/glad/
 
 bin/*
 !bin/.gitkeep
