@@ -3,18 +3,26 @@
 *Examples of modern OpenGL*
 
 ### Overview
-These are a collection of examples that I am making while reading The OpenGL Superbible (7th Edition).  I am very excited to start working with Vulkan so these are minimum working examples.
+These are a collection of examples that I am making while reading The OpenGL Superbible (7th Edition). Many are minimum working examples.
 
 #### Dependencies
-- `glad`
+
+##### Included as submodules:
 - `glfw`
-- `glm` >= 0.9.8.5
+- `glm`
 - `cmake`
 
-This project uses CMAKE to build.
+##### Included as a snapshot:
+- `glad` (a loader for OpenGL `4.4`)
+
+Thanks to the package authors for their work!
+
+### To build and use:
+This project uses CMAKE to build. First update all the submodules with `git submodule update --init --recursive`.
+Then `cd` into the `build` directory and type `cmake -G "${GENERATOR_TYPE}"`.
+The `${GENERATOR_TYPES}` tested are `Visual Studio 15 2017 Win64` and KDevelop (which reads the CMAKE file directly / no generator needed)
 
 ### Things to do
-- Make GLFW a git submodule and see how that affects including glfw3.lib
 - Fix `geometry shader quad`
 - Make one media folder for all examples
 - Make load image a function (a good example of this is the displacement map tesselation)
@@ -54,4 +62,4 @@ This project uses CMAKE to build.
 ### License
 :copyright: Willy Nolan 2017
 
-[MIT License](https://en.wikipedia.org/wiki/MIT_License)
+[MIT License](LICENSE.txt)
