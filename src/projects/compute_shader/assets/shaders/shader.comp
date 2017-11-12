@@ -1,0 +1,11 @@
+#version 440 core
+
+void main()
+{
+    layout (local_size_x = 32, local_size_y = 32) in;
+
+    void main
+    {
+        // Compute
+    }
+}

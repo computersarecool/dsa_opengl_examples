@@ -1,5 +1,5 @@
 # Name for this project
-set(PROJECT_NAME "basic_cube")
+set(PROJECT_NAME "compute_shader")
 
 # Choose the library for the final build
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME})
@@ -13,9 +13,11 @@ set(SOURCES
   ${INCLUDE_DIR}/glm/glm/gtc/matrix_transform.hpp
   ${INCLUDE_DIR}/projects/base_app.h
   ${INCLUDE_DIR}/projects/shader.h
+  ${INCLUDE_DIR}/projects/compute_shader.h
   ${INCLUDE_DIR}/projects/camera.h
   ${PROJECTS_SOURCE_DIR}/base_app/base_app.cpp
   ${PROJECTS_SOURCE_DIR}/base_app/shader.cpp
+  ${PROJECTS_SOURCE_DIR}/base_app/compute_shader.cpp
   ${PROJECTS_SOURCE_DIR}/base_app/camera.cpp
   )
 
