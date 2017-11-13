@@ -1,4 +1,4 @@
-﻿// Read pixel example
+﻿// Read pixels example
 #include <fstream>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
@@ -52,13 +52,14 @@ const GLfloat vertices[]{
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
-class BasicCubeExample : public Application
+class ReadPixelsExample : public Application
 {
 private:
 	virtual void set_info()
 	{
-		Application::set_info();	
-		m_info.title = "Basic cube example";
+		Application::set_info();
+
+		m_info.title = "Read pixels example";
 	}
 
 	virtual void on_key(int key, int action)
@@ -94,10 +95,10 @@ private:
 		// Make row a multiple of four
 		int row_size{ ((m_info.window_width * 3 + 3) & ~3) };
 		int data_size{ row_size * m_info.window_height };
-		unsigned char* frame_buffer_data{ new unsigned char[data_size] };
+		GLubyte* frame_buffer_data{ new GLubyte[data_size] };
 	
-		short origin_x{ 0 };
-		short origin_y{ 0 };
+		GLshort origin_x{ 0 };
+		GLshort origin_y{ 0 };
 		glReadPixels(origin_x, origin_y, m_info.window_width, m_info.window_height, GL_BGR, GL_UNSIGNED_BYTE, frame_buffer_data);
 
 		memset(&tga_header, 0, sizeof(tga_header));
@@ -113,7 +114,7 @@ private:
 		screenshot.close();
 
 		delete[] frame_buffer_data;
-		}
+	}
 
 	virtual void setup()
 	{
@@ -202,7 +203,7 @@ private:
 
 int main(int argc, char* argv[])
 {
-    Application* my_app = new BasicCubeExample;
+    Application* my_app = new ReadPixelsExample;
 	my_app->run();
 	delete my_app;
 }

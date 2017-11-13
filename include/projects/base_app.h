@@ -1,9 +1,6 @@
 #pragma once
 
-#include <string>
-
-#include "glad/glad.h"
-#define GLFW_NO_GLU
+#define GLFW_INCLUDE_NONE
 #include "GLFW/glfw3.h"
 
 class Application
@@ -13,8 +10,7 @@ public:
 	virtual ~Application() {}
 	virtual void run() final;
 
-protected:
-	
+protected:	
 	virtual void set_info();
 	virtual void init() final;
 	virtual void setup() {};
@@ -29,7 +25,7 @@ protected:
 
 	struct AppInfo
 	{
-		std::string title;
+		char* title;
 		int window_width;
 		int window_height;
 		int major_version;

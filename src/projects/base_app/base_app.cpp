@@ -1,8 +1,10 @@
 #include <iostream>
 
+#include "glad/glad.h"
+
 #include "base_app.h"
 
-// Set window parameters
+// Set window and context parameters
 void Application::set_info()
 {
 	m_info.title = "OpenGL Example";
@@ -15,7 +17,7 @@ void Application::set_info()
 	m_info.cursor = GLFW_CURSOR_DISABLED;
 }
 
-// Setup GLFW and initialize GLAD
+// Initialize GLFW and GLAD
 void Application::init()
 {
 	if (!glfwInit())
@@ -32,7 +34,7 @@ void Application::init()
 	glfwWindowHint(GLFW_RESIZABLE, m_info.resizeable);
 	glfwWindowHint(GLFW_SAMPLES, m_info.samples);
 
-	m_window = glfwCreateWindow(m_info.window_width, m_info.window_height, m_info.title.c_str(), nullptr, nullptr);
+	m_window = glfwCreateWindow(m_info.window_width, m_info.window_height, m_info.title, nullptr, nullptr);
 	if (!m_window)
 	{
 		std::cerr << "Failed to open window" << std::endl;
@@ -120,15 +122,15 @@ void Application::_check_gl_error(const char* file, int line)
 {
 	GLenum err(glGetError());
 	while (err != GL_NO_ERROR) {
-		std::string error;
+		char* error;
 		switch (err) {
 			case GL_INVALID_OPERATION: 
-				error =  "INVALID_OPERATION";
+				error = "INVALID_OPERATION";
 				break;
 			case GL_INVALID_ENUM: 
 				error = "INVALID_ENUM";
 				break;
-			case GL_INVALID_VALUE:          
+			case GL_INVALID_VALUE:
 				error = "INVALID_VALUE";
 				break;
 			case GL_OUT_OF_MEMORY:          
