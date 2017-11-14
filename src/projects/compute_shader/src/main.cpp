@@ -113,18 +113,25 @@ private:
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		glNamedFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
+		//// Create depth buffer texture
+		//glCreateTextures(GL_TEXTURE_2D, 1, &m_depth_texture);
+		//glTextureStorage2D(m_depth_texture, 1, GL_DEPTH_COMPONENT32F, m_fbo_size, m_fbo_size);
+
+		// Attach buffers
+		glNamedFramebufferTexture(m_fbo, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
+		//glNamedFramebufferTexture(m_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
 
 		static const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
 		glNamedFramebufferDrawBuffers(m_fbo, 1, draw_buffers);
 
 
-
+		// Setup full screen quad
 		glCreateVertexArrays(1, &m_full_screen_quad_vao);
 		glBindVertexArray(m_full_screen_quad_vao);
 
-		// Setup what is neccesary for the full screen quad
 		m_full_screen_quad_shader = Shader{ "../assets/shaders/full_screen_quad.vert", "../assets/shaders/full_screen_quad.frag" };
+		
+
 	}
 
 	virtual void render(double current_time)
@@ -132,7 +139,7 @@ private:
 		// Setup cube framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 		//check_gl_error();
-		std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
+		//std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
 		glViewport(0, 0, m_fbo_size, m_fbo_size);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		//glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
@@ -153,21 +160,21 @@ private:
 			glDrawArrays(GL_TRIANGLES, 0, m_vertices_per_cube);
 		}
 
-		//// Setup default framebuffer
-		//glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		//glViewport(0, 0, m_info.window_width, m_info.window_height);
-		//glClearBufferfv(GL_COLOR, 0, m_clear_color);
-		////glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-		////glEnable(GL_DEPTH_TEST);
-		////glDepthFunc(GL_LEQUAL);
-		//
-		////glBindTextureUnit(0, m_color_texture);
-		//glBindTexture(GL_TEXTURE_2D, m_color_texture);
+		// Setup default framebuffer
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, m_info.window_width, m_info.window_height);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		//glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+		//glEnable(GL_DEPTH_TEST);
+		//glDepthFunc(GL_LEQUAL);
+		
+		//glBindTextureUnit(0, m_color_texture);
+		glBindTexture(GL_TEXTURE_2D, m_color_texture);
 
-		//// Render FBO
-		//m_full_screen_quad_shader.use();
-		//glBindVertexArray(m_full_screen_quad_vao);
-		//glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		// Render FBO
+		m_full_screen_quad_shader.use();
+		glBindVertexArray(m_full_screen_quad_vao);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	};
 
 	// Member variables
@@ -178,6 +185,7 @@ private:
 	GLuint m_cube_vbo;
 	GLuint m_fbo;
 	GLuint m_color_texture;
+	GLuint m_depth_texture;
 	GLuint m_temp_texture;
 	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
 	const GLuint m_vertices_per_cube{ 36 };

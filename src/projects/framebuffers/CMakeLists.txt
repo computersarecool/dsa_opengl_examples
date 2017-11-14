@@ -1,15 +1,16 @@
 # Name for this project
-set(PROJECT_NAME "framebuffers")
+set(PROJECT_NAME "framebuffer")
 
 # Choose the library for the final build
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
+set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BUILD_DIR}/$<CONFIG>)
 
 # Set sources
 set(PROJECTS_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src/projects)
 set(SOURCES
-  main.cpp
-  ${INCLUDE_DIR}/glad/glad.c
-  ${INCLUDE_DIR}/glm/gtc/matrix_transform.hpp
+  src/main.cpp
+  ${INCLUDE_DIR}/glad/src/glad.c
+  ${INCLUDE_DIR}/glm/glm/gtc/matrix_transform.hpp
   ${INCLUDE_DIR}/projects/base_app.h
   ${INCLUDE_DIR}/projects/shader.h
   ${INCLUDE_DIR}/projects/camera.h
@@ -18,9 +19,14 @@ set(SOURCES
   ${PROJECTS_SOURCE_DIR}/base_app/camera.cpp
   )
 
-# Use the directory name for the executable
-add_executable(${PROJECT_NAME} ${SOURCES})
 
-if(WIN32)
-  target_link_libraries(${PROJECT_NAME} ${LIB_DIR}/glfw3.lib)
+add_executable(${PROJECT_NAME} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})
+
+# Copy resources
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${PROJECT_BUILD_DIR}/)
+
+# Set correct CWD for debugger
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_BUILD_DIR}/Debug)
 endif()
