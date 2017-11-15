@@ -2,12 +2,12 @@
 
 layout (local_size_x = 1024) in;
 
-shared float shared_data[gl_WorkGroupSize.x * 2];
+shared vec3 shared_data[gl_WorkGroupSize.x * 2];
 
-layout (binding = 0, r32f) readonly uniform image2D input_image;
-layout (binding = 1, r32f) writeonly uniform image2D output_image;
+layout (binding = 0, rgba32f) readonly uniform image2D input_image;
+layout (binding = 1, rgba32f) writeonly uniform image2D output_image;
 
-void main()
+void main(void)
 {
     uint id = gl_LocalInvocationID.x;
     uint rd_id;
@@ -17,6 +17,7 @@ void main()
     ivec2 P1 = ivec2(id * 2 + 1, gl_WorkGroupID.x);
 
     const uint steps = uint(log2(gl_WorkGroupSize.x)) + 1;
+    uint step = 0;
 
     vec4 i0 = imageLoad(input_image, P0);
     vec4 i1 = imageLoad(input_image, P1);
@@ -26,8 +27,7 @@ void main()
 
     barrier();
 
-
-    for (uint step = 0; step < steps; step++)
+    for (step = 0; step < steps; step++)
     {
         mask = (1 << step) - 1;
         rd_id = ((id >> step) << (step + 1)) + mask;

@@ -61,8 +61,9 @@ private:
 
 	virtual void setup()
 	{
-		// Create shader
+		// Create shader and enable it
 		m_shader = Shader{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
+		m_shader.use();
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
@@ -102,34 +103,24 @@ private:
 		glVertexArrayAttribBinding(m_vao, normal_index, binding_index);
 
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
-		// NOTE: We are leaving the VAO bound
+		
+		// Set OpenGL State
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
 	}
 
 	virtual void render(double current_time)
 	{
-		// Set OpenGL state
+		// Set framebuffer options
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
 
-
-		// Set uniforms and draw first cube
-		m_shader.use();
+		// Set uniforms and draw cube
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
-		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
+		model_matrix = glm::rotate(model_matrix, static_cast<float>(current_time), m_world_up);
 		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
 		m_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
-		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
-
-
-		// Set uniforms and draw second cube
-		glm::mat4 model_matrix2{ glm::mat4{ 1.0 } };
-		model_matrix2 = glm::translate(model_matrix2, glm::vec3{ 1.25f, 2.0f, 0.0f });
-		model_matrix2 = glm::rotate(model_matrix2, static_cast<GLfloat>(current_time), m_world_up);
-		model_matrix2 = glm::scale(model_matrix2, glm::vec3{ 0.5f });
-		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix2);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
 
@@ -145,7 +136,7 @@ private:
 
 int main(int argc, char* argv[])
 {
-    Application* my_app = new BasicCubeExample;
-	my_app->run();
-	delete my_app;
+    Application* app = new BasicCubeExample;
+	app->run();
+	delete app;
 }

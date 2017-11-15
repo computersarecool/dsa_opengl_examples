@@ -7,7 +7,7 @@
 #include "compute_shader.h"
 
 
-ComputeShader::ComputeShader(const GLchar* path)
+ComputeShader::ComputeShader(const char* path)
 {
 	// Retrieve the source code from file path
 	std::string shader_code;
@@ -93,7 +93,7 @@ void ComputeShader::set_mat4(const std::string &name, glm::mat4 value) const
 	glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-GLvoid ComputeShader::check_compile_errors(GLuint ComputeShader, std::string type)
+void ComputeShader::check_compile_errors(GLuint ComputeShader, std::string type)
 {
 	const GLint log_length{ 1024 };
 	GLchar info_log[log_length];

@@ -23,5 +23,5 @@ public:
 
 private:
 	GLuint m_id;
-	void check_compile_errors(unsigned int ComputeShader, std::string type);
+	void check_compile_errors(GLuint ComputeShader, std::string type);
 };

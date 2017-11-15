@@ -1,9 +1,8 @@
-﻿// A basic cube example
-# include <iostream>
-#include "glm/glm/gtc/matrix_transform.hpp"
+﻿#include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
 #include "shader.h"
+#include "compute_shader.h"
 #include "camera.h"
 
 // Cube: First three are positions, second three are normals
@@ -51,13 +50,13 @@ const GLfloat vertices[]{
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
 
-class BasicCubeExample : public Application
+class ComputeShaderExample : public Application
 {
 private:
 	virtual void set_info()
 	{
 		Application::set_info();
-		m_info.title = "Basic cube example";
+		m_info.title = "Compute shader example";
 	}
 
 	virtual void setup()
@@ -109,42 +108,45 @@ private:
 
 		// Create the color texture for the framebuffer
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_color_texture);
-		glTextureStorage2D(m_color_texture, 1, GL_RGB8, m_fbo_size, m_fbo_size);
+		glTextureStorage2D(m_color_texture, 1, GL_RGB32F, m_fbo_size, m_fbo_size);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		//// Create depth buffer texture
-		//glCreateTextures(GL_TEXTURE_2D, 1, &m_depth_texture);
-		//glTextureStorage2D(m_depth_texture, 1, GL_DEPTH_COMPONENT32F, m_fbo_size, m_fbo_size);
+		// Create depth buffer texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_depth_texture);
+		glTextureStorage2D(m_depth_texture, 1, GL_DEPTH_COMPONENT32F, m_fbo_size, m_fbo_size);
 
 		// Attach buffers
 		glNamedFramebufferTexture(m_fbo, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
-		//glNamedFramebufferTexture(m_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
+		glNamedFramebufferTexture(m_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
 
 		static const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
 		glNamedFramebufferDrawBuffers(m_fbo, 1, draw_buffers);
 
-
 		// Setup full screen quad
+		m_full_screen_quad_shader = Shader{ "../assets/shaders/full_screen_quad.vert", "../assets/shaders/full_screen_quad.frag" };
 		glCreateVertexArrays(1, &m_full_screen_quad_vao);
 		glBindVertexArray(m_full_screen_quad_vao);
 
-		m_full_screen_quad_shader = Shader{ "../assets/shaders/full_screen_quad.vert", "../assets/shaders/full_screen_quad.frag" };
-		
 
+		// Setup compute shader
+		m_compute_shader = ComputeShader{ "../assets/shaders/shader.comp" };
+
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_temp_texture);
+		glTextureStorage2D(m_temp_texture, 1, GL_RGB32F, m_fbo_size, m_fbo_size);
+		glTextureParameteri(m_temp_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_temp_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	}
 
 	virtual void render(double current_time)
 	{
-		// Setup cube framebuffer
+		// Draw cube
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-		//check_gl_error();
-		//std::cout << glCheckFramebufferStatus(GL_FRAMEBUFFER) << std::endl;
 		glViewport(0, 0, m_fbo_size, m_fbo_size);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
-		//glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-		//glEnable(GL_DEPTH_TEST);
-		//glDepthFunc(GL_LEQUAL);
+		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
 
 		// Render cubes
 		glBindVertexArray(m_cube_vao);
@@ -160,26 +162,43 @@ private:
 			glDrawArrays(GL_TRIANGLES, 0, m_vertices_per_cube);
 		}
 
+		// Compute shader
+		m_compute_shader.use();
+		
+		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+		glBindImageTexture(1, m_temp_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+		glDispatchCompute(m_info.window_height, 1, 1);
+
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+		glBindImageTexture(0, m_temp_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+		glBindImageTexture(1, m_color_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+
+		glDispatchCompute(m_info.window_height, 1, 1);
+
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+
 		// Setup default framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
-		//glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-		//glEnable(GL_DEPTH_TEST);
-		//glDepthFunc(GL_LEQUAL);
+		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
 		
-		//glBindTextureUnit(0, m_color_texture);
-		glBindTexture(GL_TEXTURE_2D, m_color_texture);
+		glBindTextureUnit(0, m_color_texture);
 
 		// Render FBO
 		m_full_screen_quad_shader.use();
 		glBindVertexArray(m_full_screen_quad_vao);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		check_gl_error();
 	};
 
 	// Member variables
 	Shader m_cube_shader;
 	Shader m_full_screen_quad_shader;
+	ComputeShader m_compute_shader;
 	GLuint m_cube_vao;
 	GLuint m_full_screen_quad_vao;
 	GLuint m_cube_vbo;
@@ -193,11 +212,12 @@ private:
 	const int m_fbo_size{ 800 };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
+	const GLfloat m_depth_reset_val{ 1.0f };
 };
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new BasicCubeExample;
+	Application* my_app = new ComputeShaderExample;
 	my_app->run();
 	delete my_app;
 }

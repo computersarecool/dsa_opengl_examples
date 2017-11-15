@@ -27,3 +27,8 @@ target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})
 
 # Copy resources
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${PROJECT_BUILD_DIR}/)
+
+# Set correct CWD for debugger
+if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${PROJECT_BUILD_DIR}/${CMAKE_CFG_INTDIR})
+endif()

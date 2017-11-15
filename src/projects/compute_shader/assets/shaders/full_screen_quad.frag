@@ -10,7 +10,8 @@ layout (location = 0) out vec4 fragColor;
 void main()
 {
     vec4 color = texelFetch(input_image, ivec2(gl_FragCoord.xy), 0).rgba;
-    fragColor = vec4(color.rgb + vec3(0.5), 1.0);
+    //fragColor = vec4(color.rgb, 1.0);
+    fragColor = color;
 
 //    // s will be used to scale our texture coordinates before looking up data in our SAT image.
 //    vec2 s = 1.0 / textureSize(input_image, 0);
