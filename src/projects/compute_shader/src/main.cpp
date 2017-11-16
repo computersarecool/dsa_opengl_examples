@@ -1,4 +1,5 @@
-﻿#include "glm/glm/gtc/matrix_transform.hpp"
+﻿// Compute shader example
+#include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
 #include "shader.h"
@@ -59,11 +60,15 @@ private:
 		m_info.title = "Compute shader example";
 	}
 
-	virtual void setup()
+	void load_shaders()
 	{
-		// Setup what is neccesary to draw the cubes
 		m_cube_shader = Shader{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
+		m_full_screen_quad_shader = Shader{ "../assets/shaders/full_screen_quad.vert", "../assets/shaders/full_screen_quad.frag" };
+		m_compute_shader = ComputeShader{ "../assets/shaders/shader.comp" };
+	}
 
+	void setup_cube()
+	{
 		// Vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
 		const GLuint position_index{ 0 };
@@ -102,55 +107,62 @@ private:
 		glVertexArrayAttribBinding(m_cube_vao, normal_index, binding_index);
 
 		glVertexArrayVertexBuffer(m_cube_vao, binding_index, m_cube_vbo, offset, element_stride);
+	}
+
+	virtual void setup()
+	{
+		load_shaders();
+		setup_cube();
 
 		// Create framebuffer
-		glCreateFramebuffers(1, &m_fbo);
-
-		// Create the color texture for the framebuffer
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_color_texture);
-		glTextureStorage2D(m_color_texture, 1, GL_RGB32F, m_fbo_size, m_fbo_size);
-		glTextureParameteri(m_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glCreateFramebuffers(1, &m_depth_fbo);
 
 		// Create depth buffer texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_depth_texture);
-		glTextureStorage2D(m_depth_texture, 1, GL_DEPTH_COMPONENT32F, m_fbo_size, m_fbo_size);
+		glTextureStorage2D(m_depth_texture, 10, GL_DEPTH_COMPONENT32F, m_depth_fbo_size, m_depth_fbo_size);
 
-		// Attach buffers
-		glNamedFramebufferTexture(m_fbo, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
-		glNamedFramebufferTexture(m_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
+		glTextureParameteri(m_depth_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_depth_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		// Create the color texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_color_texture);
+		glTextureStorage2D(m_color_texture, 1, GL_RGB32F, m_depth_fbo_size, m_depth_fbo_size);
+		glTextureParameteri(m_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		static const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
-		glNamedFramebufferDrawBuffers(m_fbo, 1, draw_buffers);
-
-		// Setup full screen quad
-		m_full_screen_quad_shader = Shader{ "../assets/shaders/full_screen_quad.vert", "../assets/shaders/full_screen_quad.frag" };
-		glCreateVertexArrays(1, &m_full_screen_quad_vao);
-		glBindVertexArray(m_full_screen_quad_vao);
-
-
-		// Setup compute shader
-		m_compute_shader = ComputeShader{ "../assets/shaders/shader.comp" };
-
+		// Create temp texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_temp_texture);
-		glTextureStorage2D(m_temp_texture, 1, GL_RGB32F, m_fbo_size, m_fbo_size);
+		glTextureStorage2D(m_temp_texture, 1, GL_RGB32F, m_depth_fbo_size, m_depth_fbo_size);
 		glTextureParameteri(m_temp_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_temp_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// Attach buffer textures
+		glNamedFramebufferTexture(m_depth_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
+		glNamedFramebufferTexture(m_depth_fbo, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glEnable(GL_DEPTH_TEST);
+
+		// Setup and bind full screen quad VAO
+		glCreateVertexArrays(1, &m_full_screen_quad_vao);
+		glBindVertexArray(m_full_screen_quad_vao);
 	}
 
 	virtual void render(double current_time)
 	{
-		// Draw cube
-		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
-		glViewport(0, 0, m_fbo_size, m_fbo_size);
+		static const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
+
+		// Render scene
+		glEnable(GL_DEPTH_TEST);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_depth_fbo);
+		glNamedFramebufferDrawBuffers(m_depth_fbo, 1, draw_buffers);
+		glViewport(0, 0, m_depth_fbo_size, m_depth_fbo_size);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
 
-		// Render cubes
-		glBindVertexArray(m_cube_vao);
 		m_cube_shader.use();
+		glBindVertexArray(m_cube_vao);
+		
 		for (int i = 0; i < m_number_cubes; i++)
 		{
 			glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
@@ -162,34 +174,30 @@ private:
 			glDrawArrays(GL_TRIANGLES, 0, m_vertices_per_cube);
 		}
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 		// Compute shader
 		m_compute_shader.use();
-		
 		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 		glBindImageTexture(1, m_temp_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-		glDispatchCompute(m_info.window_height, 1, 1);
+		glDispatchCompute(m_info.window_width, 1, 1);
 
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
 		glBindImageTexture(0, m_temp_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 		glBindImageTexture(1, m_color_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-		glDispatchCompute(m_info.window_height, 1, 1);
+		glDispatchCompute(m_info.window_width, 1, 1);
 
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-
-		// Setup default framebuffer
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
-		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
-		
-		glBindTextureUnit(0, m_color_texture);
-
-		// Render FBO
+		// Display
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, m_color_texture);
+		glDisable(GL_DEPTH_TEST);
 		m_full_screen_quad_shader.use();
+		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glBindVertexArray(m_full_screen_quad_vao);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		check_gl_error();
@@ -202,14 +210,14 @@ private:
 	GLuint m_cube_vao;
 	GLuint m_full_screen_quad_vao;
 	GLuint m_cube_vbo;
-	GLuint m_fbo;
+	GLuint m_depth_fbo;
 	GLuint m_color_texture;
 	GLuint m_depth_texture;
 	GLuint m_temp_texture;
 	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
 	const GLuint m_vertices_per_cube{ 36 };
 	const int m_number_cubes{ 9 };
-	const int m_fbo_size{ 800 };
+	const int m_depth_fbo_size{ 800 };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 	const GLfloat m_depth_reset_val{ 1.0f };

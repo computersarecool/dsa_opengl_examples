@@ -36,16 +36,20 @@ ComputeShader::ComputeShader(const char* path)
 	const GLchar* compute_shader_code = shader_code.c_str();
 
 
-	// Compile shader and fragment ComputeShaders
-	GLuint shader;
-	shader = glCreateShader(GL_COMPUTE_SHADER);
-	glShaderSource(shader, 1, &compute_shader_code, nullptr);
-	glCompileShader(shader);
-	check_compile_errors(shader, "Compute Shader");
+	// Compile shader
+	GLuint compute_shader;
+	compute_shader = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(compute_shader, 1, &compute_shader_code, nullptr);
+	glCompileShader(compute_shader);
+	check_compile_errors(compute_shader, "Compute Shader");
 	
-	// Delete the shader as it is linked into our program now and no longer necessery
-	glDeleteShader(shader);
+	m_id = glCreateProgram();
+	glAttachShader(m_id, compute_shader);
+	glLinkProgram(m_id);
+	check_compile_errors(m_id, "PROGRAM");
 
+	// Delete the shader as it is linked into our program now and no longer necessery
+	glDeleteShader(compute_shader);
 }
 
 void ComputeShader::use()

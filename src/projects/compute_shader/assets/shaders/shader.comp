@@ -1,13 +1,13 @@
 #version 440 core
 
-layout (local_size_x = 1024) in;
+layout (local_size_x = 800) in;
 
 shared vec3 shared_data[gl_WorkGroupSize.x * 2];
 
 layout (binding = 0, rgba32f) readonly uniform image2D input_image;
 layout (binding = 1, rgba32f) writeonly uniform image2D output_image;
 
-void main(void)
+void main()
 {
     uint id = gl_LocalInvocationID.x;
     uint rd_id;
@@ -37,6 +37,10 @@ void main(void)
 
         barrier();
     }
+
+//    imageStore(output_image, ivec2(id, 400), vec4(1.0, 0.0, 1.0, 1.0));
+//    imageStore(output_image, ivec2(id, 500), vec4(1.0, 0.0, 1.0, 1.0));
+
 
     imageStore(output_image, P0.yx, vec4(shared_data[P0.x], i0.a));
     imageStore(output_image, P1.yx, vec4(shared_data[P1.x], i1.a));
