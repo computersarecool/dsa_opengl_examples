@@ -146,6 +146,7 @@ private:
 		// Setup and bind full screen quad VAO
 		glCreateVertexArrays(1, &m_full_screen_quad_vao);
 		glBindVertexArray(m_full_screen_quad_vao);
+		check_gl_error();
 	}
 
 	virtual void render(double current_time)
@@ -159,7 +160,7 @@ private:
 		glViewport(0, 0, m_depth_fbo_size, m_depth_fbo_size);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
-
+		check_gl_error();
 		m_cube_shader.use();
 		glBindVertexArray(m_cube_vao);
 		
@@ -175,32 +176,22 @@ private:
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		check_gl_error();
 
 		// Compute shader
 		m_compute_shader.use();
 		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 		glBindImageTexture(1, m_temp_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 
-		glDispatchCompute(m_info.window_width, 1, 1);
+		glDispatchCompute(m_info.window_width / 32, m_info.window_height / 32, 1);
 
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
+		// Full screen quad
 		glBindImageTexture(0, m_temp_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-		glBindImageTexture(1, m_color_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
-		glDispatchCompute(m_info.window_width, 1, 1);
-
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
-		// Display
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, m_color_texture);
 		glDisable(GL_DEPTH_TEST);
 		m_full_screen_quad_shader.use();
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glBindVertexArray(m_full_screen_quad_vao);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		check_gl_error();
 	};
 
 	// Member variables
