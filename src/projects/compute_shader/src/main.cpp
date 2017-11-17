@@ -92,11 +92,9 @@ private:
 		glCreateBuffers(1, &m_cube_vbo);
 		glNamedBufferStorage(m_cube_vbo, sizeof(vertices), vertices, flags);
 
-		// Setup and bind a VAO
+		// Setup cube VAO
 		glCreateVertexArrays(1, &m_cube_vao);
-		glBindVertexArray(m_cube_vao);
-
-		// Set attributes in the VAO
+		
 		glEnableVertexArrayAttrib(m_cube_vao, position_index);
 		glEnableVertexArrayAttrib(m_cube_vao, normal_index);
 
@@ -109,60 +107,56 @@ private:
 		glVertexArrayVertexBuffer(m_cube_vao, binding_index, m_cube_vbo, offset, element_stride);
 	}
 
-	virtual void setup()
+	void setup_textures_and_buffers()
 	{
-		load_shaders();
-		setup_cube();
+		// Create a framebuffer
+		const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
+		glCreateFramebuffers(1, &m_src_fbo);
+		glNamedFramebufferDrawBuffers(m_src_fbo, 1, draw_buffers);
 
-		// Create framebuffer
-		glCreateFramebuffers(1, &m_depth_fbo);
-
-		// Create depth buffer texture
+		// Create depth texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_depth_texture);
-		glTextureStorage2D(m_depth_texture, 10, GL_DEPTH_COMPONENT32F, m_depth_fbo_size, m_depth_fbo_size);
-
+		glTextureStorage2D(m_depth_texture, 10, GL_DEPTH_COMPONENT32F, m_src_fbo_size, m_src_fbo_size);
 		glTextureParameteri(m_depth_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_depth_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		
+
 		// Create the color texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_color_texture);
-		glTextureStorage2D(m_color_texture, 1, GL_RGB32F, m_depth_fbo_size, m_depth_fbo_size);
+		glTextureStorage2D(m_color_texture, 1, GL_RGBA32F, m_src_fbo_size, m_src_fbo_size);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Create temp texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_temp_texture);
-		glTextureStorage2D(m_temp_texture, 1, GL_RGB32F, m_depth_fbo_size, m_depth_fbo_size);
+		glTextureStorage2D(m_temp_texture, 1, GL_RGBA32F, m_src_fbo_size, m_src_fbo_size);
 		glTextureParameteri(m_temp_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_temp_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		// Attach buffer textures
-		glNamedFramebufferTexture(m_depth_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
-		glNamedFramebufferTexture(m_depth_fbo, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
+		// Attach textures
+		glNamedFramebufferTexture(m_src_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
+		glNamedFramebufferTexture(m_src_fbo, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glEnable(GL_DEPTH_TEST);
-
-		// Setup and bind full screen quad VAO
+		// Setup full screen quad VAO
 		glCreateVertexArrays(1, &m_full_screen_quad_vao);
-		glBindVertexArray(m_full_screen_quad_vao);
-		check_gl_error();
+	}
+
+	virtual void setup()
+	{
+		load_shaders();
+		setup_cube();
+		setup_textures_and_buffers();
 	}
 
 	virtual void render(double current_time)
 	{
-		static const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
-
-		// Render scene
-		glEnable(GL_DEPTH_TEST);
-		glBindFramebuffer(GL_FRAMEBUFFER, m_depth_fbo);
-		glNamedFramebufferDrawBuffers(m_depth_fbo, 1, draw_buffers);
-		glViewport(0, 0, m_depth_fbo_size, m_depth_fbo_size);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
-		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
-		check_gl_error();
+		// Draw scene
 		m_cube_shader.use();
 		glBindVertexArray(m_cube_vao);
+		glBindFramebuffer(GL_FRAMEBUFFER, m_src_fbo);
+		glViewport(0, 0, m_src_fbo_size, m_src_fbo_size);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
+		glEnable(GL_DEPTH_TEST);
 		
 		for (int i = 0; i < m_number_cubes; i++)
 		{
@@ -175,23 +169,21 @@ private:
 			glDrawArrays(GL_TRIANGLES, 0, m_vertices_per_cube);
 		}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		check_gl_error();
-
 		// Compute shader
 		m_compute_shader.use();
 		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 		glBindImageTexture(1, m_temp_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-
 		glDispatchCompute(m_info.window_width / 32, m_info.window_height / 32, 1);
 
-		// Full screen quad
-		glBindImageTexture(0, m_temp_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-		glDisable(GL_DEPTH_TEST);
+		// Draw full screen quad
 		m_full_screen_quad_shader.use();
-		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glBindVertexArray(m_full_screen_quad_vao);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glViewport(0, 0, m_info.window_width, m_info.window_height);
+		glBindTextureUnit(0, m_temp_texture);
+		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		check_gl_error();
 	};
 
 	// Member variables
@@ -201,14 +193,14 @@ private:
 	GLuint m_cube_vao;
 	GLuint m_full_screen_quad_vao;
 	GLuint m_cube_vbo;
-	GLuint m_depth_fbo;
+	GLuint m_src_fbo;
 	GLuint m_color_texture;
 	GLuint m_depth_texture;
 	GLuint m_temp_texture;
 	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
 	const GLuint m_vertices_per_cube{ 36 };
 	const int m_number_cubes{ 9 };
-	const int m_depth_fbo_size{ 800 };
+	const int m_src_fbo_size{ 800 };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 	const GLfloat m_depth_reset_val{ 1.0f };

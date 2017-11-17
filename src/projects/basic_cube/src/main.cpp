@@ -111,7 +111,7 @@ private:
 
 	virtual void render(double current_time)
 	{
-		// Set framebuffer options
+		// Set framebuffer settings
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);

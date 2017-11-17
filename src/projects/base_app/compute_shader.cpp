@@ -110,7 +110,9 @@ void ComputeShader::check_compile_errors(GLuint ComputeShader, std::string type)
 		{
 			glGetProgramInfoLog(ComputeShader, log_length, nullptr, info_log);
 			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << info_log << "\n ---- " << std::endl;
+			throw;
 		}
+		
 	}
 	else
 	{
@@ -119,6 +121,7 @@ void ComputeShader::check_compile_errors(GLuint ComputeShader, std::string type)
 		{
 			glGetShaderInfoLog(ComputeShader, log_length, nullptr, info_log);
 			std::cout << "ERROR::ComputeShader_COMPILATION_ERROR of type: " << type << "\n" << info_log << "\n ---- " << std::endl;
+			throw;
 		}
 	}
 }
