@@ -7,7 +7,7 @@ These are a collection of examples of modern OpenGL (i.e. using DSA). Many are m
 
 ### Project layout
 - `.cpp` files for the examples are in `src/projects`
-- Header files are in `include` (those specific for the exaples are in) `include/projects`
+- Header files are in `include` (those specific for the exaples are in `include/projects`)
 
 #### Dependencies
 - `cmake` (to build)
