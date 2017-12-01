@@ -42,6 +42,8 @@ The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 2017 Win6
 - Uniform blocks
 - Shader storage blocks
 - Atomic counters
+- Texture views
+- Texture compression
 - Image load / store
 - Shader subroutines
 - Seperable shaders
