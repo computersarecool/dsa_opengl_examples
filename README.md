@@ -6,11 +6,11 @@
 These are a collection of examples that I am making while reading The OpenGL Superbible (7th Edition). Many are minimum working examples.
 
 #### Dependencies
+- `cmake` (to build)
 
 ##### Included as submodules:
 - `glfw`
 - `glm`
-- `cmake`
 
 ##### Included as a snapshot:
 - `glad` (a loader for OpenGL `4.4`)
@@ -19,8 +19,9 @@ Thanks to the package authors for their work!
 
 ### To build and use:
 This project uses CMAKE to build. First update all the submodules with `git submodule update --init --recursive`.
+
 Then `cd` into the `build` directory and type `cmake -G "${GENERATOR_TYPE}"`.
-The `${GENERATOR_TYPES}` tested are `Visual Studio 15 2017 Win64` and KDevelop (which reads the CMAKE file directly / no generator needed)
+The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 2017 Win64` as KDevelop reads the CMAKE file directly and no generator is needed.
 
 ### Things to do
 - Fix `geometry shader quad`
