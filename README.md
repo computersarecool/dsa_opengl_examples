@@ -5,6 +5,10 @@
 ### Overview
 These are a collection of examples of modern OpenGL (i.e. using DSA). Many are minimum working examples.
 
+### Project layout
+- `.cpp` files for the examples are in `src/projects`
+- Header files are in `include` (those specific for the exaples are in) `include/projects`
+
 #### Dependencies
 - `cmake` (to build)
 
@@ -26,13 +30,11 @@ This project uses CMAKE to build.
 The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 2017 Win64` as KDevelop reads the CMAKE file directly and no generator is needed.
 
 ### Things to do
-- Fix `geometry shader quad`
-- Make one media folder for all examples
-- Make load image a function (a good example of this is the displacement map tesselation)
-- Make setting up a texture a function (a good example of this is the displacement map tesselation)
+- Make a media folder for examples
+- Make load image a function (a good example of where this is needed is the displacement map tesselation project)
+- Make setting up a texture a function (a good example of this is the displacement map tesselation project)
 - Remove duplicate code in `shader.cpp`
 - Fix the wrong direction normals in the normal viewer example (winding order)
-- Improve Bezier tesselation example
 - Add descriptions to all examples
 
 ### Examples to add
