@@ -53,6 +53,7 @@ The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 2017 Win6
 - Instancing
 - Indirect drawing
 - Primitive restart
+- Transform feedback
 - User defined clipping
 - Different streams in geometry shaders
 - Adjacent primitive types
