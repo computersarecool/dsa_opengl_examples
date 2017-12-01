@@ -126,11 +126,11 @@ private:
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		// Create temp texture
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_temp_texture);
-		glTextureStorage2D(m_temp_texture, 1, GL_RGBA32F, m_src_fbo_size, m_src_fbo_size);
-		glTextureParameteri(m_temp_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTextureParameteri(m_temp_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		// Create the second color texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_second_color_texture);
+		glTextureStorage2D(m_second_color_texture, 1, GL_RGBA32F, m_src_fbo_size, m_src_fbo_size);
+		glTextureParameteri(m_second_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTextureParameteri(m_second_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Attach textures
 		glNamedFramebufferTexture(m_src_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
@@ -149,7 +149,7 @@ private:
 
 	virtual void render(double current_time)
 	{
-		// Draw scene
+		// Draw scene into the src fbo
 		m_cube_shader.use();
 		glBindVertexArray(m_cube_vao);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_src_fbo);
@@ -172,7 +172,7 @@ private:
 		// Compute shader
 		m_compute_shader.use();
 		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
-		glBindImageTexture(1, m_temp_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+		glBindImageTexture(1, m_second_color_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 		glDispatchCompute(m_info.window_width / 32, m_info.window_height / 32, 1);
 
 		// Draw full screen quad
@@ -180,10 +180,9 @@ private:
 		glBindVertexArray(m_full_screen_quad_vao);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glBindTextureUnit(0, m_temp_texture);
+		glBindTextureUnit(0, m_second_color_texture);
 		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		check_gl_error();
 	};
 
 	// Member variables
@@ -196,7 +195,7 @@ private:
 	GLuint m_src_fbo;
 	GLuint m_color_texture;
 	GLuint m_depth_texture;
-	GLuint m_temp_texture;
+	GLuint m_second_color_texture;
 	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
 	const GLuint m_vertices_per_cube{ 36 };
 	const int m_number_cubes{ 9 };

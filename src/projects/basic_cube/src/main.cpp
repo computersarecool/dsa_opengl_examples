@@ -61,7 +61,7 @@ private:
 
 	virtual void setup()
 	{
-		// Create shader and enable it
+		// Create shader and use it
 		m_shader = Shader{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
 		m_shader.use();
 
