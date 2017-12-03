@@ -5,18 +5,16 @@ project("opengl_examples")
 
 # Compiler settings
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  # GNU compiler settings
   # Wall: Enable all warnings about constructors
   # Wextra: Enable some extra warnings
   # Werror: Treat all warnings as errors
   #  set(warnings "-Wall -Wextra -Werror")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  # Visual C++ (Microsoft)
   # W4: Show the most warnings
   # WX: Treat all warnings as errors
   # EHsc: Only emit code for exception filters when detected that the code in the try {} block might throw a C++ exception
-#  set(warnings "/W4 /WX /EHsc")
-#  set(CMAKE_CONFIGURATION_TYPES Debug Release)
+  set(warnings "/W4 /EHsc")
+  set(CMAKE_CONFIGURATION_TYPES Debug Release)
 endif()
 
 # Set warnings
