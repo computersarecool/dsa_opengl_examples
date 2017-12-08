@@ -2,7 +2,7 @@
 #include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 // Cube: First three are positions, second three are normals
@@ -62,7 +62,7 @@ private:
 	virtual void setup()
 	{
 		// Create shader and use it
-		m_shader = Shader{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
+		m_shader = GlslProgram{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
 		m_shader.use();
 
 		// Cube vertex attribute parameters
@@ -125,7 +125,7 @@ private:
 	};
 
 	// Member variables
-	Shader m_shader;
+	GlslProgram m_shader;
 	GLuint m_vao;
 	GLuint m_vbo;
 	Camera m_camera{ glm::vec3{0, 0, 5} };

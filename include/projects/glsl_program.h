@@ -5,11 +5,11 @@
 #include "glad/glad.h"
 #include "glm/glm/glm.hpp"
 
-class Shader
+class GlslProgram
 {
 public:	
-	Shader() {};
-	Shader(const char* vertex_shader_path, const char* fragment_shader_path, const char* tess_control_shader_path = "", const char* tess_eval_shader_path = "", const char* geom_char_path = "");
+	GlslProgram() {};
+	GlslProgram(const char* vertex_shader_path, const char* fragment_shader_path, const char* tess_control_shader_path = "", const char* tess_eval_shader_path = "", const char* geom_char_path = "");
 
 	void use();
 	void set_bool(const std::string &name, GLboolean value) const;
@@ -23,5 +23,6 @@ public:
 
 private:
 	GLuint m_id;
-	void check_compile_errors(unsigned int shader, std::string type);
+	GLuint load_shader(const char* shader_path, GLenum shader_type);
+	void GlslProgram::check_compile_errors(unsigned int shader, const char* type);
 };

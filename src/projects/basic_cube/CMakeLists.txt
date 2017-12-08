@@ -15,7 +15,7 @@ set(SOURCES
   ${INCLUDE_DIR}/projects/shader.h
   ${INCLUDE_DIR}/projects/camera.h
   ${PROJECTS_SOURCE_DIR}/base_app/base_app.cpp
-  ${PROJECTS_SOURCE_DIR}/base_app/shader.cpp
+  ${PROJECTS_SOURCE_DIR}/base_app/glsl_program.cpp
   ${PROJECTS_SOURCE_DIR}/base_app/camera.cpp
   )
 
