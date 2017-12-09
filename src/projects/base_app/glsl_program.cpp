@@ -6,87 +6,6 @@
 
 #include "glsl_program.h"
 
-GLuint GlslProgram::load_shader(const char* shader_path, GLenum shader_type)
-{
-	std::string shader_string;
-	std::ifstream shader_file;
-	shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-
-	try
-	{
-		// Convert GLSL file into a std::string
-		shader_file.open(shader_path);
-		std::stringstream shader_string_stream;
-		shader_string_stream << shader_file.rdbuf();
-		shader_file.close();
-		shader_string = shader_string_stream.str();
-	}
-	catch (std::ifstream::failure e)
-	{
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ::PATH" << shader_path << std::endl;
-		throw;
-	}
-
-	const GLchar* shader_code = shader_string.c_str();
-
-	// Compile the shader
-	GLuint shader_handle{ 0 };
-	shader_handle = glCreateShader(shader_type);
-	glShaderSource(shader_handle, 1, &shader_code, nullptr);
-	glCompileShader(shader_handle);
-	GlslProgram::check_compile_errors(shader_handle, shader_path);
-	return shader_handle;
-}
-
-GlslProgram::GlslProgram(const char* vertex_shader_path, const char* fragment_shader_path, const char* tess_control_shader_path, const char* tess_eval_shader_path, const char* geom_shader_path)
-{
-	// Vertex and fragment shaders
-	GLuint vertex_shader = load_shader(vertex_shader_path, GL_VERTEX_SHADER);
-	GLuint fragment_shader = load_shader(fragment_shader_path, GL_FRAGMENT_SHADER);
-
-	// Tesselation shaders
-	GLuint tess_control_shader{ 0 };
-	GLuint tess_eval_shader{ 0 };
-	if (strlen(tess_control_shader_path))
-	{
-		tess_control_shader = load_shader(tess_control_shader_path, GL_TESS_CONTROL_SHADER);
-		tess_eval_shader = load_shader(tess_eval_shader_path, GL_TESS_EVALUATION_SHADER);
-	}
-
-	// Geometry shader
-	GLuint geometry_shader{ 0 };
-	if (strlen(geom_shader_path))
-	{
-		tess_control_shader = load_shader(tess_control_shader_path, GL_GEOMETRY_SHADER);
-	}
-
-	// Create and link the GLSL program
-	m_id = glCreateProgram();
-	glAttachShader(m_id, vertex_shader);
-	glAttachShader(m_id, fragment_shader);
-
-	if (tess_control_shader)
-	{
-		glAttachShader(m_id, tess_control_shader);
-		glAttachShader(m_id, tess_eval_shader);
-	}
-
-	if (geometry_shader)
-	{
-		glAttachShader(m_id, geometry_shader);
-	}
-
-	glLinkProgram(m_id);
-	check_compile_errors(m_id, "PROGRAM");
-
-	// Delete the shaders
-	glDeleteShader(vertex_shader);
-	glDeleteShader(fragment_shader);
-	glDeleteShader(tess_control_shader);
-	glDeleteShader(tess_eval_shader);
-	glDeleteShader(geometry_shader);
-}
-
 void GlslProgram::use()
 {
 	glUseProgram(m_id);
@@ -132,19 +51,164 @@ void GlslProgram::set_mat4(const std::string &name, glm::mat4 value) const
 	glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void GlslProgram::check_compile_errors(unsigned int shader, const char* type_or_path)
+// GlslProgram::Format Public
+GlslProgram::Format& GlslProgram::Format::vertex(const char* shader_path)
+{
+	m_vertex_shader = load_shader(shader_path);
+	return *this;
+}
+
+GlslProgram::Format& GlslProgram::Format::tess_control(const char* shader_path)
+{
+	m_tess_control_shader = load_shader(shader_path);
+	return *this;
+}
+
+GlslProgram::Format& GlslProgram::Format::tess_eval(const char* shader_path)
+{
+	m_tess_eval_shader = load_shader(shader_path);
+	return *this;
+}
+
+GlslProgram::Format& GlslProgram::Format::geometry(const char* shader_path)
+{
+	m_geometry_shader = load_shader(shader_path);
+	return *this;
+}
+
+GlslProgram::Format& GlslProgram::Format::fragment(const char* shader_path)
+{
+	m_fragment_shader = load_shader(shader_path);
+	return *this;
+}
+
+GlslProgram::Format& GlslProgram::Format::compute(const char* shader_path)
+{
+	m_compute_shader = load_shader(shader_path);
+	return *this;
+}
+
+// GlslProgram::Format Private
+std::string GlslProgram::Format::load_shader(const char* shader_path)
+{
+	std::ifstream shader_file;
+	shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+
+	try
+	{
+		// Convert file contents into a std::string
+		shader_file.open(shader_path);
+		std::stringstream shader_string_stream;
+		shader_string_stream << shader_file.rdbuf();
+		shader_file.close();
+		return shader_string_stream.str();
+	}
+	catch (std::ifstream::failure e)
+	{
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ::PATH" << shader_path << std::endl;
+		throw;
+	}
+}
+
+GlslProgram::GlslProgram(const Format& format)
+{
+	m_id = glCreateProgram();
+	GLuint vertex_shader_handle = compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER);
+	GLuint tess_control_shader_handle = compile_shader(format.m_tess_control_shader, GL_TESS_CONTROL_SHADER);
+	GLuint tess_eval_shader_handle = compile_shader(format.m_tess_eval_shader, GL_TESS_EVALUATION_SHADER);
+	GLuint geometry_shader_handle = compile_shader(format.m_geometry_shader, GL_GEOMETRY_SHADER);
+	GLuint fragment_shader_handle = compile_shader(format.m_fragment_shader, GL_FRAGMENT_SHADER);
+	GLuint compute_shader_handle = compile_shader(format.m_compute_shader, GL_COMPUTE_SHADER);
+
+	if (vertex_shader_handle)
+	{
+		glAttachShader(m_id, vertex_shader_handle);
+	}
+	if (tess_control_shader_handle)
+	{
+		glAttachShader(m_id, tess_control_shader_handle);
+	}
+	if (tess_eval_shader_handle)
+	{
+		glAttachShader(m_id, tess_eval_shader_handle);
+	}
+	if (geometry_shader_handle)
+	{
+		glAttachShader(m_id, geometry_shader_handle);
+	}
+	if (fragment_shader_handle)
+	{
+		glAttachShader(m_id, fragment_shader_handle);
+	}
+	if (compute_shader_handle)
+	{
+		glAttachShader(m_id, compute_shader_handle);
+	}
+	
+	glLinkProgram(m_id);
+	check_compile_errors(m_id, GL_SHADER);
+
+	if (vertex_shader_handle)
+	{
+		glDetachShader(m_id, vertex_shader_handle);
+		glDeleteShader(vertex_shader_handle);
+	}
+	if (tess_control_shader_handle)
+	{
+		glDetachShader(m_id, tess_control_shader_handle);
+		glDeleteShader(tess_control_shader_handle);
+	}
+	if (tess_eval_shader_handle)
+	{
+		glDetachShader(m_id, tess_eval_shader_handle);
+		glDeleteShader(vertex_shader_handle);
+	}
+	if (geometry_shader_handle)
+	{
+		glDetachShader(m_id, vertex_shader_handle);
+		glDeleteShader(vertex_shader_handle);
+	}
+	if (fragment_shader_handle)
+	{
+		glDetachShader(m_id, vertex_shader_handle);
+		glDeleteShader(vertex_shader_handle);
+	}
+	if (compute_shader_handle)
+	{
+		glDetachShader(m_id, vertex_shader_handle);
+		glDeleteShader(vertex_shader_handle);
+	}
+}
+
+GLuint GlslProgram::compile_shader(std::string shader_string, GLenum shader_type)
+{
+	GLuint shader_handle{ 0 };
+
+	if (!shader_string.empty())
+	{
+		const char* shader_c_string = shader_string.c_str();
+		shader_handle = glCreateShader(shader_type);
+		glShaderSource(shader_handle, 1, &shader_c_string, nullptr);
+		glCompileShader(shader_handle);
+		GlslProgram::check_compile_errors(shader_handle, shader_type);
+	}
+
+	return shader_handle;
+}
+
+void GlslProgram::check_compile_errors(GLuint shader, GLenum program_or_shader_type)
 {
 	GLint success;
 	const GLuint log_length{ 1024 };
 	GLchar info_log[log_length];
 
-	if (type_or_path == "PROGRAM")
+	if (program_or_shader_type == GL_SHADER)
 	{
 		glGetProgramiv(shader, GL_LINK_STATUS, &success);
 		if (!success)
 		{
 			glGetProgramInfoLog(shader, log_length, nullptr, info_log);
-			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type_or_path << "\n" << info_log << std::endl;
+			std::cout << "ERROR::PROGRAM_LINKING_ERROR: " << program_or_shader_type << "\n" << info_log << std::endl;
 		}
 	}
 	else
@@ -153,7 +217,7 @@ void GlslProgram::check_compile_errors(unsigned int shader, const char* type_or_
 		if (!success)
 		{
 			glGetShaderInfoLog(shader, log_length, nullptr, info_log);
-			std::cout << "ERROR::SHADER_COMPILATION_ERROR at path: " << type_or_path << "\n" << info_log << std::endl;
+			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << program_or_shader_type << "\n" << info_log << std::endl;
 		}
 	}
 }

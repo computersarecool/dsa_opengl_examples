@@ -62,7 +62,7 @@ private:
 	virtual void setup()
 	{
 		// Create shader and use it
-		m_shader = GlslProgram{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
+		m_shader = GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")};
 		m_shader.use();
 
 		// Cube vertex attribute parameters

@@ -7,10 +7,7 @@
 
 class GlslProgram
 {
-public:	
-	GlslProgram() {};
-	GlslProgram(const char* vertex_shader_path, const char* fragment_shader_path, const char* tess_control_shader_path = "", const char* tess_eval_shader_path = "", const char* geom_char_path = "");
-
+public:
 	void use();
 	void set_bool(const std::string &name, GLboolean value) const;
 	void set_int(const std::string &name, GLuint value) const;
@@ -21,8 +18,31 @@ public:
 	void set_mat4(const std::string &name, glm::mat4 value) const;
 	void set_mat3(const std::string &name, glm::mat3 value) const;
 
+	class Format {
+	public:
+		Format& vertex(const char* shader_path);
+		Format& tess_control(const char* shader_path);
+		Format& tess_eval(const char* shader_path);
+		Format& geometry(const char* shader_path);
+		Format& fragment(const char* shader_path);
+		Format& compute(const char* shader_path);
+
+		std::string m_vertex_shader{};
+		std::string m_tess_control_shader{};
+		std::string m_tess_eval_shader{};
+		std::string m_geometry_shader{};
+		std::string m_fragment_shader{};
+		std::string m_compute_shader{};
+
+	private:
+		std::string load_shader(const char* shader_path);
+	};
+	
+	GlslProgram() {};
+	GlslProgram(const Format& format);
+
 private:
 	GLuint m_id;
-	GLuint load_shader(const char* shader_path, GLenum shader_type);
-	void GlslProgram::check_compile_errors(unsigned int shader, const char* type);
+	GLuint compile_shader(std::string shader_string, GLenum program_or_shader_type);
+	void check_compile_errors(GLuint shader, GLenum type);
 };
