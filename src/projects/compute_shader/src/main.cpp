@@ -2,8 +2,7 @@
 #include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
-#include "shader.h"
-#include "compute_shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 // Cube: First three are positions, second three are normals
@@ -62,9 +61,9 @@ private:
 
 	void load_shaders()
 	{
-		m_cube_shader = Shader{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
-		m_full_screen_quad_shader = Shader{ "../assets/shaders/full_screen_quad.vert", "../assets/shaders/full_screen_quad.frag" };
-		m_compute_shader = ComputeShader{ "../assets/shaders/shader.comp" };
+		m_cube_shader = GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") };
+		m_full_screen_quad_shader = GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/full_screen_quad.vert").fragment("../assets/shaders/full_screen_quad.frag") };
+		m_compute_shader = GlslProgram{ GlslProgram::Format().compute("../assets/shaders/shader.comp") };
 	}
 
 	void setup_cube()
@@ -164,8 +163,8 @@ private:
 			model_matrix = glm::translate(model_matrix, glm::vec3{ -1.5, 0, 0 });
 			model_matrix = glm::translate(model_matrix, glm::vec3{i, static_cast<float>(i) / 5, i * -2 });
 			model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
-			m_cube_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-			m_cube_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
+			m_cube_shader.uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
+			m_cube_shader.uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 			glDrawArrays(GL_TRIANGLES, 0, m_vertices_per_cube);
 		}
 
@@ -186,9 +185,9 @@ private:
 	};
 
 	// Member variables
-	Shader m_cube_shader;
-	Shader m_full_screen_quad_shader;
-	ComputeShader m_compute_shader;
+	GlslProgram m_cube_shader;
+	GlslProgram m_full_screen_quad_shader;
+	GlslProgram m_compute_shader;
 	GLuint m_cube_vao;
 	GLuint m_full_screen_quad_vao;
 	GLuint m_cube_vbo;

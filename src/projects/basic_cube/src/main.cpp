@@ -119,8 +119,8 @@ private:
 		// Set uniforms and draw cube
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 		model_matrix = glm::rotate(model_matrix, static_cast<float>(current_time), m_world_up);
-		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-		m_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader.uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
+		m_shader.uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
 

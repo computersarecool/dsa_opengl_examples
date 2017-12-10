@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "glad/glad.h"
 #include "glm/glm/glm.hpp"
@@ -9,14 +10,14 @@ class GlslProgram
 {
 public:
 	void use();
-	void set_bool(const std::string &name, GLboolean value) const;
-	void set_int(const std::string &name, GLuint value) const;
-	void set_float(const std::string &name, GLfloat value) const;
-	void set_vec2(const std::string &name, glm::vec2 vec2) const;
-	void set_vec3(const std::string &name, glm::vec3 vec3) const;
-	void set_vec4(const std::string &name, glm::vec4 vec4) const;
-	void set_mat4(const std::string &name, glm::mat4 value) const;
-	void set_mat3(const std::string &name, glm::mat3 value) const;
+	void uniform(const GLchar* name, const GLboolean value) const;
+	void uniform(const GLchar* name, const GLuint value) const;
+	void uniform(const GLchar* name, const GLfloat value) const;
+	void uniform(const GLchar* name, const glm::vec2 value) const;
+	void uniform(const GLchar* name, const glm::vec3 value) const;
+	void uniform(const GLchar* name, const glm::vec4 value) const;
+	void uniform(const GLchar* name, const glm::mat3 value) const;
+	void uniform(const GLchar* name, const glm::mat4 value) const;
 
 	class Format {
 	public:
@@ -33,16 +34,17 @@ public:
 		std::string m_geometry_shader{};
 		std::string m_fragment_shader{};
 		std::string m_compute_shader{};
-
+	
 	private:
 		std::string load_shader(const char* shader_path);
 	};
-	
+
 	GlslProgram() {};
-	GlslProgram(const Format& format);
+	GlslProgram(const Format& format, const bool separable = false);
 
 private:
-	GLuint m_id;
-	GLuint compile_shader(std::string shader_string, GLenum program_or_shader_type);
-	void check_compile_errors(GLuint shader, GLenum type);
+	GLuint m_handle;
+	std::vector<GLuint> m_shader_handles;
+	void compile_shader(const std::string shader_string, const GLenum shader_type);
+	void check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type);
 };
