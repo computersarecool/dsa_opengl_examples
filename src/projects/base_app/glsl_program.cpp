@@ -6,52 +6,6 @@
 
 #include "glsl_program.h"
 
-//GlslProgram Public
-void GlslProgram::use()
-{
-	glUseProgram(m_handle);
-}
-
-void GlslProgram::uniform(const GLchar* name, const GLboolean value) const
-{
-	glUniform1i(glGetUniformLocation(m_handle, name), value);
-}
-
-void GlslProgram::uniform(const GLchar* name, const GLuint value) const
-{
-	glUniform1i(glGetUniformLocation(m_handle, name), value);
-}
-
-void GlslProgram::uniform(const GLchar* name, const GLfloat value) const
-{
-	glUniform1f(glGetUniformLocation(m_handle, name), value);
-}
-
-void GlslProgram::uniform(const GLchar* name, const glm::vec2 vec2) const
-{
-	glUniform2f(glGetUniformLocation(m_handle, name), vec2.x, vec2.y);
-}
-
-void GlslProgram::uniform(const GLchar* name, const glm::vec3 vec3) const
-{
-	glUniform3f(glGetUniformLocation(m_handle, name), vec3.x, vec3.y, vec3.z);
-}
-
-void GlslProgram::uniform(const GLchar* name, const glm::vec4 vec4) const
-{
-	glUniform4f(glGetUniformLocation(m_handle, name), vec4.x, vec4.y, vec4.z, vec4.w);
-}
-
-void GlslProgram::uniform(const GLchar* name, const glm::mat3 value) const
-{
-	glUniformMatrix3fv(glGetUniformLocation(m_handle, name), 1, GL_FALSE, glm::value_ptr(value));
-}
-
-void GlslProgram::uniform(const GLchar* name, const glm::mat4 value) const
-{
-	glUniformMatrix4fv(glGetUniformLocation(m_handle, name), 1, GL_FALSE, glm::value_ptr(value));
-}
-
 // GlslProgram::Format Public
 GlslProgram::Format& GlslProgram::Format::vertex(const char* shader_path)
 {
@@ -109,6 +63,52 @@ std::string GlslProgram::Format::load_shader(const char* shader_path)
 		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ::PATH" << shader_path << std::endl;
 		throw;
 	}
+}
+
+//GlslProgram Public
+void GlslProgram::use() const
+{
+	glUseProgram(m_handle);
+}
+
+void GlslProgram::uniform(const GLchar* name, const GLboolean value) const
+{
+	glUniform1i(glGetUniformLocation(m_handle, name), value);
+}
+
+void GlslProgram::uniform(const GLchar* name, const GLuint value) const
+{
+	glUniform1i(glGetUniformLocation(m_handle, name), value);
+}
+
+void GlslProgram::uniform(const GLchar* name, const GLfloat value) const
+{
+	glUniform1f(glGetUniformLocation(m_handle, name), value);
+}
+
+void GlslProgram::uniform(const GLchar* name, const glm::vec2 vec2) const
+{
+	glUniform2f(glGetUniformLocation(m_handle, name), vec2.x, vec2.y);
+}
+
+void GlslProgram::uniform(const GLchar* name, const glm::vec3 vec3) const
+{
+	glUniform3f(glGetUniformLocation(m_handle, name), vec3.x, vec3.y, vec3.z);
+}
+
+void GlslProgram::uniform(const GLchar* name, const glm::vec4 vec4) const
+{
+	glUniform4f(glGetUniformLocation(m_handle, name), vec4.x, vec4.y, vec4.z, vec4.w);
+}
+
+void GlslProgram::uniform(const GLchar* name, const glm::mat3 value) const
+{
+	glUniformMatrix3fv(glGetUniformLocation(m_handle, name), 1, GL_FALSE, glm::value_ptr(value));
+}
+
+void GlslProgram::uniform(const GLchar* name, const glm::mat4 value) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(m_handle, name), 1, GL_FALSE, glm::value_ptr(value));
 }
 
 // GlslProgram Constructor

@@ -30,27 +30,30 @@ enum class Camera_Movement {
 class Camera
 {
 public:
+	void set_position(const GLfloat x, const GLfloat y, const GLfloat z);
+	void process_keyboard(const Camera_Movement direction, const GLfloat delta_time);
+	void process_mouse_movement(GLfloat x_offset, GLfloat y_offset, const GLboolean constrain_pitch = true);
+	void process_mouse_scroll(const GLfloat y_offset);
+	glm::mat4 get_view_matrix() const;
+	glm::mat4 get_proj_matrix() const;
+	glm::vec3 get_pos() const;
+	glm::vec3 get_front() const;
+
 	Camera(glm::vec3 position = initial_origin, glm::vec3 front = initial_front, glm::vec3 up = initial_up, GLfloat yaw = initial_yaw, GLfloat pitch = initial_pitch, GLfloat speed = initial_speed, GLfloat zoom = maximum_zoom, GLfloat sensitivity = initial_sensitivity);
 	Camera(GLfloat pos_x, GLfloat pos_y, GLfloat pos_z, GLfloat up_x = initial_up.x, GLfloat up_y = initial_up.y, GLfloat up_z = initial_up.z, GLfloat yaw = initial_yaw, GLfloat pitch = initial_pitch);
-	void set_position(GLfloat x, GLfloat y, GLfloat z);
-	void process_keyboard(Camera_Movement direction, GLfloat delta_time);
-	void process_mouse_movement(GLfloat x_offset, GLfloat y_offset, GLboolean constrain_pitch = true);
-	void process_mouse_scroll(GLfloat y_offset);
-	glm::mat4 get_view_matrix();
-	glm::mat4 get_proj_matrix();
-	glm::vec3 get_pos();
-	glm::vec3 get_front();
 
 private:
-	void update_camera_vectors();
+	GLfloat m_yaw;
+	GLfloat m_pitch;
+	GLfloat m_movement_speed;
+	GLfloat m_zoom;
+	GLfloat m_mouse_sensitivity;
 	glm::vec3 m_position;
 	glm::vec3 m_front;
 	glm::vec3 m_up;
 	glm::vec3 m_right;
 	glm::vec3 m_world_up;
-	GLfloat m_yaw;
-	GLfloat m_pitch;
-    GLfloat m_movement_speed;
-    GLfloat m_zoom;
-	GLfloat m_mouse_sensitivity;
+	const GLfloat m_near_plane{ 0.1f };
+	const GLfloat m_far_plane{ 1000.0f };
+	void update_camera_vectors();
 };
