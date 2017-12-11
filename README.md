@@ -22,7 +22,7 @@ These are a collection of examples of modern OpenGL (i.e. using DSA). Many are m
 Thanks to the package authors for their work! 👏
 
 ### To build and use:
-This project uses CMAKE to build.
+This project has been tested on Linux and Windows. It uses CMAKE to build.
 
 - Update all the submodules with `git submodule update --init --recursive`.
 - `cd` into the `build` directory and type `cmake -G "${GENERATOR_TYPE}"`.
