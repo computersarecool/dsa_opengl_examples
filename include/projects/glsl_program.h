@@ -44,7 +44,7 @@ public:
 
 private:
 	GLuint m_handle;
-	std::vector<GLuint> m_shader_handles;
-	void compile_shader(const std::string shader_string, const GLenum shader_type);
+	GLuint compile_shader(const std::string shader_string, const GLenum shader_type);
+	void introspect() const;
 	void check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type);
 };

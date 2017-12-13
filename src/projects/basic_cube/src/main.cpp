@@ -61,7 +61,7 @@ private:
 
 	virtual void setup()
 	{
-		// Create shader and use it
+		// Create and use member shader
 		m_shader = GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") };
 		m_shader.use();
 
@@ -125,9 +125,9 @@ private:
 	};
 
 	// Member variables
-	GlslProgram m_shader;
 	GLuint m_vao;
 	GLuint m_vbo;
+	GlslProgram m_shader;
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };

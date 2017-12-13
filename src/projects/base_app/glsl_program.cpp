@@ -1,6 +1,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <string>
 
 #include "glm/glm/gtc/type_ptr.hpp"
 
@@ -116,16 +117,17 @@ GlslProgram::GlslProgram(const Format& format, const bool separable)
 {
 	m_handle = glCreateProgram();
 
-	// Add all active shader handles to the shader_handles vector
-	compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER);
-	compile_shader(format.m_tess_control_shader, GL_TESS_CONTROL_SHADER);
-	compile_shader(format.m_tess_eval_shader, GL_TESS_EVALUATION_SHADER);
-	compile_shader(format.m_geometry_shader, GL_GEOMETRY_SHADER);
-	compile_shader(format.m_fragment_shader, GL_FRAGMENT_SHADER);
-	compile_shader(format.m_compute_shader, GL_COMPUTE_SHADER);
+	// Add all active shader handles to a vector
+	std::vector<GLuint> shader_handles;
+	shader_handles.push_back(compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER));
+	shader_handles.push_back(compile_shader(format.m_tess_control_shader, GL_TESS_CONTROL_SHADER));
+	shader_handles.push_back(compile_shader(format.m_tess_eval_shader, GL_TESS_EVALUATION_SHADER));
+	shader_handles.push_back(compile_shader(format.m_geometry_shader, GL_GEOMETRY_SHADER));
+	shader_handles.push_back(compile_shader(format.m_fragment_shader, GL_FRAGMENT_SHADER));
+	shader_handles.push_back(compile_shader(format.m_compute_shader, GL_COMPUTE_SHADER));
 
 	// Attach all shader handles to program
-	for (GLuint shader_handle : m_shader_handles)
+	for (GLuint shader_handle : shader_handles)
 	{
 		glAttachShader(m_handle, shader_handle);
 	}
@@ -140,15 +142,17 @@ GlslProgram::GlslProgram(const Format& format, const bool separable)
 	check_compile_errors(m_handle, GL_SHADER);
 
 	// Detach and delete all shader handles
-	for (GLuint shader_handle : m_shader_handles)
+	for (GLuint shader_handle : shader_handles)
 	{
 		glDetachShader(m_handle, shader_handle);
 		glDeleteShader(shader_handle);
 	}
+	// TODO:
+	introspect();
 }
 
 // GlslProgram Private
-void GlslProgram::compile_shader(const std::string shader_string, const GLenum shader_type)
+GLuint GlslProgram::compile_shader(const std::string shader_string, const GLenum shader_type)
 {
 	GLuint shader_handle{ 0 };
 
@@ -161,9 +165,24 @@ void GlslProgram::compile_shader(const std::string shader_string, const GLenum s
 		GlslProgram::check_compile_errors(shader_handle, shader_type);
 	}
 
-	if (shader_handle)
+	return shader_handle;
+}
+
+void GlslProgram::introspect() const
+{
+	const int max_name_length{ 64 };
+	const int num_parameters{ 2 };
+	GLint num_outputs{ 0 };
+	glGetProgramInterfaceiv(m_handle, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &num_outputs);
+	
+	static const GLenum properties[]{ GL_TYPE, GL_LOCATION };
+	GLint params[num_parameters];
+	GLchar name[max_name_length];
+	for (int index = 0; index < num_outputs; ++index)
 	{
-		m_shader_handles.push_back(shader_handle);
+		glGetProgramResourceName(m_handle, GL_PROGRAM_OUTPUT, index, sizeof(name), nullptr, name);
+		glGetProgramResourceiv(m_handle, GL_PROGRAM_OUTPUT, index, num_parameters, properties, num_parameters, nullptr, params);
+		std::cout << "Index: " << index << " is type: " << params[0] << " is named: " << name << " is at location: " << params[1] << std::endl;
 	}
 }
 
