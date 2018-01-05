@@ -147,12 +147,13 @@ GlslProgram::GlslProgram(const Format& format, const bool separable)
 		glDetachShader(m_handle, shader_handle);
 		glDeleteShader(shader_handle);
 	}
+
 	// TODO:
 	introspect();
 }
 
 // GlslProgram Private
-GLuint GlslProgram::compile_shader(const std::string shader_string, const GLenum shader_type)
+GLuint GlslProgram::compile_shader(const std::string shader_string, const GLenum shader_type) const
 {
 	GLuint shader_handle{ 0 };
 
@@ -186,7 +187,7 @@ void GlslProgram::introspect() const
 	}
 }
 
-void GlslProgram::check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type)
+void GlslProgram::check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type) const
 {
 	GLint success;
 	const GLuint log_length{ 1024 };
@@ -201,6 +202,7 @@ void GlslProgram::check_compile_errors(const GLuint program_or_shader, const GLe
 			std::cout << "ERROR::PROGRAM_LINKING_ERROR: " << program_or_shader_type << "\n" << info_log << std::endl;
 		}
 	}
+
 	else
 	{
 		glGetShaderiv(program_or_shader, GL_COMPILE_STATUS, &success);

@@ -18,6 +18,7 @@ public:
 		Format& fragment(const char* shader_path);
 		Format& compute(const char* shader_path);
 
+		// TODO: Make optional
 		std::string m_vertex_shader;
 		std::string m_tess_control_shader;
 		std::string m_tess_eval_shader;
@@ -39,12 +40,11 @@ public:
 	void uniform(const GLchar* name, const glm::mat3 value) const;
 	void uniform(const GLchar* name, const glm::mat4 value) const;
 
-	GlslProgram() {};
 	GlslProgram(const Format& format, const bool separable = false);
 
 private:
 	GLuint m_handle;
-	GLuint compile_shader(const std::string shader_string, const GLenum shader_type);
+	GLuint compile_shader(const std::string shader_string, const GLenum shader_type) const;
 	void introspect() const;
-	void check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type);
+	void check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type) const;
 };
