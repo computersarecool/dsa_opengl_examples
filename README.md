@@ -3,14 +3,14 @@
 *Examples of modern OpenGL*
 
 ### Overview
-These are a collection of examples of modern OpenGL (i.e. using DSA). Many are minimum working examples.
+These are a collection of examples of modern OpenGL (i.e. using DSA).
 
 ### Project layout
-- `.cpp` files for the examples are in `src/projects`
 - Header files are in `include` (those specific to the exaples are in `include/projects`)
+- `.cpp` files for the examples are in `src/projects`
 
 #### Dependencies
-- `cmake` (to build)
+- `cmake` (for building)
 
 ##### Included as submodules:
 - `glfw`
