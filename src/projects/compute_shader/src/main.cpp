@@ -1,4 +1,6 @@
 ﻿// Compute shader example
+#include <memory>
+
 #include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
@@ -61,9 +63,9 @@ private:
 
 	void load_shaders()
 	{
-		m_cube_shader = GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") };
-		m_full_screen_quad_shader = GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/full_screen_quad.vert").fragment("../assets/shaders/full_screen_quad.frag") };
-		m_compute_shader = GlslProgram{ GlslProgram::Format().compute("../assets/shaders/shader.comp") };
+		m_cube_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") });
+		m_full_screen_quad_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/full_screen_quad.vert").fragment("../assets/shaders/full_screen_quad.frag") });
+		m_compute_shader.reset(new GlslProgram{ GlslProgram::Format().compute("../assets/shaders/shader.comp") });
 	}
 
 	void setup_cube()
@@ -149,7 +151,7 @@ private:
 	virtual void render(double current_time)
 	{
 		// Draw scene into the src fbo
-		m_cube_shader.use();
+		m_cube_shader->use();
 		glBindVertexArray(m_cube_vao);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_src_fbo);
 		glViewport(0, 0, m_src_fbo_size, m_src_fbo_size);
@@ -163,19 +165,19 @@ private:
 			model_matrix = glm::translate(model_matrix, glm::vec3{ -1.5, 0, 0 });
 			model_matrix = glm::translate(model_matrix, glm::vec3{i, static_cast<float>(i) / 5, i * -2 });
 			model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
-			m_cube_shader.uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-			m_cube_shader.uniform("uProjectionMatrix", m_camera.get_proj_matrix());
+			m_cube_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
+			m_cube_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 			glDrawArrays(GL_TRIANGLES, 0, m_vertices_per_cube);
 		}
 
 		// Compute shader
-		m_compute_shader.use();
+		m_compute_shader->use();
 		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 		glBindImageTexture(1, m_second_color_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
 		glDispatchCompute(m_info.window_width / 32, m_info.window_height / 32, 1);
 
 		// Draw full screen quad
-		m_full_screen_quad_shader.use();
+		m_full_screen_quad_shader->use();
 		glBindVertexArray(m_full_screen_quad_vao);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
@@ -185,9 +187,9 @@ private:
 	};
 
 	// Member variables
-	GlslProgram m_cube_shader;
-	GlslProgram m_full_screen_quad_shader;
-	GlslProgram m_compute_shader;
+	std::unique_ptr<GlslProgram> m_cube_shader;
+	std::unique_ptr<GlslProgram> m_full_screen_quad_shader;
+	std::unique_ptr<GlslProgram> m_compute_shader;
 	GLuint m_cube_vao;
 	GLuint m_full_screen_quad_vao;
 	GLuint m_cube_vbo;
@@ -206,7 +208,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new ComputeShaderExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new ComputeShaderExample };
+	app->run();
 }
