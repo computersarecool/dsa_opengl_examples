@@ -30,10 +30,10 @@ enum class Camera_Movement {
 class Camera
 {
 public:
-	void set_position(const GLfloat x, const GLfloat y, const GLfloat z);
-	void process_keyboard(const Camera_Movement direction, const GLfloat delta_time);
-	void process_mouse_movement(GLfloat x_offset, GLfloat y_offset, const GLboolean constrain_pitch = true);
-	void process_mouse_scroll(const GLfloat y_offset);
+	void set_position(GLfloat x, GLfloat y, GLfloat z);
+	void process_keyboard(Camera_Movement direction, GLfloat delta_time);
+	void process_mouse_movement(GLfloat x_offset, GLfloat y_offset, GLboolean constrain_pitch = true);
+	void process_mouse_scroll(GLfloat y_offset);
 	glm::mat4 get_view_matrix() const;
 	glm::mat4 get_proj_matrix() const;
 	glm::vec3 get_pos() const;

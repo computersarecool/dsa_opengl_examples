@@ -3,7 +3,7 @@
 #include "camera.h"
 
 // Camera public
-void Camera::set_position(const GLfloat x, const GLfloat y, const GLfloat z)
+void Camera::set_position(GLfloat x, GLfloat y, GLfloat z)
 {
 	m_position.x = x;
 	m_position.y = y;
@@ -32,7 +32,7 @@ void Camera::process_keyboard(Camera_Movement direction, GLfloat delta_time)
 	}
 }
 
-void Camera::process_mouse_movement(GLfloat x_offset, GLfloat y_offset, const GLboolean constrain_pitch)
+void Camera::process_mouse_movement(GLfloat x_offset, GLfloat y_offset, GLboolean constrain_pitch)
 {
 	x_offset *= m_mouse_sensitivity;
 	y_offset *= m_mouse_sensitivity;
@@ -51,7 +51,7 @@ void Camera::process_mouse_movement(GLfloat x_offset, GLfloat y_offset, const GL
 	update_camera_vectors();
 }
 
-void Camera::process_mouse_scroll(const GLfloat y_offset)
+void Camera::process_mouse_scroll(GLfloat y_offset)
 {
 	if (m_zoom >= minimum_zoom && m_zoom <= maximum_zoom)
 		m_zoom -= y_offset;
