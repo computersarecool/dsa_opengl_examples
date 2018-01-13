@@ -8,7 +8,7 @@
 #include "camera.h"
 
 // Cube: First three are positions, second three are normals
-static const GLfloat vertices[]{
+const GLfloat vertices[]{
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,

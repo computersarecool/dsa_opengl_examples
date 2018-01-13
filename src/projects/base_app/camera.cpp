@@ -44,6 +44,7 @@ void Camera::process_mouse_movement(GLfloat x_offset, GLfloat y_offset, GLboolea
 	{
 		if (m_pitch > maximum_pitch)
 			m_pitch = maximum_pitch;
+
 		else if (m_pitch < minimum_pitch)
 			m_pitch = minimum_pitch;
 	}
@@ -55,13 +56,15 @@ void Camera::process_mouse_scroll(GLfloat y_offset)
 {
 	if (m_zoom >= minimum_zoom && m_zoom <= maximum_zoom)
 		m_zoom -= y_offset;
+
 	else if (m_zoom <= minimum_zoom)
 		m_zoom = minimum_zoom;
+	
 	else if (m_zoom >= maximum_zoom)
 		m_zoom = maximum_zoom;
 }
 
-Camera::Camera(glm::vec3 position, glm::vec3 front, glm::vec3 up, GLfloat yaw, GLfloat pitch, GLfloat speed, GLfloat zoom, GLfloat sensitivity) :
+Camera::Camera(const glm::vec3& position, const glm::vec3& front, const glm::vec3& up, GLfloat yaw, GLfloat pitch, GLfloat speed, GLfloat zoom, GLfloat sensitivity) :
 	m_position{ position }, m_front{ front }, m_world_up{ up }, m_yaw{ yaw }, m_pitch{ pitch }, m_movement_speed{ speed }, m_zoom{ zoom }, m_mouse_sensitivity{ sensitivity }
 {
 	update_camera_vectors();

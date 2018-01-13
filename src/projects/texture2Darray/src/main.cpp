@@ -1,11 +1,12 @@
 ﻿// Array texture example
 #include <iostream>
+#include <memory>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "stb/stb_image.h"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 
 // Random number generator
 static unsigned int seed = 0x13371337;
@@ -30,29 +31,26 @@ private:
 	virtual void setup()
 	{
 		// Load shader
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/simple_quad.vert").c_str(), (this_path + "/shaders/simple_quad.frag").c_str() };
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("/shaders/simple_quad.frag") });
 
 		// Create and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
 		glBindVertexArray(m_vao);
 
 		// Make a 2d array texture
-		GLuint texture;
-		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &texture);
+		GLuint texture_array;
+		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &texture_array);
 
-		for (GLint i = 0; i < m_num_squares; i++)
+		for (GLint i{ 0 }; i < m_num_billboards; i++)
 		{
 			// Get image path
-			std::string base_path = (this_path + "/assets/array/");
-			base_path += std::to_string(i);
-			base_path += ".jpg";
+			std::string image_path{ m_image_base_path + std::to_string(i) + ".jpg" };
 
 			// Load the image
 			GLint width;
 			GLint height;
 			GLint nr_channels;
-			GLubyte* data = stbi_load(base_path.c_str(), &width, &height, &nr_channels, 0);
+			GLubyte* data = stbi_load(image_path.c_str(), &width, &height, &nr_channels, 0);
 			if (!data)
 			{
 				std::cout << "Failed to load texture" << std::endl;
@@ -61,17 +59,17 @@ private:
 			// Use first image to set texture storage parameters
 			if (!i)
 			{
-				glTextureStorage3D(texture, 1, GL_RGB8, width, height, m_num_squares);
+				glTextureStorage3D(texture_array, 1, GL_RGB8, width, height, m_num_billboards);
 			}
-			
-			glTextureSubImage3D(texture, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+			glTextureSubImage3D(texture_array, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 			stbi_image_free(data);
 		}
 
 		// Unnecesary if there is only one
-		glBindTextureUnit(0, texture);
+		glBindTextureUnit(0, texture_array);
 
-		// Other OpenGL settings
+		// Set OpenGL State
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -83,29 +81,28 @@ private:
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		m_shader.use();
-		for (GLuint i = 0; i < m_num_squares; i++)
+		m_shader->use();
+		for (GLuint i = 0; i < m_num_billboards; i++)
 		{
-			m_shader.set_float("index", static_cast<GLfloat>(i));
-			m_shader.set_float("offsetX", random_float() * 2.5 - 1.0);
-			m_shader.set_float("offsetY", random_float() * 2.5 - 1.0);
-			m_shader.set_float("scale", random_float() * 0.5);
+			m_shader->uniform("index", static_cast<GLfloat>(i));
+			m_shader->uniform("offsetX", static_cast<GLfloat>(random_float() * 2.5 - 1.0));
+			m_shader->uniform("offsetY", static_cast<GLfloat>(random_float() * 2.5 - 1.0));
+			m_shader->uniform("scale", static_cast<GLfloat>(random_float() * 0.5));
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 	};
 
 protected:
-	Shader m_shader;
 	GLuint m_vao;
 	GLuint m_buffer;
-	const GLuint m_num_squares{ 36 };
+	std::unique_ptr<GlslProgram> m_shader;
+	const std::string m_image_base_path{ "../assets/texture_array/" };
+	const GLuint m_num_billboards{ 4 };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 };
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new TextureArrayExample;
-	my_app->run();
-	delete my_app;
-	return 0;
+	std::unique_ptr<Application> app{ new TextureArrayExample };
+	app->run();
 }

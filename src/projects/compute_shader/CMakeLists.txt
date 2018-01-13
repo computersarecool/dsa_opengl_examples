@@ -12,7 +12,7 @@ set(SOURCES
   ${INCLUDE_DIR}/glad/src/glad.c
   ${INCLUDE_DIR}/glm/glm/gtc/matrix_transform.hpp
   ${INCLUDE_DIR}/projects/base_app.h
-  ${INCLUDE_DIR}/projects/glsl_program..h
+  ${INCLUDE_DIR}/projects/glsl_program.h
   ${INCLUDE_DIR}/projects/camera.h
   ${PROJECTS_SOURCE_DIR}/base_app/base_app.cpp
   ${PROJECTS_SOURCE_DIR}/base_app/glsl_program.cpp

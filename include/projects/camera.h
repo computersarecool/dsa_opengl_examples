@@ -1,4 +1,4 @@
-// Much taken from https://learnopengl.com/
+// Much taken from https://learnopengl.com
 
 #pragma once
 
@@ -39,7 +39,7 @@ public:
 	glm::vec3 get_pos() const;
 	glm::vec3 get_front() const;
 
-	Camera(glm::vec3 position = initial_origin, glm::vec3 front = initial_front, glm::vec3 up = initial_up, GLfloat yaw = initial_yaw, GLfloat pitch = initial_pitch, GLfloat speed = initial_speed, GLfloat zoom = maximum_zoom, GLfloat sensitivity = initial_sensitivity);
+	Camera(const glm::vec3& position = initial_origin, const glm::vec3& front = initial_front, const glm::vec3& up = initial_up, GLfloat yaw = initial_yaw, GLfloat pitch = initial_pitch, GLfloat speed = initial_speed, GLfloat zoom = maximum_zoom, GLfloat sensitivity = initial_sensitivity);
 	Camera(GLfloat pos_x, GLfloat pos_y, GLfloat pos_z, GLfloat up_x = initial_up.x, GLfloat up_y = initial_up.y, GLfloat up_z = initial_up.z, GLfloat yaw = initial_yaw, GLfloat pitch = initial_pitch);
 
 private:
