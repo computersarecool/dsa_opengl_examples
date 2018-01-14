@@ -120,7 +120,7 @@ void Application::on_key(int key, int action)
 // Function to check OpenGL errors. #defined as check_gl_error
 void Application::_check_gl_error(const char* file, int line)
 {
-	GLenum err(glGetError());
+	GLenum err{ glGetError() };
 	while (err != GL_NO_ERROR) {
 		const char* error;
 		switch (err) {

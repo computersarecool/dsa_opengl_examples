@@ -115,7 +115,7 @@ void GlslProgram::uniform(const std::string& name, const glm::mat4& value) const
 GlslProgram::GlslProgram(const Format& format, bool separable)
 {
 	m_handle = glCreateProgram();
-
+	// TODO: Make std::optional and only add valid shader sources to vector
 	// Add all active shader handles to a vector
 	std::vector<GLuint> shader_handles;
 	shader_handles.push_back(compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER));
@@ -125,10 +125,13 @@ GlslProgram::GlslProgram(const Format& format, bool separable)
 	shader_handles.push_back(compile_shader(format.m_fragment_shader, GL_FRAGMENT_SHADER));
 	shader_handles.push_back(compile_shader(format.m_compute_shader, GL_COMPUTE_SHADER));
 
-	// Attach all shader handles to program
+	// Attach all valid shader handles to program
 	for (GLuint shader_handle : shader_handles)
 	{
-		glAttachShader(m_handle, shader_handle);
+		if (shader_handle)
+		{
+			glAttachShader(m_handle, shader_handle);
+		}
 	}
 
 	// Link program
@@ -136,15 +139,18 @@ GlslProgram::GlslProgram(const Format& format, bool separable)
 	{
 		glProgramParameteri(m_handle, GL_PROGRAM_SEPARABLE, GL_TRUE);
 	}
-	
+
 	glLinkProgram(m_handle);
 	check_compile_errors(m_handle, GL_SHADER);
 
 	// Detach and delete all shader handles
 	for (GLuint shader_handle : shader_handles)
 	{
-		glDetachShader(m_handle, shader_handle);
-		glDeleteShader(shader_handle);
+		if (shader_handle)
+		{
+			glDetachShader(m_handle, shader_handle);
+			glDeleteShader(shader_handle);
+		}
 	}
 
 	introspect();

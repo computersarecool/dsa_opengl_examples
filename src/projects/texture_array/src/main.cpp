@@ -14,12 +14,14 @@ class TextureArrayExample : public Application
 private:
 	virtual void setup()
 	{
+		check_gl_error();
 		// Set and use shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("../assets/shaders/simple_quad.frag") });
 		m_shader->use();
-
+		check_gl_error();
 		// Create and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
+
 		glBindVertexArray(m_vao);
 
 		// Make a 2D array texture
@@ -45,8 +47,14 @@ private:
 			{
 				glTextureStorage3D(m_texture_array, 1, GL_RGB8, width, height, m_num_billboards);
 			}
+			
+			//glTexImage3D(target, i, internalformat, width, height, depth, 0, format, type, NULL);
 
+			//glCompressedTextureSubImage3D(m_texture_array, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 			glTextureSubImage3D(m_texture_array, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTextureParameteri(m_texture_array, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTextureParameteri(m_texture_array, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
 			stbi_image_free(data);
 		}
 
@@ -57,6 +65,7 @@ private:
 		glEnable(GL_CULL_FACE);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	}
 
 	virtual void render(double current_time)

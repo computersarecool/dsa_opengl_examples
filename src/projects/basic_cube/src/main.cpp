@@ -66,7 +66,7 @@ private:
 		// Set and use shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") });
 		m_shader->use();
-
+		check_gl_error();
 		// Cube vertex attributes
 		const GLuint elements_per_face{ 6 };
 		const GLuint position_index{ 0 };
@@ -105,7 +105,7 @@ private:
 		glVertexArrayAttribBinding(m_vao, normal_index, binding_index);
 
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
-		
+
 		// Set OpenGL State
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
@@ -117,7 +117,7 @@ private:
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-
+		
 		// Set uniforms and draw cube
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 		model_matrix = glm::rotate(model_matrix, static_cast<float>(current_time), m_world_up);
