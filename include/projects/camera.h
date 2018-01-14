@@ -6,17 +6,17 @@
 #include "glm/glm/glm.hpp"
 
 // Default initialization values
-const GLfloat initial_yaw{ -90.0f };
-const GLfloat initial_pitch{ 0.0f };
-const GLfloat initial_speed{ 2.5f };
-const GLfloat initial_sensitivity{ 0.1f };
-const GLfloat minimum_pitch{ -89.0f };
-const GLfloat maximum_pitch{ 89.0f };
-const GLfloat minimum_zoom{ 1.0f };
-const GLfloat maximum_zoom{ 45.0f };
-const glm::vec3 initial_up{ 0.0f, 1.0f, 0.0f };
-const glm::vec3 initial_origin{ 0.0f, 0.0f, 0.0f };
-const glm::vec3 initial_front{ 0.0f, 0.0f, -1.0f };
+static const GLfloat initial_yaw{ -90.0f };
+static const GLfloat initial_pitch{ 0.0f };
+static const GLfloat initial_speed{ 2.5f };
+static const GLfloat initial_sensitivity{ 0.1f };
+static const GLfloat minimum_pitch{ -89.0f };
+static const GLfloat maximum_pitch{ 89.0f };
+static const GLfloat minimum_zoom{ 1.0f };
+static const GLfloat maximum_zoom{ 45.0f };
+static const glm::vec3 initial_up{ 0.0f, 1.0f, 0.0f };
+static const glm::vec3 initial_origin{ 0.0f, 0.0f, 0.0f };
+static const glm::vec3 initial_front{ 0.0f, 0.0f, -1.0f };
 
 // Used as an abstraction of window-system specific input methods
 enum class Camera_Movement {

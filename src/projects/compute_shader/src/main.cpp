@@ -8,7 +8,7 @@
 #include "camera.h"
 
 // Cube: First three are positions, second three are normals
-const GLfloat vertices[]{
+static const GLfloat vertices[]{
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -159,7 +159,7 @@ private:
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
 		glEnable(GL_DEPTH_TEST);
 		
-		for (int i = 0; i < m_number_cubes; i++)
+		for (int i{ 0 }; i < m_number_cubes; i++)
 		{
 			glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 			model_matrix = glm::translate(model_matrix, glm::vec3{ -1.5, 0, 0 });

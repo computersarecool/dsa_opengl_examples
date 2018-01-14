@@ -1,6 +1,7 @@
 ﻿// Array texture example
 #include <iostream>
 #include <memory>
+#include <cmath>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -8,40 +9,23 @@
 #include "base_app.h"
 #include "glsl_program.h"
 
-// Random number generator
-static unsigned int seed = 0x13371337;
-static inline float random_float()
-{
-	float res;
-	unsigned int tmp;
-
-	seed *= 16807;
-
-	tmp = seed ^ (seed >> 4) ^ (seed << 15);
-
-	*((unsigned int *)&res) = (tmp >> 9) | 0x3F800000;
-
-	return (res - 1.0f);
-}
-
-
 class TextureArrayExample : public Application
 {
 private:
 	virtual void setup()
 	{
-		// Load shader
-		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("/shaders/simple_quad.frag") });
+		// Set and use shader
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("../assets/shaders/simple_quad.frag") });
+		m_shader->use();
 
 		// Create and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
 		glBindVertexArray(m_vao);
 
-		// Make a 2d array texture
-		GLuint texture_array;
-		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &texture_array);
+		// Make a 2D array texture
+		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_texture_array);
 
-		for (GLint i{ 0 }; i < m_num_billboards; i++)
+		for (int i{ 0 }; i < m_num_billboards; i++)
 		{
 			// Get image path
 			std::string image_path{ m_image_base_path + std::to_string(i) + ".jpg" };
@@ -59,15 +43,15 @@ private:
 			// Use first image to set texture storage parameters
 			if (!i)
 			{
-				glTextureStorage3D(texture_array, 1, GL_RGB8, width, height, m_num_billboards);
+				glTextureStorage3D(m_texture_array, 1, GL_RGB8, width, height, m_num_billboards);
 			}
 
-			glTextureSubImage3D(texture_array, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTextureSubImage3D(m_texture_array, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 			stbi_image_free(data);
 		}
 
-		// Unnecesary if there is only one
-		glBindTextureUnit(0, texture_array);
+		// This is also the default
+		glBindTextureUnit(0, m_texture_array);
 
 		// Set OpenGL State
 		glEnable(GL_CULL_FACE);
@@ -81,20 +65,24 @@ private:
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		m_shader->use();
-		for (GLuint i = 0; i < m_num_billboards; i++)
+		for (int i{ 0 }; i < m_num_billboards; i++)
 		{
-			m_shader->uniform("index", static_cast<GLfloat>(i));
-			m_shader->uniform("offsetX", static_cast<GLfloat>(random_float() * 2.5 - 1.0));
-			m_shader->uniform("offsetY", static_cast<GLfloat>(random_float() * 2.5 - 1.0));
-			m_shader->uniform("scale", static_cast<GLfloat>(random_float() * 0.5));
+			const GLuint index = i;
+			const GLfloat offset_x = std::fmod(current_time / 2, 3) * 2.0 - 3.0;
+			const GLfloat offset_y = 6 - index * 2.0;
+			const GLfloat scale = .1 + index / 8;
+			m_shader->uniform("imageIndex", index);
+			m_shader->uniform("offsetX", offset_x);
+			m_shader->uniform("offsetY", offset_y);
+			m_shader->uniform("scale", scale);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 	};
 
 protected:
 	GLuint m_vao;
-	GLuint m_buffer;
+	GLuint m_buffer; 
+	GLuint m_texture_array;
 	std::unique_ptr<GlslProgram> m_shader;
 	const std::string m_image_base_path{ "../assets/texture_array/" };
 	const GLuint m_num_billboards{ 4 };
