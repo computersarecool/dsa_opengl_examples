@@ -140,6 +140,6 @@ void Application::_check_gl_error(const char* file, int line)
 				error = "GL_INVALID_FRAMEBUFFER_OPERATION";
 				break;
 		}
-		std::cerr << "Error: " << err << " GL_" << error << " - " << file << ":" << line << std::endl;
+		std::cerr << "Error: " << err << " " << error << " - " << file << ":" << line << std::endl;
 	}
 }

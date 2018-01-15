@@ -66,7 +66,7 @@ private:
 		// Set and use shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") });
 		m_shader->use();
-		check_gl_error();
+
 		// Cube vertex attributes
 		const GLuint elements_per_face{ 6 };
 		const GLuint position_index{ 0 };
