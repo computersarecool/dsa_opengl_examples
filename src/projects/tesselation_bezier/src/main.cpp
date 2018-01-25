@@ -1,9 +1,9 @@
 ﻿// A bezier patch example using tesselation
-
 #include <iostream>
+#include <memory>
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 static const GLfloat vertices[]{
@@ -34,8 +34,7 @@ private:
 	virtual void setup()
 	{
 		// Create shader
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/bezier.vert").c_str(), (this_path + "/shaders/bezier.frag").c_str(), (this_path + "/shaders/bezier.tesc").c_str(),  (this_path + "/shaders/bezier.tese").c_str() };
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/bezier.vert").fragment("../assets/shaders/bezier.frag").tess_control("../assets/shaders/bezier.tesc").tess_eval("../assets/shaders/bezier.tese")});
 
 		// Vertex attribute parameters
 		const GLuint position_index{ 0 };
@@ -84,17 +83,17 @@ private:
 		}
 
 		// Set uniforms
-		m_shader.use();
+		m_shader->use();
 		m_view_matrix = m_camera.get_view_matrix();
 		m_projection_matrix = m_camera.get_proj_matrix();
-		m_shader.set_mat4("uModelViewMatrix", m_view_matrix * m_model_matrix);
-		m_shader.set_mat4("uProjectionMatrix", m_projection_matrix * m_model_matrix);
+		m_shader->uniform("uModelViewMatrix", m_view_matrix * m_model_matrix);
+		m_shader->uniform("uProjectionMatrix", m_projection_matrix * m_model_matrix);
 
 		glDrawArrays(GL_PATCHES, 0, m_vertices_per_patch);
 	};
 
 	// Member variables
-	Shader m_shader;
+	std::unique_ptr<GlslProgram> m_shader;
 	GLuint m_vao;
 	GLuint m_vbo;
 	GLboolean m_show_wireframe{ GL_FALSE };
@@ -109,7 +108,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new BezierTesselationExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new BezierTesselationExample };
+	app->run();
 }

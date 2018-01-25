@@ -1,13 +1,13 @@
 ﻿// An example that uses a displacment map to offset vertices and tesselation
-// This uses an instanced quad with vertices embedded in the shader and there are no vertex attributes
-
+// This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
 #include <iostream>
+#include <memory>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "stb/stb_image.h"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 class DisplacmentMapTesselationExample : public Application
@@ -31,8 +31,7 @@ private:
 	virtual void setup()
 	{
 		// Create shader
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/terrain_disp.vert").c_str(), (this_path + "/shaders/terrain_disp.frag").c_str(), (this_path + "/shaders/terrain_disp.tesc").c_str(),  (this_path + "/shaders/terrain_disp.tese").c_str() };
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/terrain_disp.vert").fragment("../assets/shaders/terrain_disp.frag").tess_control("../assets/shaders/terrain_disp.tesc").tess_eval("../assets/shaders/terrain_disp.tese")});
 
 		// Create and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -40,7 +39,6 @@ private:
 
 		// Load images
 		// TODO: Make this a function
-		m_displacement_map_path = (this_path + "/assets/noise.jpg");
 		GLint displacement_map_width;
 		GLint displacement_map_height;
 		GLint displacement_map_channels;
@@ -50,7 +48,7 @@ private:
 			std::cout << "Failed to load texture" << std::endl;
 		}
 
-		m_color_map_path = (this_path + "/assets/noise_brown.jpg");
+
 		GLint color_map_width;
 		GLint color_map_height;
 		GLint color_map_channels;
@@ -117,11 +115,11 @@ private:
 		m_camera.set_position(sinf(m_slow_time) * m_camera_rotation_value, m_camera_y_value, cosf(m_slow_time) * m_camera_rotation_value);
 
 		// Set uniforms in shader
-		m_shader.use();
+		m_shader->use();
 		view_matrix = m_camera.get_view_matrix();
 		proj_matrix = m_camera.get_proj_matrix();
-		m_shader.set_mat4("uModelViewProjectionMatrix", proj_matrix * view_matrix);
-		m_shader.set_float("uDisplacementWeight", displace_weight);
+		m_shader->uniform("uModelViewProjectionMatrix", proj_matrix * view_matrix);
+		m_shader->uniform("uDisplacementWeight", displace_weight);
 
 		glDrawArraysInstanced(GL_PATCHES, 0, m_vertices_per_patch, m_num_instances);
 	};
@@ -131,12 +129,12 @@ private:
 	GLfloat m_slow_time;
 	GLfloat m_camera_rotation_value;
 	GLfloat m_camera_y_value;
-	Shader m_shader;
+	std::unique_ptr<GlslProgram> m_shader;
 	GLuint m_vao;
 	GLuint m_displacement_texture;
 	GLuint m_color_texture;
-	std::string m_displacement_map_path;
-	std::string m_color_map_path;
+	const std::string m_displacement_map_path{ "../assets/images/noise.jpg"};
+	const std::string m_color_map_path{ "../assets/images/noise_color.jpg" };
 	GLboolean m_show_wireframe{ GL_FALSE };
 	const GLuint m_vertices_per_patch{ 4 };
 	const GLuint m_num_instances{ 64 * 64 };
@@ -149,7 +147,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new DisplacmentMapTesselationExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new DisplacmentMapTesselationExample };
+	app->run();
 }

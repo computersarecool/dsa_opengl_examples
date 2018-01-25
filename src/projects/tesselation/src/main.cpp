@@ -1,10 +1,11 @@
 ﻿#include <iostream>
+#include <memory>
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 
 // Three triangles
-static const GLfloat vertices[]{
+const GLfloat vertices[]{
 	-0.75, -1.0, 0,
 	0, -1.0, 0,
 	-0.75, 0, 0,
@@ -46,10 +47,9 @@ private:
 		glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &m_max_tess_level);
 
 		// Create shaders
-		std::string this_path = get_parent_directory();
-		m_shader_one = Shader{ (this_path + "/shaders/shader.vert").c_str(), (this_path + "/shaders/shader.frag").c_str(), (this_path + "/shaders/shader.tesc").c_str(),  (this_path + "/shaders/shader.tese").c_str() };
-		m_shader_two = Shader{ (this_path + "/shaders/shader.vert").c_str(), (this_path + "/shaders/shader.frag").c_str(),  (this_path + "/shaders/shader.tesc").c_str(),  (this_path + "/shaders/shader.tese").c_str() };
-		m_shader_three = Shader{ (this_path + "/shaders/shader.vert").c_str(), (this_path + "/shaders/shader.frag").c_str(),  (this_path + "/shaders/shader.tesc").c_str(), (this_path + "/shaders/shader.tese").c_str() };
+		m_shader_one.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader.tese") });
+		m_shader_two.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader2.tese") });
+		m_shader_three.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader3.tese") });
 
 		// Vertex attribute parameters
 		const GLuint attrib_index{ 0 };
@@ -83,25 +83,25 @@ private:
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		m_shader_one.use();
+		m_shader_one->use();
 		glBindVertexArray(m_vao);
-		m_shader_one.set_float("tessLevel", m_tess_level);
+		m_shader_one->uniform("tessLevel", m_tess_level);
 		glDrawArrays(GL_PATCHES, 0, m_vertices_per_face);
 
-		m_shader_two.use();
+		m_shader_two->use();
 		glBindVertexArray(m_vao);
-		m_shader_two.set_float("tessLevel", m_tess_level);
+		m_shader_two->uniform("tessLevel", m_tess_level);
 		glDrawArrays(GL_PATCHES, 3, m_vertices_per_face);
 
-		m_shader_three.use();
+		m_shader_three->use();
 		glBindVertexArray(m_vao);
-		m_shader_three.set_float("tessLevel", m_tess_level);
+		m_shader_three->uniform("tessLevel", m_tess_level);
 		glDrawArrays(GL_PATCHES, 6, m_vertices_per_face);
 	};
 
-	Shader m_shader_one;
-	Shader m_shader_two;
-	Shader m_shader_three;
+	std::unique_ptr<GlslProgram> m_shader_one;
+	std::unique_ptr<GlslProgram> m_shader_two;
+	std::unique_ptr<GlslProgram> m_shader_three;
 	GLuint m_vao;
 	GLuint m_vbo;
 	GLuint m_vertices_per_face{ 3 };
@@ -115,7 +115,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new TesselationExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new TesselationExample };
+	app->run();
 }
