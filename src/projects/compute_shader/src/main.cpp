@@ -174,7 +174,7 @@ private:
 		m_compute_shader->use();
 		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 		glBindImageTexture(1, m_second_color_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-		glDispatchCompute(m_info.window_width / 32, m_info.window_height / 32, 1);
+		glDispatchCompute(static_cast<GLuint>(m_info.window_width / 32), static_cast<GLuint>(m_info.window_height / 32), 1);
 
 		// Draw full screen quad
 		m_full_screen_quad_shader->use();

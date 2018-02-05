@@ -1,13 +1,14 @@
 ﻿// A cube geometry shader showing normals
+#include <memory>
 
-#include "glm/gtc/matrix_transform.hpp"
+#include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 // Cube: First three are positions, second three are normals
-float vertices[] {
+const GLfloat vertices[] {
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -63,9 +64,8 @@ private:
 	virtual void setup()
 	{
 		// Create shaders
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/cube.vert").c_str(), (this_path + "/shaders/cube.frag").c_str() };
-		m_normal_shader = Shader{ (this_path + "/shaders/normal_viewer.vert").c_str(), (this_path + "/shaders/normal_viewer.frag").c_str(), "", "", (this_path + "/shaders/normal_viewer.geom").c_str() };
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
+		m_normal_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/normal_viewer.vert").fragment("../assets/shaders/normal_viewer.frag").geometry("../assets/shaders/normal_viewer.geom")});
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
@@ -121,23 +121,23 @@ private:
 		m_model_matrix = glm::rotate(m_model_matrix, m_rotation_rate, m_world_up);
 
 		// Set uniforms
-		m_normal_shader.use();
-		m_normal_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
-		m_normal_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
-		m_normal_shader.set_float("uNormalLength", m_normal_length);
+		m_normal_shader->use();
+		m_normal_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
+		m_normal_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_normal_shader->uniform("uNormalLength", m_normal_length);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
-		m_shader.use();
-		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
-		m_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader->use();
+		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
+		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
 
 	// Member variables
-	Shader m_shader;
-	Shader m_normal_shader;
 	GLuint m_vao;
 	GLuint m_vbo;
+	std::unique_ptr<GlslProgram> m_shader;
+	std::unique_ptr<GlslProgram> m_normal_shader;
 	glm::mat4 m_model_matrix{ glm::mat4{1.0f } };
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
@@ -149,7 +149,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new GeometryShaderExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new GeometryShaderExample };
+	app->run();
 }

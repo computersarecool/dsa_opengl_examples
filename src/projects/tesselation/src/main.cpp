@@ -6,17 +6,17 @@
 
 // Three triangles
 const GLfloat vertices[]{
-	-0.75, -1.0, 0,
-	0, -1.0, 0,
-	-0.75, 0, 0,
+	-0.75f, -1.0f, 0,
+	0, -1.0f, 0,
+	-0.75f, 0, 0,
 
-	0.0, -1.0, 0,
-	0.75, -1.0, 0,
+	0.0, -1.0f, 0,
+	0.75, -1.0f, 0,
 	0.0, 0, 0,
 
-	-0.25, 0, 0,
+	-0.25f, 0, 0,
 	0.5, 0, 0,
-	-0.25, 1, 0
+	-0.25f, 1, 0
 };
 
 class TesselationExample : public Application
@@ -102,14 +102,14 @@ private:
 	std::unique_ptr<GlslProgram> m_shader_one;
 	std::unique_ptr<GlslProgram> m_shader_two;
 	std::unique_ptr<GlslProgram> m_shader_three;
-	GLuint m_vao;
-	GLuint m_vbo;
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };;
 	GLuint m_vertices_per_face{ 3 };
 	GLuint m_vertices_per_patch{ 3 };
 	GLfloat m_min_tess_level{ 1.0f };
 	GLfloat m_tess_level{ m_min_tess_level };
 	GLfloat m_tess_increment{ 0.05f };
-	GLint m_max_tess_level;
+	GLint m_max_tess_level { 0 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 };
 

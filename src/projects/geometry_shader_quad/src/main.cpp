@@ -1,20 +1,21 @@
 ﻿// A geometry shader quad
+#include <memory>
 
-#include "glm/gtc/matrix_transform.hpp"
+#include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 // Cube: First four are positions, second three are colors
 static const GLfloat vertices[]{
-	-0.5, -0.5, 0, 1, 1, 0, 0,
-	0.5, -0.5, 0, 1, 1, 0, 0,
-	0.5, 0.5, 0, 1, 1, 0, 0,
+	-0.5f, -0.5f, 0, 1, 1, 0, 0,
+	0.5f, -0.5f, 0, 1, 1, 0, 0,
+	0.5f, 0.5f, 0, 1, 1, 0, 0,
 
 	0.5, 0.5, 0, 1, 1, 1, 1,
-	-0.5, 0.5, 0, 1, 1, 1, 1,
-	-0.5, -0.5, 0, 1, 1, 1, 1
+	-0.5f, 0.5, 0, 1, 1, 1, 1,
+	-0.5f, -0.5f, 0, 1, 1, 1, 1
 };
 
 class GeometryShaderExample : public Application
@@ -28,9 +29,9 @@ private:
 
 	virtual void setup()
 	{
-		// Create shaders
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/quad.vert").c_str(), (this_path + "/shaders/quad.frag").c_str(), "", "", (this_path + "/shaders/quad.geom").c_str() };
+		// Create shader
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/quad.vert").fragment("../assets/shaders/quad.frag").geometry("../assets/shaders/quad.geom") });
+		m_shader->use();
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 7 };
@@ -86,20 +87,18 @@ private:
 		m_model_matrix = glm::rotate(m_model_matrix, m_rotation_rate, m_world_up);
 		
 		// Set uniforms
-		m_shader.use();
-		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
-		m_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader->use();
+		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
+		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_LINES_ADJACENCY, 0, 4);
 	};
 
 	// Member variables
-	Shader m_shader;
-	Shader m_normal_shader;
-	GLuint m_vao;
-	GLuint m_vbo;
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };
+	std::unique_ptr<GlslProgram> m_shader;
 	glm::mat4 m_model_matrix{ glm::mat4{1.0f} };
 	Camera m_camera{ glm::vec3{0, 0, 5} };
-	const GLuint m_num_triangles{ 6 };
 	const GLfloat m_normal_length{ 0.35f};
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_rotation_rate{ 0.001f };
@@ -108,7 +107,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new GeometryShaderExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new GeometryShaderExample};
+	app->run();
 }

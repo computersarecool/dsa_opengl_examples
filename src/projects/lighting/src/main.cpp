@@ -1,17 +1,16 @@
-// Standard library
+// Phong lighting example
 #include <iostream>
-#include <string>
+#include <memory>
 
-// Dependencies
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "stb/stb_image.h"
 
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_inverse.hpp"
-#include "glm/gtc/matrix_transform.hpp"
+#include "glm/glm/glm.hpp"
+#include "glm/glm/gtc/matrix_inverse.hpp"
+#include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 static const GLfloat cube_vertices[]{
@@ -68,26 +67,29 @@ private:
 
 		if (key == GLFW_KEY_W && action == GLFW_PRESS)
 			m_camera.process_keyboard(Camera_Movement::FORWARD, m_delta_time);
+
 		else if (key == GLFW_KEY_S && action == GLFW_PRESS)
 			m_camera.process_keyboard(Camera_Movement::BACKWARD, m_delta_time);
+
 		else if (key == GLFW_KEY_A && action == GLFW_PRESS)
 			m_camera.process_keyboard(Camera_Movement::LEFT, m_delta_time);
+
 		else if (key == GLFW_KEY_D && action == GLFW_PRESS)
 			m_camera.process_keyboard(Camera_Movement::RIGHT, m_delta_time);
 	}
 
-	virtual void on_mouse_move(GLdouble x_pos, GLdouble y_pos)
+	virtual void on_mouse_move(double x_pos, double y_pos)
 	{
 		// Avoid initial "jump" movement
 		if (m_first_mouse)
 		{
 			m_last_x = x_pos;
 			m_last_y = y_pos;
-			m_first_mouse = GL_FALSE;
+			m_first_mouse = false;
 		}
 
-		GLdouble x_delta{ x_pos - m_last_x };
-		GLdouble y_delta{ y_pos - m_last_y };
+		double x_delta{ x_pos - m_last_x };
+		double y_delta{ y_pos - m_last_y };
 		m_camera.process_mouse_movement(x_delta, y_delta);
 		m_last_x = x_pos;
 		m_last_y = y_pos;
@@ -101,9 +103,8 @@ private:
 	virtual void setup()
 	{
 		// Create shaders
-		std::string this_path = get_parent_directory();
-		m_cube_shader = Shader{ (this_path + "/shaders/phong.vert").c_str(), (this_path + "/shaders/phong.frag").c_str() };
-		m_lamp_shader = Shader{ (this_path + "/shaders/lamp.vert").c_str(), (this_path + "/shaders/lamp.frag").c_str() };
+        m_cube_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/phong.vert").fragment("../assets/shaders/phong.frag")});
+		m_lamp_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/lamp.vert").fragment("../assets/shaders/lamp.frag")});
 
 		// Create the cube shape VBO (this is used for both the cube and lamp)
 		const GLuint flags{ 0 };
@@ -161,20 +162,19 @@ private:
 		glBindSampler(starting_texture_unit, sampler_name);
 
 		// Load diffuse and specular maps
-		std::string diffuse_map_path{ (this_path + "/assets/container2.jpg") };
-		std::string specular_map_path{ (this_path + "/assets/container2_specular.jpg")};
+
 		GLint diffuse_width;
 		GLint specular_width;
 		GLint diffuse_height;
 		GLint specular_height;
 		GLint diffuse_nr_channels;
 		GLint specular_nr_channels;
-		GLubyte* diffuse_data = stbi_load(diffuse_map_path.c_str(), &diffuse_width, &diffuse_height, &diffuse_nr_channels, 0);
+		GLubyte* diffuse_data = stbi_load(m_diffuse_map_path.c_str(), &diffuse_width, &diffuse_height, &diffuse_nr_channels, 0);
 		if (!diffuse_data)
 		{
 			std::cout << "Failed to load texture" << std::endl;
 		}
-		GLubyte* specular_data = stbi_load(specular_map_path.c_str(), &specular_width, &specular_height, &specular_nr_channels, 0);
+		GLubyte* specular_data = stbi_load(m_specular_map_path.c_str(), &specular_width, &specular_height, &specular_nr_channels, 0);
 		if (!specular_data)
 		{
 			std::cout << "Failed to load texture" << std::endl;
@@ -211,7 +211,7 @@ private:
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
 		// Objects in scene
-		m_cube_shader.use();
+		m_cube_shader->use();
 
 		// Update and set uniforms
 		m_model_matrix = glm::mat4{ 1.0f };
@@ -220,63 +220,60 @@ private:
 		m_normal_matrix = glm::inverseTranspose(glm::mat3(m_model_matrix));
 
 		// Light uniforms
-		m_cube_shader.set_vec3("uLightColor", m_light_color);
-		m_cube_shader.set_vec3("uLightPos", m_camera.get_pos());
-		m_cube_shader.set_vec3("uLightDirection", m_camera.get_front());
-		m_cube_shader.set_float("uLightCutoff", m_light_cutoff);
-		m_cube_shader.set_float("uLightOuterCutoff", m_light_outer_cutoff);
+		m_cube_shader->uniform("uLightColor", m_light_color);
+		m_cube_shader->uniform("uLightPos", m_camera.get_pos());
+		m_cube_shader->uniform("uLightDirection", m_camera.get_front());
+		m_cube_shader->uniform("uLightCutoff", m_light_cutoff);
+		m_cube_shader->uniform("uLightOuterCutoff", m_light_outer_cutoff);
 
-		// Material uniforms
-		m_cube_shader.set_vec3("uSpecularColor", m_specular_color);
-		m_cube_shader.set_vec4("uDiffuseColor", m_diffuse_color);
-		m_cube_shader.set_vec4("uAmbientColor", m_ambient_color);
-		m_cube_shader.set_vec3("uShadowColor", m_shadow_color);
-		m_cube_shader.set_float("uShadowStrength", m_shadow_strength);
-		m_cube_shader.set_float("uShininess", m_shininess);
+        // Material uniforms
+		m_cube_shader->uniform("uSpecularColor", m_specular_color);
+		m_cube_shader->uniform("uDiffuseColor", m_diffuse_color);
+		m_cube_shader->uniform("uAmbientColor", m_ambient_color);
+		m_cube_shader->uniform("uShadowColor", m_shadow_color);
+		m_cube_shader->uniform("uShadowStrength", m_shadow_strength);
+		m_cube_shader->uniform("uShininess", m_shininess);
 
 		// Other uniforms
-		m_cube_shader.set_vec3("uCameraPos", m_camera.get_pos());
-		m_cube_shader.set_mat4("uModelMatrix", m_model_matrix);
-		m_cube_shader.set_mat4("uViewMatrix", m_view_matrix);
-		m_cube_shader.set_mat4("uProjectionMatrix", m_projection_matrix);
-		m_cube_shader.set_mat3("uNormalMatrix", m_normal_matrix);
-		m_cube_shader.set_vec4("uVertexColor", m_vertex_color);
+		m_cube_shader->uniform("uCameraPos", m_camera.get_pos());
+		m_cube_shader->uniform("uModelMatrix", m_model_matrix);
+		m_cube_shader->uniform("uViewMatrix", m_view_matrix);
+		m_cube_shader->uniform("uProjectionMatrix", m_projection_matrix);
+		m_cube_shader->uniform("uNormalMatrix", m_normal_matrix);
+		m_cube_shader->uniform("uVertexColor", m_vertex_color);
 
 		glBindVertexArray(m_cube_vao);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
 		// Lamps in scene
-		m_lamp_shader.use();
+		m_lamp_shader->use();
 		m_model_matrix = glm::mat4{ 1.0f };
 		m_model_matrix = glm::translate(m_model_matrix, m_light_pos);
 		m_model_matrix = glm::scale(m_model_matrix, glm::vec3{ 0.2f });
 
-		m_lamp_shader.set_mat4("uModelMatrix", m_model_matrix);
-		m_lamp_shader.set_mat4("uViewMatrix", m_view_matrix);
-		m_lamp_shader.set_mat4("uProjectionMatrix", m_projection_matrix);
+		m_lamp_shader->uniform("uModelMatrix", m_model_matrix);
+		m_lamp_shader->uniform("uViewMatrix", m_view_matrix);
+		m_lamp_shader->uniform("uProjectionMatrix", m_projection_matrix);
 
 		glBindVertexArray(m_lamp_vao);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
 
-	// Application state	
-	GLfloat m_delta_time{ 0.0f };
-	GLfloat m_last_frame{ 0.0f };
-	GLboolean m_first_mouse{ GL_TRUE };
-	GLfloat m_last_x{ m_info.window_width / 2.0f };
-	GLfloat m_last_y{ m_info.window_height / 2.0f };
-	const GLuint m_num_vertices{ 36 };
+
+    std::string m_diffuse_map_path{ "../assets/images/container2.jpg" };
+    std::string m_specular_map_path{ "../assets/images/container2_specular.jpg" };
+	float m_delta_time{ 0.0f };
+	bool m_first_mouse{ true };
+	double m_last_x{ m_info.window_width / 2.0f };
+    double m_last_y{ m_info.window_height / 2.0f };
+	const int m_num_vertices{ 36 };
 	Camera m_camera{ glm::vec3{ 0.0f, 0.0f, 3.0f } };
-
-	// OpenGL handles
-	GLuint m_lamp_vao;
-	Shader m_lamp_shader;
-	GLuint m_cube_vao;
-	GLuint m_cube_vbo;
-	Shader m_cube_shader;
+    std::unique_ptr<GlslProgram>  m_lamp_shader;
+    std::unique_ptr<GlslProgram> m_cube_shader;
+    GLuint  m_cube_vao { 0 };
+    GLuint m_lamp_vao { 0 };
+    GLuint m_cube_vbo { 0 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-
-	// Uniforms
 	glm::mat4 m_model_matrix;
 	glm::mat4 m_view_matrix;
 	glm::mat4 m_projection_matrix;
@@ -296,8 +293,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new LightingExample;
-	my_app->run();
-	delete my_app;
-	return 0;
+    std::unique_ptr<Application> app{ new LightingExample };
+	app->run();
 }

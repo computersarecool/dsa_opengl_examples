@@ -1,27 +1,29 @@
-﻿// https://stackoverflow.com/a/21652955/3291506 explains buffer binding indices
+﻿// Multiple attributes and multiple buffers example
+// https://stackoverflow.com/a/21652955/3291506 explains buffer binding indices
+#include <memory>
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 
 static const GLfloat vertices[]{
 	// Positions      // Colors
-	-0.5, -0.5, 0.0,  1.0, 0.0, 0.0,
-	0.5, -0.5, 0.0,   0.0, 1.0, 0.0,
-	-0.5, 0.5, 0.0,	  0.0, 0.0, 1.0,
+	-0.5f, -0.5f, 0.0,  1.0, 0.0, 0.0,
+	0.5, -0.5f, 0.0,   0.0, 1.0, 0.0,
+	-0.5f, 0.5, 0.0,	  0.0, 0.0, 1.0,
 
-	-0.5, 0.5, 0.0,   0.0, 0.0, 1.0,
-	0.5, -0.5, 0.0,   0.0, 1.0, 0.0,
+	-0.5f, 0.5, 0.0,   0.0, 0.0, 1.0,
+	0.5, -0.5f, 0.0,   0.0, 1.0, 0.0,
 	0.5, 0.5, 0.0,    1.0, 0.0, 1.0
 };
 
 static const GLfloat vertices2[]{
 	// Positions      // Colors
-	-0.5, -0.5, 0.0,  1.0, 0.0, 0.0,
-	0.5, -0.5, 0.0,   0.0, 1.0, 0.0,
-	-0.5, 0.5, 0.0,	  0.0, 0.0, 1.0,
+	-0.5f, -0.5f, 0.0,  1.0, 0.0, 0.0,
+	0.5, -0.5f, 0.0,   0.0, 1.0, 0.0,
+	-0.5f, 0.5, 0.0,	  0.0, 0.0, 1.0,
 
-	-0.5, 0.5, 0.0,   1.0, 1.0, 0.0,
-	0.5, -0.5, 0.0,   1.0, 0.0, 1.0,
+	-0.5f, 0.5, 0.0,   1.0, 1.0, 0.0,
+	0.5, -0.5f, 0.0,   1.0, 0.0, 1.0,
 	0.5, 0.5, 0.0,    1.0, 1.0, 1.0
 };
 
@@ -47,8 +49,7 @@ private:
 	virtual void setup()
 	{
 		// Create shader
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/shader.vert").c_str(), (this_path + "/shaders/shader.frag").c_str() };
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag")});
 
 		// Create buffers
 		const GLuint flags{ 0 };
@@ -61,11 +62,11 @@ private:
 		
 		// Map buffers
 		void* ptr = glMapNamedBufferRange(m_buffers[0], buffer_offset, buffer_size, GL_MAP_WRITE_BIT);
-		memcpy(ptr, vertices, buffer_size);
+		memcpy(ptr, vertices, static_cast<size_t>(buffer_size));
 		glUnmapNamedBuffer(m_buffers[0]);
 
 		void* ptr2 = glMapNamedBufferRange(m_buffers[1], buffer_offset, buffer_size, GL_MAP_WRITE_BIT);
-		memcpy(ptr2, vertices2, buffer_size);
+		memcpy(ptr2, vertices2, static_cast<size_t>(buffer_size));
 		glUnmapNamedBuffer(m_buffers[1]);
 
 		//  Attribute parameters
@@ -109,7 +110,7 @@ private:
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		m_shader.use();
+		m_shader->use();
 		glBindVertexArray(m_vao);
 		glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(*vertices));
 	};
@@ -117,17 +118,15 @@ private:
 	const GLuint m_attrib_stride{ sizeof(GLfloat) * 6 };
 	const GLuint m_attrib_offset{ 0 };
 	const GLuint m_attrib_binding_index{ 0 };
-	GLboolean m_buffer_zero{ GL_FALSE };
-	Shader m_shader;
-	GLuint m_vao;
-	GLuint m_buffers[2];
+	bool m_buffer_zero{ false };
+	std::unique_ptr<GlslProgram>  m_shader;
+	GLuint m_vao { 0 };
+	GLuint m_buffers[2]{ 0 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 };
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new MultipleAttributeExample;
-	my_app->run();
-	delete my_app;
-	return 0;
+	std::unique_ptr<Application> app { new MultipleAttributeExample};
+	app->run();
 }

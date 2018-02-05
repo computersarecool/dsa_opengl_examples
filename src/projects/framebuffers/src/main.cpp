@@ -1,10 +1,10 @@
 ﻿// An example showing an FBO
-#include <iostream>
+#include <memory>
 
-#include "glm/gtc/matrix_transform.hpp"
+#include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 // Cube
@@ -59,8 +59,8 @@ private:
 	virtual void setup()
 	{
 		// Create shaders
-		m_shader = Shader{ "../src/shaders/cube.vert", "../src/shaders/cube.frag" };
-		m_shader2 = Shader{ "../src/shaders/cube2.vert", "../src/shaders/cube2.frag" };
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
+		m_shader2.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube2.vert").fragment("../assets/shaders/cube2.frag")});
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 5 };
@@ -121,7 +121,7 @@ private:
 		glNamedFramebufferTexture(m_fbo, GL_COLOR_ATTACHMENT0, m_color_buffer_texture, 0);
 		glNamedFramebufferTexture(m_fbo, GL_DEPTH_ATTACHMENT, m_depth_buffer_texture, 0);
 
-		// This the default - unneccsary because we only have one output in the FBO frag shader
+		// This the default - unnecessary because we only have one output in the FBO frag shader
 		static const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
 		glNamedFramebufferDrawBuffers(m_fbo, 1, draw_buffers);
 	}
@@ -137,11 +137,11 @@ private:
 		glDepthFunc(GL_LEQUAL);
 
 		// Set uniforms and draw cube to FBO
-		m_shader.use();
+		m_shader->use();
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
-		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-		m_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
+		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
 		// Return to default framebuffer
@@ -155,26 +155,25 @@ private:
 		glBindTexture(GL_TEXTURE_2D, m_color_buffer_texture);
 
 		// Set uniforms and draw textured cube
-		m_shader2.use();
+		m_shader2->use();
 		model_matrix = glm::mat4{ 1.0f };
 		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time / 2.0), m_world_up);
-		m_shader2.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-		m_shader2.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader2->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
+		m_shader2->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
 
 	// Member variables
-	Shader m_shader;
-	Shader m_shader2;
-	GLuint m_vao;
-	GLuint m_vbo;
-	GLuint m_fbo;
-	GLuint m_color_buffer_texture;
-	GLuint m_depth_buffer_texture;
+	std::unique_ptr<GlslProgram> m_shader;
+	std::unique_ptr<GlslProgram> m_shader2;
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };
+	GLuint m_fbo { 0 };
+	GLuint m_color_buffer_texture { 0 };
+	GLuint m_depth_buffer_texture { 0 };
 	const GLuint m_fbo_width_height{ 800 };
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
-	const GLfloat m_uv_length{ 0.5f};
 	const GLfloat m_depth_reset_val{ 1.0f };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
@@ -182,7 +181,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new FboExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new FboExample };
+	app->run();
 }

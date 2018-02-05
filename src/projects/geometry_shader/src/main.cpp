@@ -1,15 +1,14 @@
 ﻿// A geometry shader example
-
-#include <iostream>
+#include <memory>
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 static const GLfloat vertices[]{
-	-0.5, -0.5, 0, 1,
-	0.5, -0.5, 0, 1,
-	-0.5, 0.5, 0, 1,
+	-0.5f, -0.5f, 0, 1,
+	0.5, -0.5f, 0, 1,
+	-0.5f, 0.5, 0, 1,
 	0.5, 0.5, 0, 1
 };
 
@@ -34,9 +33,8 @@ private:
 	virtual void setup()
 	{
 		// Create shader
-		std::string this_path = get_parent_directory();
-		m_shader = Shader{ (this_path + "/shaders/shader.vert").c_str(), (this_path + "/shaders/shader.frag").c_str(), "", "", (this_path + "/shaders/shader.geom").c_str() };
-
+		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").geometry("../assets/shaders/shader.geom") });
+		m_shader->use();
 
 		// Vertex attribute parameters
 		const GLuint position_index{ 0 };
@@ -46,7 +44,7 @@ private:
 		const GLuint stride{ sizeof(GLfloat) * size };
 		glCreateBuffers(1, &m_vbo);
 
-		// Set up the buffer storage
+		// Set up buffer storage
 		const GLuint flags{ 0 };
 		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
 
@@ -85,22 +83,21 @@ private:
 		}
 
 		// Set uniforms
-		m_shader.use();
+		
 		m_view_matrix = m_camera.get_view_matrix();
 		m_projection_matrix = m_camera.get_proj_matrix();
-		m_shader.set_mat4("uModelViewMatrix", m_view_matrix * m_model_matrix);
-		m_shader.set_mat4("uProjectionMatrix", m_projection_matrix * m_model_matrix);
+		m_shader->uniform("uModelViewMatrix", m_view_matrix * m_model_matrix);
+		m_shader->uniform("uProjectionMatrix", m_projection_matrix * m_model_matrix);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	};
 
 	// Member variables
-	Shader m_shader;
-	GLuint m_vao;
-	GLuint m_vbo;
-	GLboolean m_show_wireframe{ GL_FALSE };
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };;
+	std::unique_ptr<GlslProgram> m_shader;
+	bool m_show_wireframe{ false };
 	GLuint m_vertices_per_patch{ 4 };
-	GLuint m_num_instances{ 64 * 64 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 	Camera m_camera;
 	glm::mat4 m_model_matrix{ glm::mat4{ 1.0f } };
@@ -110,7 +107,6 @@ private:
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new GeometryShaderExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new GeometryShaderExample};
+	app->run();
 }

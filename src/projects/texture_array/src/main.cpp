@@ -71,10 +71,10 @@ private:
 		for (int i{ 0 }; i < m_num_billboards; i++)
 		{
 			// These require narrowing
-			const GLuint index = i;
-			const GLfloat offset_x = std::fmod(current_time / 2, 3) * 2.0 - 3.0;
-			const GLfloat offset_y = 6 - index * 2.0;
-			const GLfloat scale = .1 + index / 8;
+			const GLuint index = static_cast<GLuint>(i);
+			const GLfloat offset_x = static_cast<GLfloat>(std::fmod(current_time / 2, 3) * 2.0 - 3.0);
+			const GLfloat offset_y = static_cast<GLfloat>(6 - index * 2.0);
+			const GLfloat scale = static_cast<GLfloat>(0.1 + index / 8);
 			m_shader->uniform("imageIndex", index);
 			m_shader->uniform("offsetX", offset_x);
 			m_shader->uniform("offsetY", offset_y);
@@ -84,9 +84,8 @@ private:
 	};
 
 protected:
-	GLuint m_vao;
-	GLuint m_buffer; 
-	GLuint m_texture_array;
+	GLuint m_vao { 0 };
+	GLuint m_texture_array { 0 };
 	std::unique_ptr<GlslProgram> m_shader;
 	const std::string m_image_base_path{ "../assets/texture_array/" };
 	const GLuint m_num_billboards{ 4 };

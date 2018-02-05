@@ -14,7 +14,7 @@ void Application::set_info()
 	m_info.minor_version = 4;
 	m_info.samples = 0;
 	m_info.resizeable = GL_FALSE;
-	m_info.cursor = GLFW_CURSOR_DISABLED;
+	m_info.cursor = GLFW_CURSOR_NORMAL;
 }
 
 // Initialize GLFW and GLAD

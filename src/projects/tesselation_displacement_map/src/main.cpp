@@ -126,16 +126,16 @@ private:
 
 	// Member variables
 	const GLfloat m_time_divisor{ 0.03f };
-	GLfloat m_slow_time;
-	GLfloat m_camera_rotation_value;
-	GLfloat m_camera_y_value;
+	GLfloat m_slow_time { 0 };
+	GLfloat m_camera_rotation_value { 0 };
+	GLfloat m_camera_y_value { 0 };
 	std::unique_ptr<GlslProgram> m_shader;
-	GLuint m_vao;
-	GLuint m_displacement_texture;
-	GLuint m_color_texture;
+	GLuint m_vao { 0 };
+	GLuint m_displacement_texture { 0 };
+	GLuint m_color_texture { 0 };
 	const std::string m_displacement_map_path{ "../assets/images/noise.jpg"};
 	const std::string m_color_map_path{ "../assets/images/noise_color.jpg" };
-	GLboolean m_show_wireframe{ GL_FALSE };
+	bool m_show_wireframe{ GL_FALSE };
 	const GLuint m_vertices_per_patch{ 4 };
 	const GLuint m_num_instances{ 64 * 64 };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };

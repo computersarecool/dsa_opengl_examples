@@ -1,7 +1,11 @@
+// Transform feedback example
+#include <memory>
 #include <iostream>
 #include <string>
 
 #include "base_app.h"
+#include "glsl_program.h"
+#include "camera.h"
 
 static const GLchar* vertex_shader_source[] =
 {
@@ -20,7 +24,7 @@ class TransformFeedbackExample : public Application
 private:
 	void setup()
 	{
-		// Create vertex shader and make sure it compiled
+		// Create vertex shader
 		GLint success;
 		GLchar info_log[m_log_length];
 		GLuint shader = glCreateShader(GL_VERTEX_SHADER);
@@ -93,22 +97,21 @@ private:
 		// Fetch and print results
 		GLfloat feedback[5];
 		glGetBufferSubData(GL_TRANSFORM_FEEDBACK_BUFFER, 0, sizeof(feedback), feedback);
-		std::cout << feedback[0] << "\n" << feedback[1] << "\n" << feedback[2] << "\n" << feedback[3] << "\n" << feedback[4] << "\n" << std::endl;;
+		for (int i = 0; i != 5; ++i)
+		{
+			std::cout << feedback[i] <<std::endl;
+		}
 	}
 
-	void render(double currentTime) {};
-
-	static const GLuint m_log_length{ 1024 };
-	GLuint m_vao;
-	GLuint m_vbo;
-	GLuint m_tbo;
-	GLfloat m_clear_color[4] = { 0.2f, 0.0f, 0.2f, 1.0f };
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };
+	GLuint m_tbo { 0 };
+	const GLuint m_log_length{ 1024 };
+	const GLfloat m_clear_color[4] = { 0.2f, 0.0f, 0.2f, 1.0f };
 };
 
 int main(int argc, char* argv[])
 {
-	Application* my_app = new TransformFeedbackExample;
-	my_app->run();
-	delete my_app;
-	return 0;
+	std::unique_ptr<Application> app{ new TransformFeedbackExample};
+	app->run();
 }

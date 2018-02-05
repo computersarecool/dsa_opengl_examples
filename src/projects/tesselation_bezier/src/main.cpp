@@ -7,9 +7,9 @@
 #include "camera.h"
 
 static const GLfloat vertices[]{
-	-0.5, -0.5, 0, 1,
-	0.5, -0.5, 0, 1,
-	-0.5, 0.5, 0, 1,
+	-0.5f, -0.5f, 0, 1,
+	0.5, -0.5f, 0, 1,
+	-0.5f, 0.5, 0, 1,
 	0.5, 0.5, 0, 1
 };
 
@@ -94,11 +94,10 @@ private:
 
 	// Member variables
 	std::unique_ptr<GlslProgram> m_shader;
-	GLuint m_vao;
-	GLuint m_vbo;
-	GLboolean m_show_wireframe{ GL_FALSE };
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };
+	bool m_show_wireframe{ GL_FALSE };
 	GLuint m_vertices_per_patch{ 4 };
-	GLuint m_num_instances{ 64 * 64 };
 	GLfloat m_clear_color[4] = { 0.2f, 0.0f, 0.2f, 1.0f };
 	Camera m_camera;
 	glm::mat4 m_model_matrix{ 1.0f };

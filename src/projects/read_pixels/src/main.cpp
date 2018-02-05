@@ -1,10 +1,12 @@
 ﻿// Read pixels example
+// Press spacebar to take a screenshot
 #include <fstream>
+#include <memory>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
-#include "shader.h"
+#include "glsl_program.h"
 #include "camera.h"
 
 // Cube: First three are positions, second three are normals
@@ -58,7 +60,6 @@ private:
 	virtual void set_info()
 	{
 		Application::set_info();
-
 		m_info.title = "Read pixels example";
 	}
 
@@ -66,7 +67,7 @@ private:
 	{
 		Application::on_key(key, action);
 
-		if (key == GLFW_KEY_SPACE && GLFW_PRESS)
+		if (key == GLFW_KEY_SPACE && GLFW_PRESS != 0)
 		{
 			take_screen_shot();
 		}
@@ -119,7 +120,7 @@ private:
 	virtual void setup()
 	{
 		// Create shader
-		m_shader = Shader{ "../assets/shaders/cube.vert", "../assets/shaders/cube.frag" };
+        m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
@@ -173,11 +174,11 @@ private:
 
 
 		// Set uniforms and draw first cube
-		m_shader.use();
+		m_shader->use();
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
-		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-		m_shader.set_mat4("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
+		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
 
@@ -186,24 +187,22 @@ private:
 		model_matrix2 = glm::translate(model_matrix2, glm::vec3{ 1.25f, 2.0f, 0.0f });
 		model_matrix2 = glm::rotate(model_matrix2, static_cast<GLfloat>(current_time), m_world_up);
 		model_matrix2 = glm::scale(model_matrix2, glm::vec3{ 0.5f });
-		m_shader.set_mat4("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix2);
+		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix2);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
 
 	// Member variables
-	Shader m_shader;
-	GLuint m_vao;
-	GLuint m_vbo;
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };
+	std::unique_ptr<GlslProgram> m_shader;
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-
 };
 
 int main(int argc, char* argv[])
 {
-    Application* my_app = new ReadPixelsExample;
-	my_app->run();
-	delete my_app;
+	std::unique_ptr<Application> app{ new ReadPixelsExample };
+	app->run();
 }

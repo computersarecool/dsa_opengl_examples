@@ -13,7 +13,7 @@ public:
 protected:	
 	struct AppInfo
 	{
-		char* title;
+		const char* title;
 		int window_width;
 		int window_height;
 		int major_version;
@@ -29,7 +29,7 @@ protected:
 	virtual void init() final;
 	virtual void setup() {};
 	virtual void draw() final;
-	virtual void render(double current_time) {}
+	virtual void render(double /* current_time */) {}
 	virtual void shutdown() {}
 	virtual void on_key(int key, int action);
 	virtual void on_resize(int width, int height) {}

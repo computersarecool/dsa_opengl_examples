@@ -1,15 +1,11 @@
 #version 440 core
 
-uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
-
-in vec3 aPosition;
-in vec3 aNormal;
-
-out vec3 vPosition;
+const vec4 starting_position = vec4(0.5, 0.5, 0.0, 1.0);
 
 void main()
 {
-    vPosition = aPosition;
-    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
+    // gl_Position = uProjectionMatrix * starting_position;
+    gl_Position = starting_position;
+    gl_PointSize = 35.0;
 }
