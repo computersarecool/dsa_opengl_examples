@@ -48,7 +48,6 @@ private:
 			std::cout << "Failed to load texture" << std::endl;
 		}
 
-
 		GLint color_map_width;
 		GLint color_map_height;
 		GLint color_map_channels;
@@ -129,13 +128,12 @@ private:
 	GLfloat m_slow_time { 0 };
 	GLfloat m_camera_rotation_value { 0 };
 	GLfloat m_camera_y_value { 0 };
-	std::unique_ptr<GlslProgram> m_shader;
 	GLuint m_vao { 0 };
 	GLuint m_displacement_texture { 0 };
 	GLuint m_color_texture { 0 };
 	const std::string m_displacement_map_path{ "../assets/images/noise.jpg"};
 	const std::string m_color_map_path{ "../assets/images/noise_color.jpg" };
-	bool m_show_wireframe{ GL_FALSE };
+	bool m_show_wireframe{ false };
 	const GLuint m_vertices_per_patch{ 4 };
 	const GLuint m_num_instances{ 64 * 64 };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
@@ -143,6 +141,7 @@ private:
 	Camera m_camera;
 	glm::mat4 view_matrix;
 	glm::mat4 proj_matrix;
+	std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

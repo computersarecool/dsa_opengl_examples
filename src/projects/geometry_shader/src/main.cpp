@@ -6,10 +6,10 @@
 #include "camera.h"
 
 static const GLfloat vertices[]{
-	-0.5f, -0.5f, 0, 1,
-	0.5, -0.5f, 0, 1,
-	-0.5f, 0.5, 0, 1,
-	0.5, 0.5, 0, 1
+	-0.5f, -0.5f, 0.0f, 1.0f,
+	 0.5f, -0.5f, 0.0f, 1.0f,
+	-0.5f,  0.5,  0.0f, 1.0f,
+	 0.5f,  0.5,  0.0f, 1.0f
 };
 
 class GeometryShaderExample : public Application
@@ -42,10 +42,10 @@ private:
 		const GLenum type{ GL_FLOAT };
 		const GLboolean normalized{ GL_FALSE };
 		const GLuint stride{ sizeof(GLfloat) * size };
-		glCreateBuffers(1, &m_vbo);
 
 		// Set up buffer storage
 		const GLuint flags{ 0 };
+		glCreateBuffers(1, &m_vbo);
 		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
 
 		// Buffer attributes
@@ -83,7 +83,6 @@ private:
 		}
 
 		// Set uniforms
-		
 		m_view_matrix = m_camera.get_view_matrix();
 		m_projection_matrix = m_camera.get_proj_matrix();
 		m_shader->uniform("uModelViewMatrix", m_view_matrix * m_model_matrix);
@@ -94,8 +93,7 @@ private:
 
 	// Member variables
 	GLuint m_vao { 0 };
-	GLuint m_vbo { 0 };;
-	std::unique_ptr<GlslProgram> m_shader;
+	GLuint m_vbo { 0 };
 	bool m_show_wireframe{ false };
 	GLuint m_vertices_per_patch{ 4 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
@@ -103,6 +101,7 @@ private:
 	glm::mat4 m_model_matrix{ glm::mat4{ 1.0f } };
 	glm::mat4 m_view_matrix;
 	glm::mat4 m_projection_matrix;
+	std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

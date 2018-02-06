@@ -75,9 +75,9 @@ private:
 protected:
 	GLuint m_vao { 0 };
 	GLuint m_texture { 0 };
-	std::unique_ptr<GlslProgram> m_shader;
 	const std::string m_image_path{ "../assets/images/0.jpg" };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
+	std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

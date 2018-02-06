@@ -1,7 +1,6 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <string>
 #include <vector>
 
 #include "glm/glm/gtc/type_ptr.hpp"
@@ -61,7 +60,7 @@ std::string GlslProgram::Format::load_shader(const std::string& shader_path)
 	}
 	catch (std::ifstream::failure e)
 	{
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ::PATH: " << shader_path << std::endl;
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ::PATH: " << shader_path << std::endl;
 		throw;
 	}
 }
@@ -72,19 +71,24 @@ void GlslProgram::use() const
 	glUseProgram(m_handle);
 }
 
-void GlslProgram::uniform(const std::string& name, const GLboolean value) const
+void GlslProgram::uniform(const std::string& name, GLboolean value) const
 {
 	glUniform1i(glGetUniformLocation(m_handle, name.c_str()), value);
 }
 
-void GlslProgram::uniform(const std::string& name, const GLuint value) const
+void GlslProgram::uniform(const std::string& name, GLuint value) const
 {
 	glUniform1i(glGetUniformLocation(m_handle, name.c_str()), value);
 }
 
-void GlslProgram::uniform(const std::string& name, const GLfloat value) const
+void GlslProgram::uniform(const std::string& name, GLfloat value) const
 {
 	glUniform1f(glGetUniformLocation(m_handle, name.c_str()), value);
+}
+
+void GlslProgram::uniform(const std::string& name, GLdouble value) const
+{
+	glUniform1d(glGetUniformLocation(m_handle, name.c_str()), value);
 }
 
 void GlslProgram::uniform(const std::string& name, const glm::vec2& vec2) const
@@ -185,8 +189,8 @@ void GlslProgram::introspect() const
 	GLchar name[max_name_length];
 	for (int index = 0; index < num_outputs; ++index)
 	{
-		glGetProgramResourceName(m_handle, GL_PROGRAM_OUTPUT, index, sizeof(name), nullptr, name);
-		glGetProgramResourceiv(m_handle, GL_PROGRAM_OUTPUT, index, num_parameters, properties, num_parameters, nullptr, params);
+		glGetProgramResourceName(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), sizeof(name), nullptr, name);
+		glGetProgramResourceiv(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), num_parameters, properties, num_parameters, nullptr, params);
 		std::cout << "Index: " << index << " is type: " << params[0] << " is named: " << name << " is at location: " << params[1] << std::endl;
 	}
 }

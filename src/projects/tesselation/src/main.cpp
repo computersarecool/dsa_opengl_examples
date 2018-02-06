@@ -4,19 +4,19 @@
 #include "base_app.h"
 #include "glsl_program.h"
 
-// Three triangles
+// Positions of three triangles
 const GLfloat vertices[]{
-	-0.75f, -1.0f, 0,
-	0, -1.0f, 0,
-	-0.75f, 0, 0,
+	-0.75f, -1.0f, 0.0f,
+	 0.0f,  -1.0f, 0.0f,
+	-0.75f,  0.0f, 0.0f,
 
-	0.0, -1.0f, 0,
-	0.75, -1.0f, 0,
-	0.0, 0, 0,
+	 0.0f,  -1.0f, 0.0f,
+	 0.75f, -1.0f, 0.0f,
+	 0.0f,   0.0f, 0.0f,
 
-	-0.25f, 0, 0,
-	0.5, 0, 0,
-	-0.25f, 1, 0
+	-0.25f,  0.0f, 0.0f,
+	 0.5f, 	 0.0f, 0.0f,
+	-0.25f,  1.0f, 0.0f
 };
 
 class TesselationExample : public Application
@@ -52,27 +52,30 @@ private:
 		m_shader_three.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader3.tese") });
 
 		// Vertex attribute parameters
-		const GLuint attrib_index{ 0 };
-		const GLuint size{ 3 };
-		const GLenum type{ GL_FLOAT };
-		const GLboolean normalized{ GL_FALSE };
-		const GLuint stride{ sizeof(GLfloat) * 3 };
-		const GLuint flags{ 0 };
+		const GLuint position_index{ 0 };
+		const GLuint position_size{ 3 };
+		const GLenum position_type{ GL_FLOAT };
+		const GLboolean position_normalize{ GL_FALSE };
+        const GLuint position_offset_in_buffer{ 0 };
 
+        // VBO attributes
+        const GLuint binding_index{ 0 };
+        const GLuint first_element_offset{ 0 };
+        const GLuint element_stride{ sizeof(GLfloat) * 3 };
+
+        // Setup triangle VBO
+        const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_vbo);
 		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
 
-		const GLuint relative_offset{ 0 };
-		const GLuint binding_index{ 0 };
-		const GLuint offset{ 0 };
-
+        // Set up position attribute in VAO
 		glCreateVertexArrays(1, &m_vao);
-		glEnableVertexArrayAttrib(m_vao, attrib_index);
-		glVertexArrayAttribFormat(m_vao, attrib_index, size, type, normalized, relative_offset);
-		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, stride);
-		glVertexArrayAttribBinding(m_vao, attrib_index, binding_index);
+		glEnableVertexArrayAttrib(m_vao, position_index);
+		glVertexArrayAttribFormat(m_vao, position_index, position_size, position_type, position_normalize, position_offset_in_buffer);
+		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, first_element_offset, element_stride);
+		glVertexArrayAttribBinding(m_vao, position_index, binding_index);
 
-		// Specify vertices per patch (3 is default)
+		// Specify vertices per patch
 		glPatchParameteri(GL_PATCH_VERTICES, m_vertices_per_patch);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
@@ -99,9 +102,6 @@ private:
 		glDrawArrays(GL_PATCHES, 6, m_vertices_per_face);
 	};
 
-	std::unique_ptr<GlslProgram> m_shader_one;
-	std::unique_ptr<GlslProgram> m_shader_two;
-	std::unique_ptr<GlslProgram> m_shader_three;
 	GLuint m_vao { 0 };
 	GLuint m_vbo { 0 };;
 	GLuint m_vertices_per_face{ 3 };
@@ -111,6 +111,9 @@ private:
 	GLfloat m_tess_increment{ 0.05f };
 	GLint m_max_tess_level { 0 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
+    std::unique_ptr<GlslProgram> m_shader_one;
+    std::unique_ptr<GlslProgram> m_shader_two;
+    std::unique_ptr<GlslProgram> m_shader_three;
 };
 
 int main(int argc, char* argv[])

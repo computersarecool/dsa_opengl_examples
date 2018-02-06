@@ -10,16 +10,16 @@
 // Cube: First three are positions, second three are normals
 static const GLfloat vertices[]{
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-	0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
@@ -30,24 +30,24 @@ static const GLfloat vertices[]{
 	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-	0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
@@ -72,15 +72,17 @@ private:
 	{
 		// Vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
-		const GLuint position_index{ 0 };
-		const GLuint normal_index{ 1 };
-		const GLuint position_size{ 3 };
-		const GLuint normal_size{ 3 };
+
+        const GLuint position_index{ 0 };
 		const GLenum position_type{ GL_FLOAT };
-		const GLenum normal_type{ GL_FLOAT };
-		const GLboolean position_normalize{ GL_FALSE };
-		const GLboolean normal_normalize{ GL_FALSE };
-		const GLuint position_offset_in_buffer{ 0 };
+        const GLuint position_size{ 3 };
+        const GLboolean position_normalize{ GL_FALSE };
+        const GLuint position_offset_in_buffer{ 0 };
+
+        const GLuint normal_index{ 1 };
+        const GLuint normal_size{ 3 };
+        const GLenum normal_type{ GL_FLOAT };
+        const GLboolean normal_normalize{ GL_FALSE };
 		const GLuint normal_offset_in_buffer{ sizeof(GLfloat) * position_size };
 
 		// Vertex buffer attributes
@@ -97,13 +99,12 @@ private:
 		glCreateVertexArrays(1, &m_cube_vao);
 		
 		glEnableVertexArrayAttrib(m_cube_vao, position_index);
-		glEnableVertexArrayAttrib(m_cube_vao, normal_index);
+        glVertexArrayAttribFormat(m_cube_vao, position_index, position_size, position_type, position_normalize, position_offset_in_buffer);
+        glVertexArrayAttribBinding(m_cube_vao, position_index, binding_index);
 
-		glVertexArrayAttribFormat(m_cube_vao, position_index, position_size, position_type, position_normalize, position_offset_in_buffer);
-		glVertexArrayAttribFormat(m_cube_vao, normal_index, normal_size, normal_type, normal_normalize, normal_offset_in_buffer);
-
-		glVertexArrayAttribBinding(m_cube_vao, position_index, binding_index);
-		glVertexArrayAttribBinding(m_cube_vao, normal_index, binding_index);
+        glEnableVertexArrayAttrib(m_cube_vao, normal_index);
+        glVertexArrayAttribFormat(m_cube_vao, normal_index, normal_size, normal_type, normal_normalize, normal_offset_in_buffer);
+        glVertexArrayAttribBinding(m_cube_vao, normal_index, binding_index);
 
 		glVertexArrayVertexBuffer(m_cube_vao, binding_index, m_cube_vbo, offset, element_stride);
 	}
@@ -187,16 +188,13 @@ private:
 	};
 
 	// Member variables
-	std::unique_ptr<GlslProgram> m_cube_shader;
-	std::unique_ptr<GlslProgram> m_full_screen_quad_shader;
-	std::unique_ptr<GlslProgram> m_compute_shader;
-	GLuint m_cube_vao;
-	GLuint m_full_screen_quad_vao;
-	GLuint m_cube_vbo;
-	GLuint m_src_fbo;
-	GLuint m_color_texture;
-	GLuint m_depth_texture;
-	GLuint m_second_color_texture;
+	GLuint m_cube_vao { 0 };
+	GLuint m_full_screen_quad_vao { 0 };
+	GLuint m_cube_vbo { 0 };
+	GLuint m_src_fbo { 0 };
+	GLuint m_color_texture { 0 };
+	GLuint m_depth_texture { 0 };
+	GLuint m_second_color_texture { 0 };
 	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
 	const GLuint m_vertices_per_cube{ 36 };
 	const int m_number_cubes{ 9 };
@@ -204,6 +202,9 @@ private:
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 	const GLfloat m_depth_reset_val{ 1.0f };
+    std::unique_ptr<GlslProgram> m_cube_shader;
+    std::unique_ptr<GlslProgram> m_full_screen_quad_shader;
+    std::unique_ptr<GlslProgram> m_compute_shader;
 };
 
 int main(int argc, char* argv[])

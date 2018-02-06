@@ -7,15 +7,16 @@
 #include "glsl_program.h"
 #include "camera.h"
 
-// Cube: First four are positions, second three are colors
+// Cube positions and colors
 static const GLfloat vertices[]{
-	-0.5f, -0.5f, 0, 1, 1, 0, 0,
-	0.5f, -0.5f, 0, 1, 1, 0, 0,
-	0.5f, 0.5f, 0, 1, 1, 0, 0,
+    // Positions
+    -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
+     0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f,
 
-	0.5, 0.5, 0, 1, 1, 1, 1,
-	-0.5f, 0.5, 0, 1, 1, 1, 1,
-	-0.5f, -0.5f, 0, 1, 1, 1, 1
+     0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+    -0.5f,  0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 1.0f
 };
 
 class GeometryShaderExample : public Application
@@ -24,7 +25,7 @@ private:
 	virtual void set_info()
 	{
 		Application::set_info();	
-		m_info.title = "Geometry shader example";
+		m_info.title = "Geometry shader quad example";
 	}
 
 	virtual void setup()
@@ -35,15 +36,17 @@ private:
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 7 };
-		const GLuint position_index{ 0 };
-		const GLuint color_index{ 1 };
-		const GLuint position_size{ 4 };
-		const GLuint color_size{ 3 };
-		const GLenum position_type{ GL_FLOAT };
-		const GLenum color_type{ GL_FLOAT };
-		const GLboolean position_normalize{ GL_FALSE };
-		const GLboolean color_normalize{ GL_FALSE };
-		const GLuint position_offset_in_buffer{ 0 };
+
+        const GLuint position_index{ 0 };
+        const GLuint position_size{ 4 };
+        const GLenum position_type{ GL_FLOAT };
+        const GLboolean position_normalize{ GL_FALSE };
+        const GLuint position_offset_in_buffer{ 0 };
+
+        const GLuint color_index{ 1 };
+        const GLuint color_size{ 3 };
+        const GLenum color_type{ GL_FLOAT };
+        const GLboolean color_normalize{ GL_FALSE };
 		const GLuint color_offset_in_buffer{ sizeof(GLfloat) * position_size };
 
 		// Cube vertex buffer attributes
@@ -71,7 +74,6 @@ private:
 		glVertexArrayAttribBinding(m_vao, color_index, binding_index);
 
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
-		// NOTE: We are leaving the VAO bound
 	}
 
 	virtual void render(double current_time)
@@ -96,13 +98,13 @@ private:
 	// Member variables
 	GLuint m_vao { 0 };
 	GLuint m_vbo { 0 };
-	std::unique_ptr<GlslProgram> m_shader;
 	glm::mat4 m_model_matrix{ glm::mat4{1.0f} };
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLfloat m_normal_length{ 0.35f};
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_rotation_rate{ 0.001f };
 	const GLfloat m_clear_color[4] { 0.2f, 0.0f, 0.2f, 1.0f };
+    std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

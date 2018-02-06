@@ -6,8 +6,8 @@
 class Application
 {
 public:
-	Application() {}
-	virtual ~Application() {}
+	Application() = default;
+	virtual ~Application() = default;
 	virtual void run() final;
 
 protected:	

@@ -10,16 +10,16 @@
 // Cube: First three are positions, second three are normals
 const GLfloat vertices[] {
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-	0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
 
@@ -30,24 +30,24 @@ const GLfloat vertices[] {
 	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
 
-	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
 
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-	0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
 
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 };
@@ -67,17 +67,19 @@ private:
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
 		m_normal_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/normal_viewer.vert").fragment("../assets/shaders/normal_viewer.frag").geometry("../assets/shaders/normal_viewer.geom")});
 
-		// Cube vertex attribute parameters
-		const GLuint elements_per_face{ 6 };
+		// Cube position vertex attribute parameters
+        const GLuint elements_per_face{ 6 };
 		const GLuint position_index{ 0 };
-		const GLuint normal_index{ 1 };
 		const GLuint position_size{ 3 };
+        const GLenum position_type{ GL_FLOAT };
+        const GLboolean position_normalize{ GL_FALSE };
+        const GLuint position_offset_in_buffer{ 0 };
+
+        // Normal position vertex attribute parameters
+		const GLuint normal_index{ 1 };
 		const GLuint normal_size{ 3 };
-		const GLenum position_type{ GL_FLOAT };
 		const GLenum normal_type{ GL_FLOAT };
-		const GLboolean position_normalize{ GL_FALSE };
 		const GLboolean normal_normalize{ GL_FALSE };
-		const GLuint position_offset_in_buffer{ 0 };
 		const GLuint normal_offset_in_buffer{ sizeof(GLfloat) * position_size };
 
 		// Cube vertex buffer attributes
@@ -105,7 +107,6 @@ private:
 		glVertexArrayAttribBinding(m_vao, normal_index, binding_index);
 
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
-		// NOTE: We are leaving the VAO bound
 	}
 
 	virtual void render(double current_time)
@@ -134,10 +135,8 @@ private:
 	};
 
 	// Member variables
-	GLuint m_vao;
-	GLuint m_vbo;
-	std::unique_ptr<GlslProgram> m_shader;
-	std::unique_ptr<GlslProgram> m_normal_shader;
+	GLuint m_vao { 0 };
+	GLuint m_vbo { 0 };
 	glm::mat4 m_model_matrix{ glm::mat4{1.0f } };
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
@@ -145,6 +144,8 @@ private:
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_rotation_rate{ 0.001f };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
+    std::unique_ptr<GlslProgram> m_shader;
+    std::unique_ptr<GlslProgram> m_normal_shader;
 };
 
 int main(int argc, char* argv[])

@@ -6,25 +6,25 @@
 #include "glsl_program.h"
 
 static const GLfloat vertices[]{
-	// Positions      // Colors
-	-0.5f, -0.5f, 0.0,  1.0, 0.0, 0.0,
-	0.5, -0.5f, 0.0,   0.0, 1.0, 0.0,
-	-0.5f, 0.5, 0.0,	  0.0, 0.0, 1.0,
+	// Positions          // Colors
+	-0.5f, -0.5f, 0.0f,  1.0, 0.0f, 0.0f,
+	 0.5f, -0.5f, 0.0f,  0.0f, 1.0, 0.0f,
+	-0.5f,  0.5,  0.0f,	 0.0f, 0.0f, 1.0f,
 
-	-0.5f, 0.5, 0.0,   0.0, 0.0, 1.0,
-	0.5, -0.5f, 0.0,   0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0,    1.0, 0.0, 1.0
+	-0.5f,  0.5,  0.0f,  0.0f, 0.0f, 1.0f,
+	 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,
+	 0.5f,  0.5,  0.0f,  1.0f, 0.0f, 1.0f
 };
 
 static const GLfloat vertices2[]{
 	// Positions      // Colors
-	-0.5f, -0.5f, 0.0,  1.0, 0.0, 0.0,
-	0.5, -0.5f, 0.0,   0.0, 1.0, 0.0,
-	-0.5f, 0.5, 0.0,	  0.0, 0.0, 1.0,
+	-0.5f, -0.5f, 0.0f,  1.0, 0.0f, 0.0f,
+	 0.5, -0.5f,  0.0f,  0.0f, 1.0, 0.0f,
+	-0.5f, 0.5f,  0.0f,	 0.0f, 0.0f, 1.0f,
 
-	-0.5f, 0.5, 0.0,   1.0, 1.0, 0.0,
-	0.5, -0.5f, 0.0,   1.0, 0.0, 1.0,
-	0.5, 0.5, 0.0,    1.0, 1.0, 1.0
+	-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,
+	 0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 1.0f,
+	 0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 1.0f
 };
 
 class MultipleAttributeExample : public Application
@@ -41,6 +41,7 @@ private:
 
 			if (m_buffer_zero)
 				glVertexArrayVertexBuffer(m_vao, m_attrib_binding_index, m_buffers[0], m_attrib_offset, m_attrib_stride);
+
 			else
 				glVertexArrayVertexBuffer(m_vao, m_attrib_binding_index, m_buffers[1], m_attrib_offset, m_attrib_stride);
 		}
@@ -119,10 +120,10 @@ private:
 	const GLuint m_attrib_offset{ 0 };
 	const GLuint m_attrib_binding_index{ 0 };
 	bool m_buffer_zero{ false };
-	std::unique_ptr<GlslProgram>  m_shader;
 	GLuint m_vao { 0 };
 	GLuint m_buffers[2]{ 0 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
+    std::unique_ptr<GlslProgram>  m_shader;
 };
 
 int main(int argc, char* argv[])

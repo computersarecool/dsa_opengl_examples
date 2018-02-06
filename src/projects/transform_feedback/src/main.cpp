@@ -1,16 +1,17 @@
 // Transform feedback example
 #include <memory>
 #include <iostream>
-#include <string>
+
+#include "glad/glad.h"
 
 #include "base_app.h"
-#include "glsl_program.h"
-#include "camera.h"
 
 static const GLchar* vertex_shader_source[] =
 {
 	"#version 440 core\n"
-	"in float inValue;\n"
+
+    "in float inValue;\n"
+
 	"out float outValue;\n"
 
 	"void main()\n"
@@ -65,19 +66,19 @@ private:
 		glNamedBufferStorage(m_vbo, sizeof(data), data, flags);
 
 		// Create and bind VAO
-		GLint attribIndex{ glGetAttribLocation(program, "inValue") };
+		GLint attrib_index{ glGetAttribLocation(program, "inValue") };
 		const GLuint size{ 1 };
 		const GLenum type{ GL_FLOAT };
 		const GLboolean normalized{ GL_FALSE };
 		const GLuint stride{ sizeof(GLfloat) };
 		const GLuint offset{ 0 };
-		const GLuint bindingIndex{ 0 };
+		const GLuint binding_index{ 0 };
 
 		glCreateVertexArrays(1, &m_vao);
-		glEnableVertexArrayAttrib(m_vao, attribIndex);
-		glVertexArrayAttribFormat(m_vao, attribIndex, size, type, normalized, offset);
-		glVertexArrayVertexBuffer(m_vao, bindingIndex, m_vbo, offset, stride);
-		glVertexArrayAttribBinding(m_vao, attribIndex, bindingIndex);
+		glEnableVertexArrayAttrib(m_vao, static_cast<GLuint>(attrib_index));
+		glVertexArrayAttribFormat(m_vao, static_cast<GLuint>(attrib_index), size, type, normalized, offset);
+		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, stride);
+		glVertexArrayAttribBinding(m_vao, static_cast<GLuint>(attrib_index), binding_index);
 		glBindVertexArray(m_vao);
 
 		// Create transform feedback buffer

@@ -29,16 +29,17 @@ public:
 	};
 
 	void use() const;
-	void uniform(const std::string& name, const GLboolean value) const;
-	void uniform(const std::string& name, const GLuint value) const;
-	void uniform(const std::string& name, const GLfloat value) const;
+	void uniform(const std::string& name, GLboolean value) const;
+	void uniform(const std::string& name, GLuint value) const;
+	void uniform(const std::string& name, GLfloat value) const;
+	void uniform(const std::string& name, GLdouble value) const;
 	void uniform(const std::string& name, const glm::vec2& value) const;
 	void uniform(const std::string& name, const glm::vec3& value) const;
 	void uniform(const std::string& name, const glm::vec4& value) const;
 	void uniform(const std::string& name, const glm::mat3& value) const;
 	void uniform(const std::string& name, const glm::mat4& value) const;
 
-	GlslProgram(const Format& format, bool separable = false);
+	explicit GlslProgram(const Format& format, bool separable = false);
 
 private:
 	GLuint m_handle;
