@@ -21,9 +21,9 @@ protected:
 		int samples;
 		int cursor;
 		bool resizeable;
-	} m_info;
+	} m_info{};
 
-	GLFWwindow* m_window;
+	GLFWwindow* m_window{};
 
 	virtual void set_info();
 	virtual void init() final;

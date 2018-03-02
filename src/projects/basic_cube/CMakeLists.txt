@@ -1,7 +1,7 @@
-# Name for this project
+# Set project name
 set(PROJECT_NAME "basic_cube")
 
-# Choose the library for the final build
+# Set directory for the binary
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BUILD_DIR}/$<CONFIG>)
 
@@ -19,14 +19,16 @@ set(SOURCES
   ${PROJECTS_SOURCE_DIR}/base_app/camera.cpp
   )
 
-
+# Add executable to be built
 add_executable(${PROJECT_NAME} ${SOURCES})
+
+# Specify libraries to be used
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})
 
 # Copy resources
-file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${PROJECT_BUILD_DIR}/)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${PROJECT_BUILD_DIR}/assets)
 
-# Set correct CWD for debugger
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-  set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    # Set correct CWD for debugger
+    set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()

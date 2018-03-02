@@ -73,12 +73,14 @@ private:
 		// Vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
 
+		// Positions
         const GLuint position_index{ 0 };
 		const GLenum position_type{ GL_FLOAT };
         const GLuint position_size{ 3 };
         const GLboolean position_normalize{ GL_FALSE };
         const GLuint position_offset_in_buffer{ 0 };
 
+        // Normals
         const GLuint normal_index{ 1 };
         const GLuint normal_size{ 3 };
         const GLenum normal_type{ GL_FLOAT };
@@ -90,12 +92,12 @@ private:
 		const GLuint offset{ 0 };
 		const GLuint element_stride{ sizeof(GLfloat) * elements_per_face };
 
-		// Setup VBO and its data store
+		// Set up VBO and its data store
 		const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_cube_vbo);
 		glNamedBufferStorage(m_cube_vbo, sizeof(vertices), vertices, flags);
 
-		// Setup cube VAO
+		// Set up cube VAO
 		glCreateVertexArrays(1, &m_cube_vao);
 		
 		glEnableVertexArrayAttrib(m_cube_vao, position_index);
@@ -138,7 +140,7 @@ private:
 		glNamedFramebufferTexture(m_src_fbo, GL_DEPTH_ATTACHMENT, m_depth_texture, 0);
 		glNamedFramebufferTexture(m_src_fbo, GL_COLOR_ATTACHMENT0, m_color_texture, 0);
 
-		// Setup full screen quad VAO
+		// Set up full screen quad VAO
 		glCreateVertexArrays(1, &m_full_screen_quad_vao);
 	}
 
@@ -151,7 +153,7 @@ private:
 
 	virtual void render(double current_time)
 	{
-		// Draw scene into the src fbo
+		// Draw scene into the src FBO
 		m_cube_shader->use();
 		glBindVertexArray(m_cube_vao);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_src_fbo);
@@ -160,7 +162,7 @@ private:
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
 		glEnable(GL_DEPTH_TEST);
 		
-		for (int i{ 0 }; i < m_number_cubes; i++)
+		for (int i{ 0 }; i != m_number_cubes; ++i)
 		{
 			glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 			model_matrix = glm::translate(model_matrix, glm::vec3{ -1.5, 0, 0 });

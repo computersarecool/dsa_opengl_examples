@@ -187,7 +187,7 @@ void GlslProgram::introspect() const
 	static const GLenum properties[]{ GL_TYPE, GL_LOCATION };
 	GLint params[num_parameters];
 	GLchar name[max_name_length];
-	for (int index = 0; index < num_outputs; ++index)
+	for (int index{ 0 }; index != num_outputs; ++index)
 	{
 		glGetProgramResourceName(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), sizeof(name), nullptr, name);
 		glGetProgramResourceiv(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), num_parameters, properties, num_parameters, nullptr, params);

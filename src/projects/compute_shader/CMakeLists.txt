@@ -1,7 +1,7 @@
 # Name for this project
 set(PROJECT_NAME "compute_shader")
 
-# Choose the library for the final build
+# Choose the directory for the final build
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BUILD_DIR}/$<CONFIG>)
 
@@ -18,7 +18,6 @@ set(SOURCES
   ${PROJECTS_SOURCE_DIR}/base_app/glsl_program.cpp
   ${PROJECTS_SOURCE_DIR}/base_app/camera.cpp
   )
-
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})

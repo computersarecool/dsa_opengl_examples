@@ -12,7 +12,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   # W4: Show the most warnings
   # WX: Treat all warnings as errors
-  # EHsc: Only emit code for exception filters when detected that the code in the try {} block might throw a C++ exception
+  # EHsc: Only emit code for exception filters when detected that the code in the try block might throw a C++ exception
   set(warnings "/W4 /EHsc")
   set(CMAKE_CONFIGURATION_TYPES Debug Release)
 endif()
