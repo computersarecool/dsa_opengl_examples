@@ -32,16 +32,13 @@ void Camera::process_keyboard(Camera_Movement direction, float delta_time)
 		case Camera_Movement::RIGHT:
 			m_position += m_right * velocity;
 			break;
-		}
 	}
+}
 
 void Camera::process_mouse_movement(float x_offset, float y_offset, bool constrain_pitch)
 {
-	x_offset *= m_mouse_sensitivity;
-	y_offset *= m_mouse_sensitivity;
-
-	m_yaw += x_offset;
-	m_pitch += y_offset;
+	m_yaw += x_offset * m_mouse_sensitivity;
+	m_pitch += y_offset * m_mouse_sensitivity;
 
 	if (constrain_pitch)
 	{

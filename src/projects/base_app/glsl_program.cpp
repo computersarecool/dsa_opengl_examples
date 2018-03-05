@@ -119,8 +119,8 @@ void GlslProgram::uniform(const std::string& name, const glm::mat4& value) const
 GlslProgram::GlslProgram(const Format& format, bool separable)
 {
 	m_handle = glCreateProgram();
-	// TODO: Make std::optional and only add valid shader sources to vector
 	// Add all active shader handles to a vector
+	// TODO: Make std::optional and only add valid shader sources to vector
 	std::vector<GLuint> shader_handles;
 	shader_handles.push_back(compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER));
 	shader_handles.push_back(compile_shader(format.m_tess_control_shader, GL_TESS_CONTROL_SHADER));

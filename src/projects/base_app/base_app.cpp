@@ -140,7 +140,10 @@ void Application::_check_gl_error(const char* file, int line)
 			case GL_INVALID_FRAMEBUFFER_OPERATION:
 				error = "GL_INVALID_FRAMEBUFFER_OPERATION";
 				break;
+			default:
+				error = "Unknown OpenGL error";
 		}
+
 		std::cerr << "Error: " << err << " " << error << " - " << file << ":" << line << std::endl;
 	}
 }

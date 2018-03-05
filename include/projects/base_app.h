@@ -6,8 +6,8 @@
 class Application
 {
 public:
-	Application() = default;
-	virtual ~Application() = default;
+	//Application() = default;
+	//virtual ~Application() = default;
 	virtual void run() final;
 
 protected:	
@@ -21,13 +21,14 @@ protected:
 		int samples;
 		int cursor;
 		bool resizeable;
-	} m_info{};
+	};
 
+	AppInfo m_info{};
 	GLFWwindow* m_window{};
 
 	virtual void set_info();
 	virtual void init() final;
-	virtual void setup() {};
+	virtual void setup() {}
 	virtual void draw() final;
 	virtual void render(double /* current_time */) {}
 	virtual void shutdown() {}

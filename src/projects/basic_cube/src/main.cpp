@@ -1,4 +1,4 @@
-﻿//  A basic cube example
+﻿//  A basic cube whose positions are colors
 #include <memory>
 
 #include "glm/glm/gtc/matrix_transform.hpp"

@@ -2,6 +2,7 @@
 // Press spacebar to take a screenshot
 #include <fstream>
 #include <memory>
+#include <vector>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
@@ -9,8 +10,9 @@
 #include "glsl_program.h"
 #include "camera.h"
 
-// Cube: First three are positions, second three are normals
+// Cube vertices
 const GLfloat vertices[]{
+     // Positions         // Normals
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -75,8 +77,9 @@ private:
 
 	void take_screen_shot()
 	{
+        // Tightly pack members of this struct
 #pragma pack (push, 1)
-		struct
+		struct header
 		{
 			unsigned char ident_size;// Size of following ID field
 			unsigned char cmap_type; // Color map type 0 = none
@@ -93,28 +96,29 @@ private:
 		} tga_header;
 #pragma pack (pop)
 
-		// Make row a multiple of four
-        GLshort origin_x{ 0 };
-        GLshort origin_y{ 0 };
-        int row_size{ ((m_info.window_width * 3 + 3) & ~3) };
-		int data_size{ row_size * m_info.window_height };
-		GLubyte* frame_buffer_data{ new GLubyte[data_size] };
+        // Setup file header
+        memset(&tga_header, 0, sizeof(tga_header));
+        tga_header.image_type = 2;
+        tga_header.width = static_cast<short>(m_info.window_width);
+        tga_header.height = static_cast<short>(m_info.window_height);
+        tga_header.bpp = 24;
 
-		glReadPixels(origin_x, origin_y, m_info.window_width, m_info.window_height, GL_BGR, GL_UNSIGNED_BYTE, frame_buffer_data);
+        // Get data from OpenGL
+        const GLshort origin_x{ 0 };
+        const GLshort origin_y{ 0 };
+        // Round up to nearest multiple of four
+        const int row_size{ ((m_info.window_width * 3 + 3) & ~3) };
+		const int data_size{ row_size * m_info.window_height };
+		std::vector<GLubyte> framebuffer_data(data_size);
 
-		memset(&tga_header, 0, sizeof(tga_header));
-		tga_header.image_type = 2;
-		tga_header.width = static_cast<short>(m_info.window_width);
-		tga_header.height = static_cast<short>(m_info.window_height);
-		tga_header.bpp = 24;
+		glReadPixels(origin_x, origin_y, m_info.window_width, m_info.window_height, GL_BGR, GL_UNSIGNED_BYTE, framebuffer_data.data());
 
+        // Write file
 		std::ofstream screenshot;
 		screenshot.open("screenshot.tga", std::ios::out | std::ios::binary);
 		screenshot.write(reinterpret_cast<char*>(&tga_header), sizeof(tga_header));
-		screenshot.write(reinterpret_cast<char*>(frame_buffer_data), data_size);
+		screenshot.write(reinterpret_cast<char*>(framebuffer_data.data()), data_size);
 		screenshot.close();
-
-		delete[] frame_buffer_data;
 	}
 
 	virtual void setup()
@@ -172,7 +176,6 @@ private:
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
 
-
 		// Set uniforms and draw first cube
 		m_shader->use();
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
@@ -180,7 +183,6 @@ private:
 		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
 		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
-
 
 		// Set uniforms and draw second cube
 		glm::mat4 model_matrix2{ glm::mat4{ 1.0 } };
