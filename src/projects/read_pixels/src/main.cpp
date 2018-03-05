@@ -3,6 +3,7 @@
 #include <fstream>
 #include <memory>
 #include <vector>
+#include <iostream>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
@@ -102,27 +103,39 @@ private:
         tga_header.width = static_cast<short>(m_info.window_width);
         tga_header.height = static_cast<short>(m_info.window_height);
         tga_header.bpp = 24;
+;
+        // Bind PBO to trigger asynchronous reads
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbo);
 
-        // Get data from OpenGL
+        // Read the data from OpenGL
         const GLshort origin_x{ 0 };
         const GLshort origin_y{ 0 };
-        // Round up to nearest multiple of four
-        const int row_size{ ((m_info.window_width * 3 + 3) & ~3) };
-		const int data_size{ row_size * m_info.window_height };
-		std::vector<GLubyte> framebuffer_data(data_size);
+        std::vector<GLubyte> framebuffer_data(m_data_size);
+        glReadnPixels(origin_x, origin_y, m_info.window_width, m_info.window_height, GL_BGR, GL_UNSIGNED_BYTE, m_data_size, 0);
 
-		glReadPixels(origin_x, origin_y, m_info.window_width, m_info.window_height, GL_BGR, GL_UNSIGNED_BYTE, framebuffer_data.data());
+        // Get a pointer to client memory
+        // Note: This should be done a few frames later to actually be asynchronous
+        const int buffer_offset{ 0 };
+        void* ptr = glMapNamedBufferRange(m_pbo, buffer_offset, m_data_size, GL_MAP_READ_BIT);
+
+        memcpy(framebuffer_data.data(), ptr, m_data_size);
 
         // Write file
-		std::ofstream screenshot;
+        std::ofstream screenshot;
 		screenshot.open("screenshot.tga", std::ios::out | std::ios::binary);
 		screenshot.write(reinterpret_cast<char*>(&tga_header), sizeof(tga_header));
-		screenshot.write(reinterpret_cast<char*>(framebuffer_data.data()), data_size);
+		screenshot.write(reinterpret_cast<char*>(framebuffer_data.data()), m_data_size);
 		screenshot.close();
+
+        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 	}
 
 	virtual void setup()
 	{
+        // Set m_data_size which is determined by window height
+        // Multiply window width by 3 (RGB) round up and make a multiple of 4, then multiply by window height to get byte size
+        m_data_size = ((m_info.window_width * 3 + 3) & ~3) *  m_info.window_height;
+
 		// Create shader
         m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
 
@@ -150,6 +163,10 @@ private:
 		const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_vbo);
 		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
+
+        // Setup the PBO and its data store
+        glCreateBuffers(1, &m_pbo);
+        glNamedBufferStorage(m_pbo, m_data_size, nullptr, GL_MAP_READ_BIT);
 
 		// Setup and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -196,7 +213,9 @@ private:
 	// Member variables
 	GLuint m_vao { 0 };
 	GLuint m_vbo { 0 };
-	Camera m_camera{ glm::vec3{0, 0, 5} };
+    GLuint m_pbo { 0 };
+    int m_data_size { 0 };
+	Camera m_camera{ glm::vec3{ 0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
 	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
