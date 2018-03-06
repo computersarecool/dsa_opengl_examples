@@ -1,4 +1,5 @@
-﻿//  A basic cube whose positions are colors
+﻿// A rotating basic cube with model-space positions as colors
+
 #include <memory>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
@@ -55,13 +56,13 @@ static const GLfloat vertices[]{
 class BasicCubeExample : public Application
 {
 private:
-    virtual void set_info()
+    virtual void set_info() override
     {
         Application::set_info();
         m_info.title = "Basic cube example";
     }
 
-    virtual void setup()
+    virtual void setup() override
     {
         // Set and use shader
         m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") });
@@ -116,7 +117,7 @@ private:
         glDepthFunc(GL_LEQUAL);
     }
 
-    virtual void render(double current_time)
+    virtual void render(double current_time) override
     {
         // Set default framebuffer parameters
         glViewport(0, 0, m_info.window_width, m_info.window_height);

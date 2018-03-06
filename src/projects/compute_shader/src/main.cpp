@@ -1,4 +1,5 @@
-﻿// Compute shader example
+﻿// This renders a cube to an FBO then uses a compute shader to invert that image
+
 #include <memory>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
@@ -7,8 +8,9 @@
 #include "glsl_program.h"
 #include "camera.h"
 
-// Cube: First three are positions, second three are normals
+// Cube vertices
 static const GLfloat vertices[]{
+       // Positions       // Normals
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -55,7 +57,7 @@ static const GLfloat vertices[]{
 class ComputeShaderExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Compute shader example";
@@ -144,14 +146,14 @@ private:
 		glCreateVertexArrays(1, &m_full_screen_quad_vao);
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
 		load_shaders();
 		setup_cube();
 		setup_textures_and_buffers();
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		// Draw scene into the src FBO
 		m_cube_shader->use();

@@ -1,4 +1,5 @@
-﻿// Array texture example
+﻿// This creates an array texture in S3TC compressed format
+
 #include <iostream>
 #include <memory>
 #include <cmath>
@@ -12,7 +13,7 @@
 class TextureArrayExample : public Application
 {
 private:
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Set and use shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("../assets/shaders/simple_quad.frag") });
@@ -25,7 +26,7 @@ private:
 		// Make a 2D array texture
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_texture_array);
 
-		for (int i{ 0 }; i < m_num_billboards; i++)
+		for (int i{ 0 }; i < m_num_billboards; ++i)
 		{
 			// Get image path
 			std::string image_path{ m_image_base_path + std::to_string(i) + ".jpg" };
@@ -53,13 +54,7 @@ private:
 		glTextureParameteri(m_texture_array, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_texture_array, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-		// This is also the default
 		glBindTextureUnit(0, m_texture_array);
-
-		// Set OpenGL State
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
 	virtual void render(double current_time)

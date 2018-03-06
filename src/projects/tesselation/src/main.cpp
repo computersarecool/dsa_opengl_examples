@@ -1,4 +1,7 @@
-﻿#include <iostream>
+﻿// This compares the various tesselation spacing options
+// Interactivity: Arrow up increased tesselation, arrow down decreases tesselation
+
+#include <iostream>
 #include <memory>
 
 #include "base_app.h"
@@ -22,7 +25,7 @@ const GLfloat vertices[]{
 class TesselationExample : public Application
 {
 private:
-	virtual void on_key(int key, int action)
+	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 
@@ -36,13 +39,13 @@ private:
 		}
 	}
 
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Tesselation Example";
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
 		glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &m_max_tess_level);
 
@@ -80,7 +83,7 @@ private:
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);

@@ -1,5 +1,6 @@
 ﻿// An example that uses a displacment map to offset vertices and tesselation
 // This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
+
 #include <iostream>
 #include <memory>
 
@@ -13,13 +14,13 @@
 class DisplacmentMapTesselationExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();	
 		m_info.title = "Tesselation Displacement Map";
 	}
 
-	virtual void on_key(int key, int action)
+	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 		if (key == GLFW_KEY_W && action == GLFW_PRESS)
@@ -28,7 +29,7 @@ private:
 		}
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Create shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/terrain_disp.vert").fragment("../assets/shaders/terrain_disp.frag").tess_control("../assets/shaders/terrain_disp.tesc").tess_eval("../assets/shaders/terrain_disp.tese")});
@@ -86,7 +87,7 @@ private:
 		stbi_image_free(color_map_data);		
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);

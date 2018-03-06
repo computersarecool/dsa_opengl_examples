@@ -1,5 +1,7 @@
-﻿// Read pixels example
-// Press spacebar to take a screenshot
+﻿// This uses glReadnPixels a safer version of glReadPixels and mapped Pixel Buffer Objects to improve performance
+// It saves the rendered image as a .tga file
+// Interactivity: Press spacebar to take a screenshot
+
 #include <fstream>
 #include <memory>
 #include <vector>
@@ -60,77 +62,97 @@ const GLfloat vertices[]{
 class ReadPixelsExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Read pixels example";
 	}
 
-	virtual void on_key(int key, int action)
+	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 
-		if (key == GLFW_KEY_SPACE && GLFW_PRESS != 0)
+		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 		{
-			take_screen_shot();
+            take_screen_shot();
 		}
 	}
 
 	void take_screen_shot()
-	{
-        // Tightly pack members of this struct
-#pragma pack (push, 1)
-		struct header
-		{
-			unsigned char ident_size;// Size of following ID field
-			unsigned char cmap_type; // Color map type 0 = none
-			unsigned char image_type; // Image type 2 = rgb
-			short cmap_start; // First entry in palette
-			short cmap_size; // Number of entries in palette
-			unsigned char cmap_bpp; // Number of bits per palette
-			short x_origin; // X origin
-			short y_origin; // Y origin
-			short width; // Width in pixels
-			short height; // Height in pixels
-			unsigned char bpp; // Bits per pixel
-			unsigned char descriptor; // Descriptor bits
-		} tga_header;
-#pragma pack (pop)
+	{	// This will take a screenshot of the last frame using double PBOs for improved performance
 
-        // Setup file header
-        memset(&tga_header, 0, sizeof(tga_header));
-        tga_header.image_type = 2;
-        tga_header.width = static_cast<short>(m_info.window_width);
-        tga_header.height = static_cast<short>(m_info.window_height);
-        tga_header.bpp = 24;
-;
-        // Bind PBO to trigger asynchronous reads
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbo);
-
-        // Read the data from OpenGL
+        // Bind PBO to trigger asynchronous reads and begin data read
+        glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbos[m_pbo_index]);
         const GLshort origin_x{ 0 };
         const GLshort origin_y{ 0 };
-        std::vector<GLubyte> framebuffer_data(m_data_size);
         glReadnPixels(origin_x, origin_y, m_info.window_width, m_info.window_height, GL_BGR, GL_UNSIGNED_BYTE, m_data_size, 0);
 
-        // Get a pointer to client memory
-        // Note: This should be done a few frames later to actually be asynchronous
-        const int buffer_offset{ 0 };
-        void* ptr = glMapNamedBufferRange(m_pbo, buffer_offset, m_data_size, GL_MAP_READ_BIT);
+        if (!m_pbo_index)
+        {
+            m_pbo_index += 1;
+            take_screen_shot();
+        }
+		else
+        {
+            // Tightly pack members of this struct
+#pragma pack (push, 1)
+            struct header {
+                unsigned char ident_size;// Size of following ID field
+                unsigned char cmap_type; // Color map type 0 = none
+                unsigned char image_type; // Image type 2 = rgb
+                short cmap_start; // First entry in palette
+                short cmap_size; // Number of entries in palette
+                unsigned char cmap_bpp; // Number of bits per palette
+                short x_origin; // X origin
+                short y_origin; // Y origin
+                short width; // Width in pixels
+                short height; // Height in pixels
+                unsigned char bpp; // Bits per pixel
+                unsigned char descriptor; // Descriptor bits
+            } tga_header;
+#pragma pack (pop)
 
-        memcpy(framebuffer_data.data(), ptr, m_data_size);
+            // Setup TGA header
+            memset(&tga_header, 0, sizeof(tga_header));
+            tga_header.image_type = 2;
+            tga_header.width = static_cast<short>(m_info.window_width);
+            tga_header.height = static_cast<short>(m_info.window_height);
+            tga_header.bpp = 24;
 
-        // Write file
-        std::ofstream screenshot;
-		screenshot.open("screenshot.tga", std::ios::out | std::ios::binary);
-		screenshot.write(reinterpret_cast<char*>(&tga_header), sizeof(tga_header));
-		screenshot.write(reinterpret_cast<char*>(framebuffer_data.data()), m_data_size);
-		screenshot.close();
+            std::vector<GLubyte> framebuffer_data(m_data_size);
 
-        glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+            // Get a pointer to client memory and copy
+            // Note: This should be done a few frames later to actually be asynchronous
+            const int buffer_offset{ 0 };
+            void *ptr = glMapNamedBufferRange(m_pbos[m_pbo_index - 1], buffer_offset, m_data_size, GL_MAP_READ_BIT);
+            if (!ptr)
+            {
+                check_gl_error();
+            }
+            else
+            {
+                memcpy(framebuffer_data.data(), ptr, m_data_size);
+
+                // Write file
+                std::ofstream screenshot;
+                screenshot.open("screenshot.tga", std::ios::out | std::ios::binary);
+                screenshot.write(reinterpret_cast<char *>(&tga_header), sizeof(tga_header));
+                screenshot.write(reinterpret_cast<char *>(framebuffer_data.data()), m_data_size);
+                screenshot.close();
+
+                glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+
+                for (auto pbo : m_pbos)
+                {
+                    glUnmapNamedBuffer(pbo);
+                }
+
+                m_pbo_index = 0;
+            }
+        }
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
         // Set m_data_size which is determined by window height
         // Multiply window width by 3 (RGB) round up and make a multiple of 4, then multiply by window height to get byte size
@@ -164,9 +186,12 @@ private:
 		glCreateBuffers(1, &m_vbo);
 		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
 
-        // Setup the PBO and its data store
-        glCreateBuffers(1, &m_pbo);
-        glNamedBufferStorage(m_pbo, m_data_size, nullptr, GL_MAP_READ_BIT);
+        // Setup the PBOs
+        glCreateBuffers(static_cast<GLsizei>(m_pbos.size()), m_pbos.data());
+        for (auto pbo : m_pbos)
+        {
+            glNamedBufferStorage(pbo, m_data_size, nullptr, GL_MAP_READ_BIT);
+        }
 
 		// Setup and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -184,7 +209,7 @@ private:
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
@@ -213,8 +238,9 @@ private:
 	// Member variables
 	GLuint m_vao { 0 };
 	GLuint m_vbo { 0 };
-    GLuint m_pbo { 0 };
+    std::vector<GLuint>(m_pbos) { 0, 0 };
     int m_data_size { 0 };
+	int m_pbo_index { 0 };
 	Camera m_camera{ glm::vec3{ 0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
 	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };

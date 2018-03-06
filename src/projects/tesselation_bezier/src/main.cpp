@@ -1,4 +1,7 @@
 ﻿// A bezier patch example using tesselation
+// Interactivity: W Shows wireframe
+// TODO: Fix
+
 #include <iostream>
 #include <memory>
 
@@ -16,13 +19,13 @@ static const GLfloat vertices[]{
 class BezierTesselationExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();	
 		m_info.title = "Bezier tesselation example";
 	}
 
-	virtual void on_key(int key, int action)
+	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 		if (key == GLFW_KEY_W && action == GLFW_PRESS)
@@ -31,7 +34,7 @@ private:
 		}
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Create shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/bezier.vert").fragment("../assets/shaders/bezier.frag").tess_control("../assets/shaders/bezier.tesc").tess_eval("../assets/shaders/bezier.tese")});
@@ -62,7 +65,7 @@ private:
 		glVertexArrayAttribBinding(m_vao, position_index, binding_index);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);

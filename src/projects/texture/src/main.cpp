@@ -1,4 +1,6 @@
-﻿// Array texture example
+﻿// This loads an image in the S3TC compressed format
+// It checks to make sure it is compressed and gets the compressed size
+
 #include <iostream>
 #include <memory>
 
@@ -11,7 +13,7 @@
 class TextureArrayExample : public Application
 {
 private:
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Set and use shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("../assets/shaders/simple_quad.frag") });
@@ -46,7 +48,7 @@ private:
 		glGetTextureLevelParameteriv(m_texture, 0, GL_TEXTURE_COMPRESSED, &is_compressed);
 		if (is_compressed)
 		{
-			std::cout << "Texture is compressed: " << is_compressed << std::endl;
+			std::cout << "Texture is compressed" << std::endl;
 		}
 
 		GLint compressed_size{ 0 };
@@ -54,21 +56,14 @@ private:
 		{
 			std::cout << "Texture size is: " << compressed_size << std::endl;
 		}
-		
-		// This is also the default
-		glBindTextureUnit(0, m_texture);
 
-		// Set OpenGL State
-		glEnable(GL_CULL_FACE);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBindTextureUnit(0, m_texture);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
-		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	};
 
