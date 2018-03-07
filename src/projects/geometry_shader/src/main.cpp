@@ -1,4 +1,5 @@
-﻿// A geometry shader example
+﻿// Pass through geometry shader
+
 #include <memory>
 
 #include "base_app.h"
@@ -15,13 +16,13 @@ static const GLfloat vertices[]{
 class GeometryShaderExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();	
 		m_info.title = "Geometry shader example";
 	}
 
-	virtual void on_key(int key, int action)
+	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 		if (key == GLFW_KEY_W && action == GLFW_PRESS)
@@ -30,9 +31,9 @@ private:
 		}
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
-		// Create shader
+		// Create and enable shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").geometry("../assets/shaders/shader.geom") });
 		m_shader->use();
 
@@ -43,7 +44,7 @@ private:
 		const GLboolean normalized{ GL_FALSE };
 		const GLuint stride{ sizeof(GLfloat) * size };
 
-		// Set up buffer storage
+		// Set up VBO
 		const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_vbo);
 		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
@@ -62,7 +63,7 @@ private:
 		glVertexArrayAttribBinding(m_vao, position_index, binding_index);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
@@ -95,12 +96,12 @@ private:
 	GLuint m_vao { 0 };
 	GLuint m_vbo { 0 };
 	bool m_show_wireframe{ false };
-	GLuint m_vertices_per_patch{ 4 };
-	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	Camera m_camera;
+	const GLuint m_vertices_per_patch{ 4 };
+	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 	glm::mat4 m_model_matrix{ glm::mat4{ 1.0f } };
 	glm::mat4 m_view_matrix;
 	glm::mat4 m_projection_matrix;
+    Camera m_camera;
 	std::unique_ptr<GlslProgram> m_shader;
 };
 

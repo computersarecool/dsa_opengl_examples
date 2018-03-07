@@ -22,13 +22,13 @@ static const GLfloat vertices[]{
 class GeometryShaderExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();	
 		m_info.title = "Geometry shader quad example";
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Create shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/quad.vert").fragment("../assets/shaders/quad.frag").geometry("../assets/shaders/quad.geom") });
@@ -37,12 +37,14 @@ private:
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 7 };
 
+		// Positions
         const GLuint position_index{ 0 };
         const GLuint position_size{ 4 };
         const GLenum position_type{ GL_FLOAT };
         const GLboolean position_normalize{ GL_FALSE };
         const GLuint position_offset_in_buffer{ 0 };
 
+		// Colors
         const GLuint color_index{ 1 };
         const GLuint color_size{ 3 };
         const GLenum color_type{ GL_FLOAT };
@@ -76,7 +78,7 @@ private:
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);

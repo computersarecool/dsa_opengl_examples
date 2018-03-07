@@ -1,4 +1,5 @@
-﻿// A cube geometry shader showing normals
+﻿// A cube geometry shader which converts faces to lines to show normals
+
 #include <memory>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
@@ -55,13 +56,13 @@ const GLfloat vertices[] {
 class GeometryShaderExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Geometry shader example";
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Create shaders
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
@@ -109,7 +110,7 @@ private:
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
@@ -121,13 +122,14 @@ private:
 		// Update uniforms
 		m_model_matrix = glm::rotate(m_model_matrix, m_rotation_rate, m_world_up);
 
-		// Set uniforms
+		// Set for normals
 		m_normal_shader->use();
 		m_normal_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
 		m_normal_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
 		m_normal_shader->uniform("uNormalLength", m_normal_length);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
+        // Set for faces
 		m_shader->use();
 		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
 		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
