@@ -18,68 +18,68 @@ This project uses CMAKE to build
 
 ## Functionality
 #### Examples Include
-- basic_cube
+##### basic_cube
 
  A rotating basic cube with model-space positions as colors
   
-- multiple_attributes_and_buffers
+##### multiple_attributes_and_buffers
 
   This uses mapped buffers to upload data
   The buffer backing the VAO is switched to change vertex data quickly
   The attribute binding could also be switched to change the vertex data quickly
   Interactivity: Spacebar toggles which buffer back the active VAO 
   
-- compute_shader
+##### compute_shader
 
   This renders a cube to an FBO then uses a compute shader to invert that image
   
-- texture
+##### texture
 
   This loads an image in the S3TC compressed format
   It checks to make sure it is compressed and gets the compressed size
 
-- texture_array
+##### texture_array
   
   This creates an array texture in S3TC compressed format
  
-- tesselation
+##### tesselation
   
   This compares the various tesselation spacing options
   Interactivity: Arrow up increased tesselation, arrow down decreases tesselation
   
-- tesselation_displacement_map
+##### tesselation_displacement_map
   
   An example that uses a displacment map to offset vertices and tesselation
   This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
   
-- transform_feedback
+##### transform_feedback
   
   This calculates the square root of some values and reads it back with transform feedback
   No image is output
 
-- geometry_shader
+##### geometry_shader
   
   Pass through geometry shader
   
-- geometry_shader_normals
+##### geometry_shader_normals
   
   A cube geometry shader which converts faces to lines to show normals
 
-- framebuffers
+##### framebuffers
   
   Rendering to a texture example using FBOs
   
-- read_pixels
+##### read_pixels
   
   This uses glReadnPixels a safer version of glReadPixels and mapped Pixel Buffer Objects to improve performance
   It saves the rendered image as a .tga file
   Interactivity: Press spacebar to take a screenshot
 
-- point_sprites
+##### point_sprites
   
   A very simple point sprite example
   
-- lighting
+##### lighting
   
   Phong lighting example
   Interactivity: This implements cursor lock to control camera position
