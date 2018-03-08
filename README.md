@@ -85,6 +85,9 @@ This project uses CMAKE to build
   Interactivity: This implements cursor lock to control camera position
   Mouse wheel to move forward / black
 
+## Extra Notes
+- Because this uses modern OpenGL your graphics card must support at least OpenGL 4.5
+
 ### License
 
 :copyright: Willy Nolan 2018
