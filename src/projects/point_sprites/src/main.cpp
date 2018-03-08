@@ -1,4 +1,5 @@
-﻿// A point sprite example
+﻿// A very simple point sprite example
+
 #include <iostream>
 #include <memory>
 #include "glm/glm/gtc/matrix_transform.hpp"
@@ -10,13 +11,13 @@
 class PointSpriteExample : public Application
 {
 private:
-	virtual void set_info()
+	virtual void set_info() override
 	{
 		Application::set_info();	
 		m_info.title = "Point sprite example";
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
         // Create shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/point_sprite.vert").fragment("../assets/shaders/point_sprite.frag")});
@@ -26,14 +27,13 @@ private:
 		glCreateVertexArrays(1, &m_vao);
 		glBindVertexArray(m_vao);
 
-        // OpenGL State
+        // Set OpenGL State
         glEnable(GL_PROGRAM_POINT_SIZE);
         glBlendFunc(GL_ONE, GL_ONE);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
-		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);

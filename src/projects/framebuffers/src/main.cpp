@@ -1,4 +1,5 @@
-﻿// An example showing an FBO
+﻿// Rendering to a texture example using FBOs
+
 #include <memory>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
@@ -9,7 +10,7 @@
 
 // Cube
 const GLfloat vertices[]{
-	// positions          // texture coords
+	// Positions          // UVs
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
 	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
@@ -56,7 +57,7 @@ const GLfloat vertices[]{
 class FboExample : public Application
 {
 private:
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Create shaders
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
@@ -65,12 +66,14 @@ private:
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 5 };
 
+		// Positions
 		const GLuint position_index{ 0 };
 		const GLuint position_size{ 3 };
 		const GLenum position_type{ GL_FLOAT };
 		const GLboolean position_normalize{ GL_FALSE };
 		const GLuint position_offset_in_buffer{ 0 };
 
+		// UVs
 		const GLuint uv_index{ 1 };
 		const GLuint uv_size{ 2 };
 		const GLenum uv_type{ GL_FLOAT };
@@ -101,7 +104,6 @@ private:
 		glVertexArrayAttribBinding(m_vao, position_index, binding_index);
 		glVertexArrayAttribBinding(m_vao, uv_index, binding_index);
 
-		// NOTE: This VAO is left bound
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
 
 		// Create an FBO
@@ -121,22 +123,23 @@ private:
 		glNamedFramebufferTexture(m_fbo, GL_COLOR_ATTACHMENT0, m_color_buffer_texture, 0);
 		glNamedFramebufferTexture(m_fbo, GL_DEPTH_ATTACHMENT, m_depth_buffer_texture, 0);
 
-		// This the default - unnecessary because we only have one output in the FBO frag shader
+		// This the default (unnecessary here because we only have one output in the FBO frag shader)
 		static const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
 		glNamedFramebufferDrawBuffers(m_fbo, 1, draw_buffers);
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
-		// Bind a framebuffer
+		// Bind the member FBO
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 		glViewport(0, 0, m_fbo_width_height, m_fbo_width_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
 
-		// Set uniforms and draw cube to FBO
+		// Set uniforms and render cube (to member FBO)
 		m_shader->use();
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
@@ -149,12 +152,10 @@ private:
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
 
 		glBindTexture(GL_TEXTURE_2D, m_color_buffer_texture);
 
-		// Set uniforms and draw textured cube
+		// Set uniforms and render textured cube
 		m_shader2->use();
 		model_matrix = glm::mat4{ 1.0f };
 		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time / 2.0), m_world_up);

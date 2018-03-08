@@ -1,4 +1,7 @@
 // Phong lighting example
+// Interactivity: This implements cursor lock to control camera position
+// Mouse wheel to move forward / black
+
 #include <iostream>
 #include <memory>
 
@@ -16,16 +19,16 @@
 static const GLfloat cube_vertices[]{
 	// Positions          // Normals           // UVs
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
 
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-	0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
 
@@ -36,24 +39,24 @@ static const GLfloat cube_vertices[]{
 	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
-	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-	0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-	0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
 
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-	0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
 
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-	0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
 };
@@ -61,7 +64,14 @@ static const GLfloat cube_vertices[]{
 class LightingExample : public Application
 {
 private:
-	virtual void on_key(int key, int action)
+    virtual void set_info() override
+    {
+        Application::set_info();
+        m_info.cursor = GLFW_CURSOR_DISABLED;
+        m_info.title = "Phong lighting example";
+    }
+
+	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 
@@ -78,7 +88,7 @@ private:
 			m_camera.process_keyboard(Camera_Movement::RIGHT, m_delta_time);
 	}
 
-	virtual void on_mouse_move(double x_pos, double y_pos)
+	virtual void on_mouse_move(double x_pos, double y_pos) override
 	{
 		// Avoid initial "jump" movement
 		if (m_first_mouse)
@@ -90,7 +100,8 @@ private:
 
 		double x_delta{ x_pos - m_last_x };
 		double y_delta{ y_pos - m_last_y };
-		m_camera.process_mouse_movement(x_delta, y_delta);
+
+        m_camera.process_mouse_movement(x_delta, y_delta);
 		m_last_x = x_pos;
 		m_last_y = y_pos;
 	}
@@ -100,7 +111,7 @@ private:
 		m_camera.process_mouse_scroll(y_offset);
 	}
 
-	virtual void setup()
+	virtual void setup() override
 	{
 		// Create shaders
         m_cube_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/phong.vert").fragment("../assets/shaders/phong.frag")});
@@ -127,31 +138,32 @@ private:
 		const GLuint normal_index{ 1 };
 		const GLuint uv_index{ 2 };
 
-		// Set cube attributes
+		// Set attributes in cube VAO
 		glCreateVertexArrays(1, &m_cube_vao);
 
 		glEnableVertexArrayAttrib(m_cube_vao, position_index);
+        glVertexArrayAttribFormat(m_cube_vao, position_index, position_size, type, normalize, position_offset);
+        glVertexArrayAttribBinding(m_cube_vao, position_index, binding_index);
+
 		glEnableVertexArrayAttrib(m_cube_vao, normal_index);
+        glVertexArrayAttribFormat(m_cube_vao, normal_index, normal_size, type, normalize, normal_offset);
+        glVertexArrayAttribBinding(m_cube_vao, normal_index, binding_index);
+
 		glEnableVertexArrayAttrib(m_cube_vao, uv_index);
-
-		glVertexArrayAttribFormat(m_cube_vao, position_index, position_size, type, normalize, position_offset);
-		glVertexArrayAttribFormat(m_cube_vao, normal_index, normal_size, type, normalize, normal_offset);
 		glVertexArrayAttribFormat(m_cube_vao, uv_index, uv_size, type, normalize, uv_offset);
-
-		glVertexArrayAttribBinding(m_cube_vao, position_index, binding_index);
-		glVertexArrayAttribBinding(m_cube_vao, normal_index, binding_index);
 		glVertexArrayAttribBinding(m_cube_vao, uv_index, binding_index);
 
+        // Set buffer backing attributes
 		glVertexArrayVertexBuffer(m_cube_vao, binding_index, m_cube_vbo, position_offset, stride);
 
-		// Set light attributes
+		// Set attributes in light VAO (reuse cube positions)
 		glCreateVertexArrays(1, &m_lamp_vao);
 		glEnableVertexArrayAttrib(m_lamp_vao, position_index);
 		glVertexArrayAttribFormat(m_lamp_vao, position_index, position_size, type, normalize, position_offset);
 		glVertexArrayAttribBinding(m_lamp_vao, position_index, binding_index);
 		glVertexArrayVertexBuffer(m_lamp_vao, binding_index, m_cube_vbo, position_offset, stride);
 
-		// Create a sampler
+		// Create a sampler and bind it to a texture
 		GLuint sampler_name;
 		GLuint starting_texture_unit{ 0 };
 		glCreateSamplers(1, &sampler_name);
@@ -162,7 +174,6 @@ private:
 		glBindSampler(starting_texture_unit, sampler_name);
 
 		// Load diffuse and specular maps
-
 		GLint diffuse_width;
 		GLint specular_width;
 		GLint diffuse_height;
@@ -204,29 +215,29 @@ private:
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	virtual void render(double current_time)
+	virtual void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color);
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		// Objects in scene
+		// Draw objects in scene
 		m_cube_shader->use();
 
-		// Update and set uniforms
+		// Calculate uniforms
 		m_model_matrix = glm::mat4{ 1.0f };
 		m_view_matrix = m_camera.get_view_matrix();
 		m_projection_matrix = m_camera.get_proj_matrix();
 		m_normal_matrix = glm::inverseTranspose(glm::mat3(m_model_matrix));
 
-		// Light uniforms
+		// Set lighting uniforms
 		m_cube_shader->uniform("uLightColor", m_light_color);
 		m_cube_shader->uniform("uLightPos", m_camera.get_pos());
 		m_cube_shader->uniform("uLightDirection", m_camera.get_front());
 		m_cube_shader->uniform("uLightCutoff", m_light_cutoff);
 		m_cube_shader->uniform("uLightOuterCutoff", m_light_outer_cutoff);
 
-        // Material uniforms
+        // Set material uniforms
 		m_cube_shader->uniform("uSpecularColor", m_specular_color);
 		m_cube_shader->uniform("uDiffuseColor", m_diffuse_color);
 		m_cube_shader->uniform("uAmbientColor", m_ambient_color);
@@ -234,7 +245,7 @@ private:
 		m_cube_shader->uniform("uShadowStrength", m_shadow_strength);
 		m_cube_shader->uniform("uShininess", m_shininess);
 
-		// Other uniforms
+		// Set other uniforms
 		m_cube_shader->uniform("uCameraPos", m_camera.get_pos());
 		m_cube_shader->uniform("uModelMatrix", m_model_matrix);
 		m_cube_shader->uniform("uViewMatrix", m_view_matrix);
@@ -245,12 +256,15 @@ private:
 		glBindVertexArray(m_cube_vao);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
-		// Lamps in scene
+		// Draw lights in scene
 		m_lamp_shader->use();
+
+        // Calculate uniforms
 		m_model_matrix = glm::mat4{ 1.0f };
 		m_model_matrix = glm::translate(m_model_matrix, m_light_pos);
 		m_model_matrix = glm::scale(m_model_matrix, glm::vec3{ 0.2f });
 
+        // Set uniforms
 		m_lamp_shader->uniform("uModelMatrix", m_model_matrix);
 		m_lamp_shader->uniform("uViewMatrix", m_view_matrix);
 		m_lamp_shader->uniform("uProjectionMatrix", m_projection_matrix);
@@ -258,7 +272,6 @@ private:
 		glBindVertexArray(m_lamp_vao);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
-
 
     std::string m_diffuse_map_path{ "../assets/images/container2.jpg" };
     std::string m_specular_map_path{ "../assets/images/container2_specular.jpg" };
@@ -268,27 +281,27 @@ private:
     double m_last_y{ m_info.window_height / 2.0f };
 	const int m_num_vertices{ 36 };
 	Camera m_camera{ glm::vec3{ 0.0f, 0.0f, 3.0f } };
-    std::unique_ptr<GlslProgram>  m_lamp_shader;
-    std::unique_ptr<GlslProgram> m_cube_shader;
     GLuint  m_cube_vao { 0 };
     GLuint m_lamp_vao { 0 };
     GLuint m_cube_vbo { 0 };
 	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	glm::mat4 m_model_matrix;
-	glm::mat4 m_view_matrix;
-	glm::mat4 m_projection_matrix;
-	glm::mat3 m_normal_matrix;
-	glm::vec4 m_vertex_color{1.0f, 0.5f, 0.31f, 1.0f };
-	glm::vec3 m_light_color{ 0.5f };
-	glm::vec3 m_light_pos{0.0f, 0.25f, 3.0f };
-	GLfloat m_light_cutoff{ glm::cos(glm::radians(12.5f)) };
-	GLfloat m_light_outer_cutoff{ glm::cos(glm::radians(17.5f)) };
-	glm::vec3 m_specular_color{ 1.0f };
-	glm::vec4 m_diffuse_color{ 0.7, 0.7, 0.7, 1.0 };
-	glm::vec4 m_ambient_color{ 0.0, 0.0, 0.0, 1.0 };
-	glm::vec3 m_shadow_color{ 0.0f };
-	GLfloat m_shadow_strength{ 0.0f };
-	GLfloat m_shininess{ 100.0 };
+	const glm::vec4 m_vertex_color{1.0f, 0.5f, 0.31f, 1.0f };
+	const glm::vec3 m_light_color{ 0.5f };
+	const glm::vec3 m_light_pos{0.0f, 0.25f, 3.0f };
+	const GLfloat m_light_cutoff{ glm::cos(glm::radians(12.5f)) };
+	const GLfloat m_light_outer_cutoff{ glm::cos(glm::radians(17.5f)) };
+	const glm::vec3 m_specular_color{ 1.0f };
+	const glm::vec4 m_diffuse_color{ 0.7, 0.7, 0.7, 1.0 };
+	const glm::vec4 m_ambient_color{ 0.0, 0.0, 0.0, 1.0 };
+	const glm::vec3 m_shadow_color{ 0.0f };
+	const GLfloat m_shadow_strength{ 0.0f };
+	const GLfloat m_shininess{ 100.0 };
+    glm::mat4 m_model_matrix;
+    glm::mat4 m_view_matrix;
+    glm::mat4 m_projection_matrix;
+    glm::mat3 m_normal_matrix;
+    std::unique_ptr<GlslProgram>  m_lamp_shader;
+    std::unique_ptr<GlslProgram> m_cube_shader;
 };
 
 int main(int argc, char* argv[])
