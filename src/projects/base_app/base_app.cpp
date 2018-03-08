@@ -13,18 +13,18 @@ void Application::set_info()
 	m_info.major_version = 4;
 	m_info.minor_version = 4;
 	m_info.samples = 0;
-	m_info.resizeable = GL_FALSE;
-	m_info.cursor = GLFW_CURSOR_DISABLED;
+	m_info.resizeable = false;
+	m_info.cursor = GLFW_CURSOR_NORMAL;
 }
 
-// Initialize GLFW and GLAD
+// Initialize GLFW, a window and GLAD
 void Application::init()
 {
 	if (!glfwInit())
 	{
 		std::cerr << "Failed to initialize GLFW" << std::endl;
 		glfwTerminate();
-		return;
+		throw;
 	}
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, m_info.major_version);
@@ -34,11 +34,12 @@ void Application::init()
 	glfwWindowHint(GLFW_RESIZABLE, m_info.resizeable);
 	glfwWindowHint(GLFW_SAMPLES, m_info.samples);
 
+	// Create window
 	m_window = glfwCreateWindow(m_info.window_width, m_info.window_height, m_info.title, nullptr, nullptr);
 	if (!m_window)
 	{
 		std::cerr << "Failed to open window" << std::endl;
-		return;
+		throw;
 	}
 	glfwMakeContextCurrent(m_window);
 	glfwSetWindowUserPointer(m_window, this);
@@ -120,26 +121,29 @@ void Application::on_key(int key, int action)
 // Function to check OpenGL errors. #defined as check_gl_error
 void Application::_check_gl_error(const char* file, int line)
 {
-	GLenum err(glGetError());
-	while (err != GL_NO_ERROR) {
-		char* error;
+	GLenum err;
+    while((err = glGetError()) != GL_NO_ERROR) {
+		const char* error;
 		switch (err) {
 			case GL_INVALID_OPERATION:
-				error = "INVALID_OPERATION";
+				error = "GL_INVALID_OPERATION";
 				break;
 			case GL_INVALID_ENUM:
-				error = "INVALID_ENUM";
+				error = "GL_INVALID_ENUM";
 				break;
 			case GL_INVALID_VALUE:
-				error = "INVALID_VALUE";
+				error = "GL_INVALID_VALUE";
 				break;
 			case GL_OUT_OF_MEMORY:
-				error = "OUT_OF_MEMORY";
+				error = "GL_OUT_OF_MEMORY";
 				break;
 			case GL_INVALID_FRAMEBUFFER_OPERATION:
-				error = "INVALID_FRAMEBUFFER_OPERATION";
+				error = "GL_INVALID_FRAMEBUFFER_OPERATION";
 				break;
+			default:
+				error = "Unknown OpenGL error";
 		}
-		std::cerr << "Error: " << err << " GL_" << error << " - " << file << ":" << line << std::endl;
+
+		std::cerr << "Error: " << err << " " << error << " - " << file << ":" << line << std::endl;
 	}
 }

@@ -1,19 +1,20 @@
-// Much taken from https://learnopengl.com/
+// Much taken from https://learnopengl.com
 
 #pragma once
 
-#include "glad/glad.h"
 #include "glm/glm/glm.hpp"
 
 // Default initialization values
-const GLfloat initial_yaw{ -90.0f };
-const GLfloat initial_pitch{ 0.0f };
-const GLfloat initial_speed{ 2.5f };
-const GLfloat initial_sensitivity{ 0.1f };
-const GLfloat minimum_pitch{ -89.0f };
-const GLfloat maximum_pitch{ 89.0f };
-const GLfloat minimum_zoom{ 1.0f };
-const GLfloat maximum_zoom{ 45.0f };
+const float initial_yaw{ -90.0f };
+const float initial_pitch{ 0.0f };
+const float initial_speed{ 2.5f };
+const float initial_sensitivity{ 0.1f };
+const float minimum_pitch{ -89.0f };
+const float maximum_pitch{ 89.0f };
+const float minimum_zoom{ 1.0f };
+const float maximum_zoom{ 45.0f };
+const float initial_near_plane{ 0.1f };
+const float initial_far_plane{ 1000.0f };
 const glm::vec3 initial_up{ 0.0f, 1.0f, 0.0f };
 const glm::vec3 initial_origin{ 0.0f, 0.0f, 0.0f };
 const glm::vec3 initial_front{ 0.0f, 0.0f, -1.0f };
@@ -30,30 +31,31 @@ enum class Camera_Movement {
 class Camera
 {
 public:
-	void set_position(const GLfloat x, const GLfloat y, const GLfloat z);
-	void process_keyboard(const Camera_Movement direction, const GLfloat delta_time);
-	void process_mouse_movement(GLfloat x_offset, GLfloat y_offset, const GLboolean constrain_pitch = true);
-	void process_mouse_scroll(const GLfloat y_offset);
+	void set_position(float x, float y, float z);
+	void process_keyboard(Camera_Movement direction, float delta_time);
+	void process_mouse_movement(float x_offset, float y_offset, bool constrain_pitch = true);
+	void process_mouse_scroll(float y_offset);
+
 	glm::mat4 get_view_matrix() const;
 	glm::mat4 get_proj_matrix() const;
 	glm::vec3 get_pos() const;
 	glm::vec3 get_front() const;
 
-	Camera(glm::vec3 position = initial_origin, glm::vec3 front = initial_front, glm::vec3 up = initial_up, GLfloat yaw = initial_yaw, GLfloat pitch = initial_pitch, GLfloat speed = initial_speed, GLfloat zoom = maximum_zoom, GLfloat sensitivity = initial_sensitivity);
-	Camera(GLfloat pos_x, GLfloat pos_y, GLfloat pos_z, GLfloat up_x = initial_up.x, GLfloat up_y = initial_up.y, GLfloat up_z = initial_up.z, GLfloat yaw = initial_yaw, GLfloat pitch = initial_pitch);
+	explicit Camera(const glm::vec3& position = initial_origin, const glm::vec3& front = initial_front, const glm::vec3& up = initial_up, float yaw = initial_yaw, float pitch = initial_pitch, float speed = initial_speed, float zoom = maximum_zoom, float sensitivity = initial_sensitivity);
+	Camera(float pos_x, float pos_y, float pos_z, float up_x = initial_up.x, float up_y = initial_up.y, float up_z = initial_up.z, float yaw = initial_yaw, float pitch = initial_pitch);
 
 private:
-	GLfloat m_yaw;
-	GLfloat m_pitch;
-	GLfloat m_movement_speed;
-	GLfloat m_zoom;
-	GLfloat m_mouse_sensitivity;
+	float m_yaw;
+	float m_pitch;
+	float m_movement_speed;
+	float m_zoom;
+	float m_mouse_sensitivity;
 	glm::vec3 m_position;
 	glm::vec3 m_front;
-	glm::vec3 m_up;
 	glm::vec3 m_right;
-	glm::vec3 m_world_up;
-	const GLfloat m_near_plane{ 0.1f };
-	const GLfloat m_far_plane{ 1000.0f };
+    glm::vec3 m_up;
+    glm::vec3 m_world_up;
+	const float m_near_plane;
+	const float m_far_plane;
 	void update_camera_vectors();
 };

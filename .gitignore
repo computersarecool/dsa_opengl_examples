@@ -1,3 +1,5 @@
+.vs
+
 bin/*
 !bin/.gitkeep
 
@@ -5,3 +7,6 @@ build/*
 !build/.gitkeep
 
 *kdev4*
+.vscode/
+.idea
+cmake-build-debug/

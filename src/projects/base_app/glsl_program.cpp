@@ -1,50 +1,50 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 #include "glm/glm/gtc/type_ptr.hpp"
 
 #include "glsl_program.h"
 
-// GlslProgram::Format Public
-GlslProgram::Format& GlslProgram::Format::vertex(const char* shader_path)
+// GlslProgram::Format
+GlslProgram::Format& GlslProgram::Format::vertex(const std::string& shader_path)
 {
 	m_vertex_shader = load_shader(shader_path);
 	return *this;
 }
 
-GlslProgram::Format& GlslProgram::Format::tess_control(const char* shader_path)
+GlslProgram::Format& GlslProgram::Format::tess_control(const std::string& shader_path)
 {
 	m_tess_control_shader = load_shader(shader_path);
 	return *this;
 }
 
-GlslProgram::Format& GlslProgram::Format::tess_eval(const char* shader_path)
+GlslProgram::Format& GlslProgram::Format::tess_eval(const std::string& shader_path)
 {
 	m_tess_eval_shader = load_shader(shader_path);
 	return *this;
 }
 
-GlslProgram::Format& GlslProgram::Format::geometry(const char* shader_path)
+GlslProgram::Format& GlslProgram::Format::geometry(const std::string& shader_path)
 {
 	m_geometry_shader = load_shader(shader_path);
 	return *this;
 }
 
-GlslProgram::Format& GlslProgram::Format::fragment(const char* shader_path)
+GlslProgram::Format& GlslProgram::Format::fragment(const std::string& shader_path)
 {
 	m_fragment_shader = load_shader(shader_path);
 	return *this;
 }
 
-GlslProgram::Format& GlslProgram::Format::compute(const char* shader_path)
+GlslProgram::Format& GlslProgram::Format::compute(const std::string& shader_path)
 {
 	m_compute_shader = load_shader(shader_path);
 	return *this;
 }
 
-// GlslProgram::Format Private
-std::string GlslProgram::Format::load_shader(const char* shader_path)
+std::string GlslProgram::Format::load_shader(const std::string& shader_path)
 {
 	std::ifstream shader_file;
 	shader_file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -60,74 +60,82 @@ std::string GlslProgram::Format::load_shader(const char* shader_path)
 	}
 	catch (std::ifstream::failure e)
 	{
-		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ::PATH" << shader_path << std::endl;
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESSFULLY_READ::PATH: " << shader_path << std::endl;
 		throw;
 	}
 }
 
-//GlslProgram Public
+//GlslProgram
 void GlslProgram::use() const
 {
 	glUseProgram(m_handle);
 }
 
-void GlslProgram::uniform(const GLchar* name, const GLboolean value) const
+void GlslProgram::uniform(const std::string& name, GLboolean value) const
 {
-	glUniform1i(glGetUniformLocation(m_handle, name), value);
+	glUniform1i(glGetUniformLocation(m_handle, name.c_str()), value);
 }
 
-void GlslProgram::uniform(const GLchar* name, const GLuint value) const
+void GlslProgram::uniform(const std::string& name, GLuint value) const
 {
-	glUniform1i(glGetUniformLocation(m_handle, name), value);
+	glUniform1i(glGetUniformLocation(m_handle, name.c_str()), value);
 }
 
-void GlslProgram::uniform(const GLchar* name, const GLfloat value) const
+void GlslProgram::uniform(const std::string& name, GLfloat value) const
 {
-	glUniform1f(glGetUniformLocation(m_handle, name), value);
+	glUniform1f(glGetUniformLocation(m_handle, name.c_str()), value);
 }
 
-void GlslProgram::uniform(const GLchar* name, const glm::vec2 vec2) const
+void GlslProgram::uniform(const std::string& name, GLdouble value) const
 {
-	glUniform2f(glGetUniformLocation(m_handle, name), vec2.x, vec2.y);
+	glUniform1d(glGetUniformLocation(m_handle, name.c_str()), value);
 }
 
-void GlslProgram::uniform(const GLchar* name, const glm::vec3 vec3) const
+void GlslProgram::uniform(const std::string& name, const glm::vec2& vec2) const
 {
-	glUniform3f(glGetUniformLocation(m_handle, name), vec3.x, vec3.y, vec3.z);
+	glUniform2f(glGetUniformLocation(m_handle, name.c_str()), vec2.x, vec2.y);
 }
 
-void GlslProgram::uniform(const GLchar* name, const glm::vec4 vec4) const
+void GlslProgram::uniform(const std::string& name, const glm::vec3& vec3) const
 {
-	glUniform4f(glGetUniformLocation(m_handle, name), vec4.x, vec4.y, vec4.z, vec4.w);
+	glUniform3f(glGetUniformLocation(m_handle, name.c_str()), vec3.x, vec3.y, vec3.z);
 }
 
-void GlslProgram::uniform(const GLchar* name, const glm::mat3 value) const
+void GlslProgram::uniform(const std::string& name, const glm::vec4& vec4) const
 {
-	glUniformMatrix3fv(glGetUniformLocation(m_handle, name), 1, GL_FALSE, glm::value_ptr(value));
+	glUniform4f(glGetUniformLocation(m_handle, name.c_str()), vec4.x, vec4.y, vec4.z, vec4.w);
 }
 
-void GlslProgram::uniform(const GLchar* name, const glm::mat4 value) const
+void GlslProgram::uniform(const std::string& name, const glm::mat3& value) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(m_handle, name), 1, GL_FALSE, glm::value_ptr(value));
+	glUniformMatrix3fv(glGetUniformLocation(m_handle, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-// GlslProgram Constructor
-GlslProgram::GlslProgram(const Format& format, const bool separable)
+void GlslProgram::uniform(const std::string& name, const glm::mat4& value) const
+{
+	glUniformMatrix4fv(glGetUniformLocation(m_handle, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+}
+
+GlslProgram::GlslProgram(const Format& format, bool separable)
 {
 	m_handle = glCreateProgram();
+	// Add all active shader handles to a vector
+	// TODO: Make std::optional and only add valid shader sources to vector
+	std::vector<GLuint> shader_handles;
+	shader_handles.push_back(compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER));
+	shader_handles.push_back(compile_shader(format.m_tess_control_shader, GL_TESS_CONTROL_SHADER));
+	shader_handles.push_back(compile_shader(format.m_tess_eval_shader, GL_TESS_EVALUATION_SHADER));
+	shader_handles.push_back(compile_shader(format.m_geometry_shader, GL_GEOMETRY_SHADER));
+	shader_handles.push_back(compile_shader(format.m_fragment_shader, GL_FRAGMENT_SHADER));
+	shader_handles.push_back(compile_shader(format.m_compute_shader, GL_COMPUTE_SHADER));
 
-	// Add all active shader handles to the shader_handles vector
-	compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER);
-	compile_shader(format.m_tess_control_shader, GL_TESS_CONTROL_SHADER);
-	compile_shader(format.m_tess_eval_shader, GL_TESS_EVALUATION_SHADER);
-	compile_shader(format.m_geometry_shader, GL_GEOMETRY_SHADER);
-	compile_shader(format.m_fragment_shader, GL_FRAGMENT_SHADER);
-	compile_shader(format.m_compute_shader, GL_COMPUTE_SHADER);
-
-	// Attach all shader handles to program
-	for (GLuint shader_handle : m_shader_handles)
+	// Attach all valid shader handles to program
+	for (GLuint shader_handle : shader_handles)
 	{
-		glAttachShader(m_handle, shader_handle);
+		if (shader_handle)
+		{
+			glAttachShader(m_handle, shader_handle);
+		}
 	}
 
 	// Link program
@@ -135,20 +143,24 @@ GlslProgram::GlslProgram(const Format& format, const bool separable)
 	{
 		glProgramParameteri(m_handle, GL_PROGRAM_SEPARABLE, GL_TRUE);
 	}
-	
+
 	glLinkProgram(m_handle);
 	check_compile_errors(m_handle, GL_SHADER);
 
 	// Detach and delete all shader handles
-	for (GLuint shader_handle : m_shader_handles)
+	for (GLuint shader_handle : shader_handles)
 	{
-		glDetachShader(m_handle, shader_handle);
-		glDeleteShader(shader_handle);
+		if (shader_handle)
+		{
+			glDetachShader(m_handle, shader_handle);
+			glDeleteShader(shader_handle);
+		}
 	}
+
+	introspect();
 }
 
-// GlslProgram Private
-void GlslProgram::compile_shader(const std::string shader_string, const GLenum shader_type)
+GLuint GlslProgram::compile_shader(const std::string& shader_string, GLenum shader_type) const
 {
 	GLuint shader_handle{ 0 };
 
@@ -161,13 +173,29 @@ void GlslProgram::compile_shader(const std::string shader_string, const GLenum s
 		GlslProgram::check_compile_errors(shader_handle, shader_type);
 	}
 
-	if (shader_handle)
+	return shader_handle;
+}
+
+// TODO: Improve
+void GlslProgram::introspect() const
+{
+	const int max_name_length{ 64 };
+	const int num_parameters{ 2 };
+	GLint num_outputs{ 0 };
+	glGetProgramInterfaceiv(m_handle, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &num_outputs);
+	
+	static const GLenum properties[]{ GL_TYPE, GL_LOCATION };
+	GLint params[num_parameters];
+	GLchar name[max_name_length];
+	for (int index{ 0 }; index != num_outputs; ++index)
 	{
-		m_shader_handles.push_back(shader_handle);
+		glGetProgramResourceName(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), sizeof(name), nullptr, name);
+		glGetProgramResourceiv(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), num_parameters, properties, num_parameters, nullptr, params);
+		std::cout << "Index: " << index << " is type: " << params[0] << " is named: " << name << " is at location: " << params[1] << std::endl;
 	}
 }
 
-void GlslProgram::check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type)
+void GlslProgram::check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type) const
 {
 	GLint success;
 	const GLuint log_length{ 1024 };
@@ -182,6 +210,7 @@ void GlslProgram::check_compile_errors(const GLuint program_or_shader, const GLe
 			std::cout << "ERROR::PROGRAM_LINKING_ERROR: " << program_or_shader_type << "\n" << info_log << std::endl;
 		}
 	}
+
 	else
 	{
 		glGetShaderiv(program_or_shader, GL_COMPILE_STATUS, &success);
