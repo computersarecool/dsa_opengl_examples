@@ -2,7 +2,7 @@
 *Examples of modern OpenGL*
 
 ## Description
-These are a collection of examples of modern OpenGL (i.e. using DSA).
+These are a collection of examples of modern (DSA) OpenGL.
 
 ## Tested On
 - Linux
@@ -17,10 +17,10 @@ This project uses CMAKE to build
 - Run the individual examples after building
 
 ## Functionality
-### Examples Include
+
 #### basic_cube
 
- A rotating basic cube with model-space positions as colors
+ A rotating cube with model-space positions as colors
   
 #### multiple_attributes_and_buffers
 
@@ -35,12 +35,12 @@ This project uses CMAKE to build
   
 #### texture
 
-  This loads an image in the S3TC compressed format
+  This loads an image in the S3TC format
   It checks to make sure it is compressed and gets the compressed size
 
 #### texture_array
   
-  This creates an array texture in S3TC compressed format
+  This creates an array texture in the S3TC format
 
 #### tesselation
   
@@ -58,7 +58,7 @@ This project uses CMAKE to build
   No image is output
 
 #### geometry_shader
-  
+
   Pass through geometry shader
   
 #### geometry_shader_normals
@@ -84,6 +84,10 @@ This project uses CMAKE to build
   Phong lighting example
   Interactivity: This implements cursor lock to control camera position
   Mouse wheel to move forward / black
+
+#### raytracer
+  
+  A raytracer
 
 ## Extra Notes
 - Because this uses modern OpenGL your graphics card must support at least OpenGL 4.5

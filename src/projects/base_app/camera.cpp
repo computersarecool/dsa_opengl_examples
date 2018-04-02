@@ -12,6 +12,15 @@ void Camera::set_position(float x, float y, float z)
 	update_camera_vectors();
 }
 
+void Camera::set_position(glm::vec3 position)
+{
+	m_position.x = position.x;
+	m_position.y = position.y;
+	m_position.z = position.z;
+
+	update_camera_vectors();
+}
+
 void Camera::process_keyboard(Camera_Movement direction, float delta_time)
 {
 	float velocity = m_movement_speed * delta_time;

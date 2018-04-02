@@ -32,6 +32,7 @@ class Camera
 {
 public:
 	void set_position(float x, float y, float z);
+	void set_position(glm::vec3 position);
 	void process_keyboard(Camera_Movement direction, float delta_time);
 	void process_mouse_movement(float x_offset, float y_offset, bool constrain_pitch = true);
 	void process_mouse_scroll(float y_offset);
