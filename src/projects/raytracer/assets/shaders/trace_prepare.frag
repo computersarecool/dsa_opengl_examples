@@ -13,7 +13,7 @@ layout (location = 3) out vec3 refracted;
 layout (location = 4) out vec3 reflected_color;
 layout (location = 5) out vec3 refracted_color;
 
-void main(void)
+void main()
 {
     color = vec3(0.0);
     origin = fs_in.ray_origin;

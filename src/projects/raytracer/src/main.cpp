@@ -1,4 +1,5 @@
 ﻿// A raytracer
+// TODO: Make fullscreen quad a separable program
 
 #include <memory>
 #include <vector>
@@ -37,7 +38,6 @@ private:
     struct light
     {
         glm::vec3 position { 0 };
-        unsigned int    : 32; //  Padding
     };
 
     struct sphere
@@ -117,6 +117,8 @@ private:
         glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_tex_reflection_intensity);
         glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_tex_refraction_intensity);
 
+        // Set texture parameters and FBO framebuffer textures
+        // TODO: Use a sampler
         for (int i { 0 }; i < m_max_recursion_depth; ++i)
         {
             glNamedFramebufferTexture(m_ray_fbos[i], GL_COLOR_ATTACHMENT0, m_tex_composite, 0);
@@ -158,49 +160,49 @@ private:
         glm::mat4 view_matrix = m_camera.get_view_matrix();
         glm::mat4 model_matrix = glm::scale(glm::mat4{ 1.0 }, glm::vec3(7, 7, 7));
 
-        // Write uniforms
-        auto uniforms_bo = static_cast<uniforms_block*>(glMapNamedBufferRange(m_uniforms_buffer, 0, sizeof(uniforms_block), GL_MAP_WRITE_BIT));
-        uniforms_bo->model_view_matrix = view_matrix * model_matrix;
-        uniforms_bo->view_matrix = view_matrix;
-        uniforms_bo->projection_matrix = m_camera.get_proj_matrix();
+        // Write uniform data
+        auto uniforms_ptr = static_cast<uniforms_block*>(glMapNamedBufferRange(m_uniforms_buffer, 0, sizeof(uniforms_block), GL_MAP_WRITE_BIT));
+        uniforms_ptr->model_view_matrix = view_matrix * model_matrix;
+        uniforms_ptr->view_matrix = view_matrix;
+        uniforms_ptr->projection_matrix = m_camera.get_proj_matrix();
         glUnmapNamedBuffer(m_uniforms_buffer);
 
         // Calculate and write sphere data
-        auto sphere_bo = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_num_spheres * sizeof(sphere), GL_MAP_WRITE_BIT));
+        auto sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_num_spheres * sizeof(sphere), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
             float fi = static_cast<float>(i) / 128.0f;
-            sphere_bo[i].center = glm::vec3(sinf(fi * 123.0f + current_time_f) * 15.75f, cosf(fi * 456.0f + current_time_f) * 15.75f, (sinf(fi * 300.0f + current_time_f) * cosf(fi * 200.0f + current_time_f)) * 20.0f);
-            sphere_bo[i].radius = fi * 2.3f + 3.5f;
+            sphere_ptr[i].center = glm::vec3(sinf(fi * 123.0f + current_time_f) * 15.75f, cosf(fi * 456.0f + current_time_f) * 15.75f, (sinf(fi * 300.0f + current_time_f) * cosf(fi * 200.0f + current_time_f)) * 20.0f);
+            sphere_ptr[i].radius = fi * 2.3f + 3.5f;
             float red = fi * 61.0f;
             float green = red + 0.25f;
             float blue = green + 0.25f;
             red = (red - floorf(red)) * 0.8f + 0.2f;
             green = (green - floorf(green)) * 0.8f + 0.2f;
             blue = (blue - floorf(blue)) * 0.8f + 0.2f;
-            sphere_bo[i].color = glm::vec4(red, green, blue, 1.0f);
+            sphere_ptr[i].color = glm::vec4(red, green, blue, 1.0f);
         }
         glUnmapNamedBuffer(m_sphere_buffer);
 
         // Write plane data
-        auto plane_bo = static_cast<plane*>(glMapNamedBufferRange(m_plane_buffer, 0, m_num_spheres * sizeof(plane), GL_MAP_WRITE_BIT));
-        plane_bo[0].normal = glm::vec3(0.0f, 0.0f, -1.0f);
-        plane_bo[0].d = 30.0f;
+        auto plane_ptr = static_cast<plane*>(glMapNamedBufferRange(m_plane_buffer, 0, m_num_spheres * sizeof(plane), GL_MAP_WRITE_BIT));
+        plane_ptr[0].normal = glm::vec3(0.0f, 0.0f, -1.0f);
+        plane_ptr[0].d = 30.0f;
 
-        plane_bo[1].normal = glm::vec3(0.0f, 0.0f, 1.0f);
-        plane_bo[1].d = 30.0f;
+        plane_ptr[1].normal = glm::vec3(0.0f, 0.0f, 1.0f);
+        plane_ptr[1].d = 30.0f;
 
-        plane_bo[2].normal = glm::vec3(-1.0f, 0.0f, 0.0f);
-        plane_bo[2].d = 30.0f;
+        plane_ptr[2].normal = glm::vec3(-1.0f, 0.0f, 0.0f);
+        plane_ptr[2].d = 30.0f;
 
-        plane_bo[3].normal = glm::vec3(1.0f, 0.0f, 0.0f);
-        plane_bo[3].d = 30.0f;
+        plane_ptr[3].normal = glm::vec3(1.0f, 0.0f, 0.0f);
+        plane_ptr[3].d = 30.0f;
 
-        plane_bo[4].normal = glm::vec3(0.0f, -1.0f, 0.0f);
-        plane_bo[4].d = 30.0f;
+        plane_ptr[4].normal = glm::vec3(0.0f, -1.0f, 0.0f);
+        plane_ptr[4].d = 30.0f;
 
-        plane_bo[5].normal = glm::vec3(0.0f, 1.0f, 0.0f);
-        plane_bo[5].d = 30.0f;
+        plane_ptr[5].normal = glm::vec3(0.0f, 1.0f, 0.0f);
+        plane_ptr[5].d = 30.0f;
         glUnmapNamedBuffer(m_plane_buffer);
 
         // Write light data
@@ -209,17 +211,16 @@ private:
         {
             float fi = 3.33f - static_cast<float>(i);
             light_bo[i].position = glm::vec3(sinf(fi * 2.0f - current_time_f) * 15.75f,
-                                        cosf(fi * 5.0f - current_time_f) * 5.75f,
-                                        (sinf(fi * 3.0f - current_time_f) * cosf(fi * 2.5f - current_time_f)) * 19.4f);
+                                             cosf(fi * 5.0f - current_time_f) * 5.75f,
+                                             (sinf(fi * 3.0f - current_time_f) * cosf(fi * 2.5f - current_time_f)) * 19.4f);
         }
         glUnmapNamedBuffer(m_light_buffer);
 
-        // Draw
+        // Setup draw
         glViewport(0, 0, m_info.window_width, m_info.window_height);
-
         m_prepare_program->use();
-        m_prepare_program->uniform("ray_lookat", view_matrix);
         m_prepare_program->uniform("ray_origin", m_view_position);
+        m_prepare_program->uniform("ray_lookat", view_matrix);
         m_prepare_program->uniform("aspect", static_cast<float>(m_info.window_height / m_info.window_width));
         glBindFramebuffer(GL_FRAMEBUFFER, m_ray_fbos[0]);
         static const GLenum draw_buffers[6] {
@@ -233,9 +234,11 @@ private:
         glDrawBuffers(6, draw_buffers);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
+        // Trace draw
         m_trace_program->use();
         recurse(0);
 
+        // Blit draw
         m_blit_program->use();
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glDrawBuffer(GL_BACK);
@@ -255,7 +258,6 @@ private:
                 GL_COLOR_ATTACHMENT4,
                 GL_COLOR_ATTACHMENT5
         };
-
         glDrawBuffers(6, draw_buffers);
 
         glEnablei(GL_BLEND, 0);
