@@ -154,7 +154,7 @@ private:
     {
         auto current_time_f = static_cast<float>(current_time);
 
-        // Calculate uniforms
+        // Calculate uniform data
         //glm::vec3 view_position = glm::vec3(sinf(current_time_f * 0.3234f) * 28.0f, cosf(current_time_f * 0.4234f) * 28.0f, cosf(current_time_f * 0.1234f) * 28.0f);
         //m_camera.set_position(view_position);
         glm::mat4 view_matrix = m_camera.get_view_matrix();
@@ -222,7 +222,9 @@ private:
         m_prepare_program->uniform("ray_origin", m_view_position);
         m_prepare_program->uniform("ray_lookat", view_matrix);
         m_prepare_program->uniform("aspect", static_cast<float>(m_info.window_height / m_info.window_width));
+
         glBindFramebuffer(GL_FRAMEBUFFER, m_ray_fbos[0]);
+
         static const GLenum draw_buffers[6] {
                 GL_COLOR_ATTACHMENT0,
                 GL_COLOR_ATTACHMENT1,
