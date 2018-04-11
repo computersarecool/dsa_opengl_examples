@@ -62,10 +62,12 @@ float intersect_ray_sphere(ray R, sphere S, out vec3 hitpos, out vec3 normal)
         return 0.0;
     }
 
-    f = sqrt(f);
-    float t0 = -B + f;
-    float t1 = -B - f;
-    float t = min(max(t0, 0.0), max(t1, 0.0)) * 0.5;
+    float t0 = -B + sqrt(f);
+    float t1 = -B - sqrt(f);
+
+    // Figure out which point if any is in front of the viewer
+    // Take smallest non negative solution
+    float t = min(max(t0, 0.0), max(t1, 0.0)) / 2;
 
     if (t == 0.0)
     {

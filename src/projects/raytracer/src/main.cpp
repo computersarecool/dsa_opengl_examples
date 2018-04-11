@@ -47,7 +47,6 @@ private:
         glm::vec4 color { 0 };
     };
 
-
     struct uniforms_block
     {
         glm::mat4 model_view_matrix;
@@ -206,11 +205,11 @@ private:
         glUnmapNamedBuffer(m_plane_buffer);
 
         // Write light data
-        auto light_bo = static_cast<light*>(glMapNamedBufferRange(m_light_buffer, 0, m_num_spheres * sizeof(light), GL_MAP_WRITE_BIT));
+        auto light_ptr = static_cast<light*>(glMapNamedBufferRange(m_light_buffer, 0, m_num_spheres * sizeof(light), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
             float fi = 3.33f - static_cast<float>(i);
-            light_bo[i].position = glm::vec3(sinf(fi * 2.0f - current_time_f) * 15.75f,
+            light_ptr[i].position = glm::vec3(sinf(fi * 2.0f - current_time_f) * 15.75f,
                                              cosf(fi * 5.0f - current_time_f) * 5.75f,
                                              (sinf(fi * 3.0f - current_time_f) * cosf(fi * 2.5f - current_time_f)) * 19.4f);
         }
