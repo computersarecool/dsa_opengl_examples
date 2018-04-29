@@ -55,6 +55,7 @@ add_subdirectory(${PROJECTS_DIR}/read_pixels)
 add_subdirectory(${PROJECTS_DIR}/point_sprites)
 add_subdirectory(${PROJECTS_DIR}/lighting)
 add_subdirectory(${PROJECTS_DIR}/raytracer)
+add_subdirectory(${PROJECTS_DIR}/simple_raytracer)
 
 # Create a variable that is set to true and cached after the first configuration
 set(CONFIGURED_ONCE TRUE CACHE INTERNAL "A flag showing that CMake has configured at least once.")
