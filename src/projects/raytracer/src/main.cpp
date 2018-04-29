@@ -20,7 +20,7 @@ private:
     const int m_num_spheres{ 128 };
     int m_max_depth { 2 };
 
-    // Textures to be written
+    // FBO textures
     GLuint m_tex_composite;
     GLuint m_tex_position[m_max_recursion_depth];
     GLuint m_tex_reflected[m_max_recursion_depth];
@@ -116,7 +116,7 @@ private:
         glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_tex_reflection_intensity);
         glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_tex_refraction_intensity);
 
-        // Set texture parameters and FBO framebuffer textures
+        // Set texture parameters and FBO textures
         // TODO: Use a sampler
         for (int i { 0 }; i < m_max_recursion_depth; ++i)
         {
@@ -156,8 +156,9 @@ private:
         // Calculate uniform data
         //glm::vec3 view_position = glm::vec3(sinf(current_time_f * 0.3234f) * 28.0f, cosf(current_time_f * 0.4234f) * 28.0f, cosf(current_time_f * 0.1234f) * 28.0f);
         //m_camera.set_position(view_position);
+        //glm::mat4 model_matrix = glm::scale(glm::mat4{ 1.0 }, glm::vec3(7, 7, 7));
+        glm::mat4 model_matrix = glm::mat4{1.0};
         glm::mat4 view_matrix = m_camera.get_view_matrix();
-        glm::mat4 model_matrix = glm::scale(glm::mat4{ 1.0 }, glm::vec3(7, 7, 7));
 
         // Write uniform data
         auto uniforms_ptr = static_cast<uniforms_block*>(glMapNamedBufferRange(m_uniforms_buffer, 0, sizeof(uniforms_block), GL_MAP_WRITE_BIT));
@@ -166,24 +167,27 @@ private:
         uniforms_ptr->projection_matrix = m_camera.get_proj_matrix();
         glUnmapNamedBuffer(m_uniforms_buffer);
 
-        // Calculate and write sphere data
+        // Set sphere data
         auto sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_num_spheres * sizeof(sphere), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
-            float fi = static_cast<float>(i) / 128.0f;
-            sphere_ptr[i].center = glm::vec3(sinf(fi * 123.0f + current_time_f) * 15.75f, cosf(fi * 456.0f + current_time_f) * 15.75f, (sinf(fi * 300.0f + current_time_f) * cosf(fi * 200.0f + current_time_f)) * 20.0f);
-            sphere_ptr[i].radius = fi * 2.3f + 3.5f;
-            float red = fi * 61.0f;
-            float green = red + 0.25f;
-            float blue = green + 0.25f;
-            red = (red - floorf(red)) * 0.8f + 0.2f;
-            green = (green - floorf(green)) * 0.8f + 0.2f;
-            blue = (blue - floorf(blue)) * 0.8f + 0.2f;
-            sphere_ptr[i].color = glm::vec4(red, green, blue, 1.0f);
+            sphere_ptr[i].center = glm::vec3(0, 0, 5);
+            sphere_ptr[i].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            //float fi = static_cast<float>(i) / 128.0f;
+            //sphere_ptr[i].center = glm::vec3(sinf(fi * 123.0f + current_time_f) * 15.75f, cosf(fi * 456.0f + current_time_f) * 15.75f, (sinf(fi * 300.0f + current_time_f) * cosf(fi * 200.0f + current_time_f)) * 20.0f);
+//            sphere_ptr[i].radius = fi * 2.3f + 3.5f;
+//            float red = fi * 61.0f;
+//            float green = red + 0.25f;
+//            float blue = green + 0.25f;
+//            red = (red - floorf(red)) * 0.8f + 0.2f;
+//            green = (green - floorf(green)) * 0.8f + 0.2f;
+//            blue = (blue - floorf(blue)) * 0.8f + 0.2f;
+//            sphere_ptr[i].color = glm::vec4(red, green, blue, 1.0f);
         }
         glUnmapNamedBuffer(m_sphere_buffer);
 
-        // Write plane data
+        // Set plane data
         auto plane_ptr = static_cast<plane*>(glMapNamedBufferRange(m_plane_buffer, 0, m_num_spheres * sizeof(plane), GL_MAP_WRITE_BIT));
         plane_ptr[0].normal = glm::vec3(0.0f, 0.0f, -1.0f);
         plane_ptr[0].d = 30.0f;
@@ -204,7 +208,7 @@ private:
         plane_ptr[5].d = 30.0f;
         glUnmapNamedBuffer(m_plane_buffer);
 
-        // Write light data
+        // Set light data
         auto light_ptr = static_cast<light*>(glMapNamedBufferRange(m_light_buffer, 0, m_num_spheres * sizeof(light), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
@@ -215,7 +219,7 @@ private:
         }
         glUnmapNamedBuffer(m_light_buffer);
 
-        // Setup draw
+        // Set up draw
         glViewport(0, 0, m_info.window_width, m_info.window_height);
         m_prepare_program->use();
         m_prepare_program->uniform("ray_origin", m_view_position);

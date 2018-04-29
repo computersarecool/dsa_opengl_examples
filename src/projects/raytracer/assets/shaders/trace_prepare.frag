@@ -2,8 +2,8 @@
 
 in VS_OUT
 {
-    vec3    ray_origin;
-    vec3    ray_direction;
+    vec3 ray_origin;
+    vec3 ray_direction;
 } fs_in;
 
 layout (location = 0) out vec3 color;
