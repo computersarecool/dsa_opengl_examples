@@ -146,8 +146,8 @@ private:
         auto sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_num_spheres * sizeof(sphere), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
-            sphere_ptr[i].center = glm::vec3(0, 0, 5);
-            sphere_ptr[i].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            sphere_ptr[i].center = glm::vec3(0, 0, -50);
+            //sphere_ptr[i].color = glm::vec4(1.0f, 1.0f, normalize(1.0f, 1.0f);
         }
         glUnmapNamedBuffer(m_sphere_buffer);
 

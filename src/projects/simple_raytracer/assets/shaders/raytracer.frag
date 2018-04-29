@@ -14,6 +14,7 @@ layout (binding = 1) uniform sampler2D tex_direction;
 layout (binding = 2) uniform sampler2D tex_color;
 
 uniform int num_spheres = 7;
+const float epsilon = .001;
 
 struct ray
 {
@@ -33,37 +34,80 @@ layout (std140, binding = 1) uniform SPHERES
     sphere spheres[128];
 };
 
-bool intersect_ray_sphere(ray R, sphere S, out vec3 hitpos, out vec3 normal)
+//bool intersect_ray_sphere(ray R, sphere S, out vec3 hitpos, out vec3 normal)
+//{
+//    vec3 v = R.origin - S.center;
+//    float a = 1.0;
+//    float b = 2.0 * dot(R.direction, v);
+//    float c = dot(v, v) - pow(S.radius, 2);
+//
+//    float num = pow(b, 2) - 4.0 * a * c;
+//
+//    if (num < 0.0)
+//    {
+//        return false;
+//    }
+//
+//    float d = sqrt(num);
+//    float e = 1.0 / (2.0 * a);
+//
+//    float t1 = (-b - d) * e;
+//    float t2 = (-b + d) * e;
+//    float t = min(max(t1, 0.0), max(t2, 0.0));
+//
+//    if (t == 0.0)
+//    {
+//        return false;
+//    }
+//
+//    hitpos = R.origin + t * R.direction;
+//    normal = normalize(hitpos - S.center);
+//
+//    return true;
+//}
+
+
+bool intersect_ray_sphere(in sphere sph, in ray r, out vec3 hitpos, out vec3 normal)
 {
-    vec3 v = R.origin - S.center;
-    float a = 1.0;
-    float b = 2.0 * dot(R.direction, v);
-    float c = dot(v, v) - pow(S.radius, 2);
+    float t;
+    vec3 temp = r.origin - sph.center;
+    float b = 2.0 * dot(temp, r.direction);
+    float c = dot(temp, temp) - sph.radius * sph.radius;
 
-    float num = pow(b, 2) - 4.0 * a * c;
+    float discriminant = b * b - 4.0 * c;
 
-    if (num < 0.0)
+    // Avoid taking the square root of a negative number.
+    if (discriminant < 0.0)
     {
         return false;
     }
 
-    float d = sqrt(num);
-    float e = 1.0 / (2.0 * a);
+    discriminant = sqrt(discriminant);
+    float t0 = -b + discriminant;
+    float t1 = -b - discriminant;
 
-    float t1 = (-b - d) * e;
-    float t2 = (-b + d) * e;
-    float t = min(max(t1, 0.0), max(t2, 0.0));
-
-    if (t == 0.0)
+    // We want to take the smallest positive root.
+    if (t1 > epsilon)
+    {
+        t = t1 * 0.5;
+    }
+    else if (t0 > epsilon)
+    {
+        t = t0 * 0.5;
+    }
+    else
     {
         return false;
     }
 
-    hitpos = R.origin + t * R.direction;
-    normal = normalize(hitpos - S.center);
+    hitpos = r.origin + t *r.direction;
+    normal = normalize(hitpos - sph.center);
 
     return true;
 }
+
+
+
 
 void main()
 {
@@ -78,27 +122,24 @@ void main()
     // Construct a ray
     ray R;
     R.origin = texelFetch(tex_origin, ivec2(gl_FragCoord.xy), 0).xyz;
-    //R.direction = texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz;
     R.direction = normalize(texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz);
+    R.direction.z *= -1.0;
+    R.origin += R.direction * 0.01;
 
-    color = texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz;
-
-    //R.origin += R.direction * 0.01;
-
-//    // Test if ray hits a sphere
-//    bool hit;
-//    vec3 hitpos;
-//    vec3 normal;
-//    for (int i = 0; i < num_spheres; i++)
-//    {
-//        hit = intersect_ray_sphere(R, spheres[i], hitpos, normal);
-//        if (hit)
-//        {
-//            color = vec3(1.0);
-//        }
-//        else
-//        {
-//            color = vec3(1.0, 0.0, 0.0);
-//        }
-//    }
+    // Test if ray hits a sphere
+    bool hit;
+    vec3 hitpos;
+    vec3 normal;
+    for (int i = 0; i < num_spheres; i++)
+    {
+        hit = intersect_ray_sphere(spheres[i], R, hitpos, normal);
+        if (hit)
+        {
+            color = vec3(1.0);
+        }
+        else
+        {
+            color = vec3(1.0, 0.0, 0.0);
+        }
+    }
 }
