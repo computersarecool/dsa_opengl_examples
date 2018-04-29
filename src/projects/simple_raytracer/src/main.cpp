@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <iostream>
+
 #include "glm/glm/gtc/matrix_transform.hpp"
 
 #include "base_app.h"
@@ -17,7 +18,7 @@ private:
     static const int m_max_recursion_depth { 5 };
     const int m_max_framebuffer_width { 2048 };
     const int m_max_framebuffer_height { 1024 };
-    const int m_num_spheres{ 128 };
+    const int m_num_spheres{ 1 };
     int m_max_depth { 2 };
 
     // FBO textures
@@ -33,7 +34,7 @@ private:
     {
         float radius { 0 };
         glm::vec3 center { 0 };
-        glm::vec4 color { 0 };
+        //glm::vec4 color { 0 };
     };
 
     struct uniforms_block
@@ -146,8 +147,9 @@ private:
         auto sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_num_spheres * sizeof(sphere), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
-            sphere_ptr[i].center = glm::vec3(0, 0, -50);
-            //sphere_ptr[i].color = glm::vec4(1.0f, 1.0f, normalize(1.0f, 1.0f);
+            sphere_ptr[i].radius = 1.0f;
+            sphere_ptr[i].center = glm::vec3(0.5, 0, 0);
+            //sphere_ptr[i].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         }
         glUnmapNamedBuffer(m_sphere_buffer);
 
@@ -182,11 +184,10 @@ private:
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     };
 
-    void recurse(int depth)
-    {
+    void recurse(int depth) {
         glBindFramebuffer(GL_FRAMEBUFFER, m_ray_fbos[depth + 1]);
 
-        static const GLenum draw_buffers[6] {
+        static const GLenum draw_buffers[6]{
                 GL_COLOR_ATTACHMENT0,
                 GL_COLOR_ATTACHMENT1,
                 GL_COLOR_ATTACHMENT2,
@@ -205,10 +206,10 @@ private:
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        if (depth != (m_max_depth - 1))
-        {
-            recurse(depth + 1);
-        }
+//        if (depth != (m_max_depth - 1))
+//        {
+//            recurse(depth + 1);
+//        }
 
         glDisablei(GL_BLEND, 0);
     }
