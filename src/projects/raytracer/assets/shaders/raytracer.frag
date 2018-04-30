@@ -1,19 +1,13 @@
 #version 440 core
 
-layout (location = 0) out vec3 color;
-layout (location = 1) out vec3 position;
-layout (location = 2) out vec3 reflected;
-layout (location = 3) out vec3 refracted;
-layout (location = 4) out vec3 reflected_color;
-layout (location = 5) out vec3 refracted_color;
+layout (location = 0) out vec3 out_color;
 
-layout (binding = 0) uniform sampler2D tex_origin;
-layout (binding = 1) uniform sampler2D tex_direction;
-layout (binding = 2) uniform sampler2D tex_color;
-
-uniform int num_spheres = 7;
-uniform int num_planes = 6;
-uniform int num_lights = 5;
+struct sphere
+{
+    vec4 center_and_radius;
+    // vec3 center;
+    // float radius
+};
 
 struct ray
 {
@@ -21,248 +15,80 @@ struct ray
     vec3 direction;
 };
 
-struct sphere
+layout (std140, binding = 0) uniform SPHERES
 {
-    vec3 center;
-    float radius;
-    vec4 color;
+    vec4 my_spheres[4];
 };
 
-layout (std140, binding = 1) uniform SPHERES
+// TODO: What is epsilon?
+const float epsilon = 0.001;
+
+bool intersect_ray_sphere(in vec4 sph, in ray r, out vec3 hit_pos, out vec3 normal)
 {
-    sphere spheres[128];
-};
+    vec3 sphere_center = sph.xyz;
+    float sphere_radius = sph.w;
 
-//struct light
- //{
-//    vec3 position;
-//};
-//
+    float t;
+    vec3 temp = r.origin - sphere_center;
+    float b = 2.0 * dot(temp, r.direction);
+    float c = dot(temp, temp) - sphere_radius * sphere_radius;
 
-//
- //layout (std140, binding = 2) uniform PLANES
- //{
-//    vec4        P[128];
-//};
-//
- //layout (std140, binding = 3) uniform LIGHTS
- //{
-//    light       L[128];
-//} lights;
+    float discriminant = b * b - 4.0 * c;
 
-bool intersect_ray_sphere(ray R, sphere S, out vec3 hitpos, out vec3 normal)
-{
-    vec3 v = R.origin - S.center;
-    float a = 1.0;
-    float b = 2.0 * dot(R.direction, v);
-    float c = dot(v, v) - pow(S.radius, 2);
-
-    float num = pow(b, 2) - 4.0 * a * c;
-
-    if (num < 0.0)
+    // Avoid taking the square root of a negative number.
+    if (discriminant < 0.0)
     {
         return false;
     }
 
-    float d = sqrt(num);
-    float e = 1.0 / (2.0 * a);
+    discriminant = sqrt(discriminant);
+    float t0 = -b + discriminant;
+    float t1 = -b - discriminant;
 
-    float t1 = (-b - d) * e;
-    float t2 = (-b + d) * e;
-    float t = min(max(t1, 0.0), max(t2, 0.0));
-
-    if (t == 0.0)
+    // We want to take the smallest positive root.
+    if (t1 > epsilon)
+    {
+        t = t1 * 0.5;
+    }
+    else if (t0 > epsilon)
+    {
+        t = t0 * 0.5;
+    }
+    else
     {
         return false;
     }
 
-    hitpos = R.origin + t * R.direction;
-    normal = normalize(hitpos - S.center);
+    hit_pos = r.origin + t * r.direction;
+    normal = normalize(hit_pos - sphere_center);
 
     return true;
 }
 
-//float intersect_ray_sphere(ray R, sphere S, out vec3 hitpos, out vec3 normal)
-//{
-//    vec3 v = R.origin - S.center;
-//    float B = 2.0 * dot(R.direction, v);
-//    float C = dot(v, v) - S.radius * S.radius;
-//    float B2 = B * B;
-//
-//    float f = B2 - 4.0 * C;
-//
-//    if (f < 0.0)
-//    {
-//        return 0.0;
-//    }
-//
-//    float t0 = -B + sqrt(f);
-//    float t1 = -B - sqrt(f);
-//
-//    // Figure out which point if any is in front of the viewer
-//    // Take smallest non negative solution
-//    float t = min(max(t0, 0.0), max(t1, 0.0)) / 2;
-//
-//    if (t == 0.0)
-//    {
-//        return 0.0;
-//    }
-//
-//    hitpos = R.origin + t * R.direction;
-//    normal = normalize(hitpos - S.center);
-//
-//    return t;
-//}
-
-//float intersect_ray_plane(ray R, vec4 P, out vec3 hitpos, out vec3 normal)
- //{
-//    vec3 O = R.origin;
-//    vec3 D = R.direction;
-//    vec3 N = P.xyz;
-//    float d = P.w;
-//
-//    float denom = dot(D, N);
-//
-//    if (denom == 0.0)
-//        return 0.0;
-//
-//    float t = -(d + dot(O, N)) / denom;
-//
-//    if (t < 0.0)
-//        return 0.0;
-//
-//    hitpos = O + t * D;
-//    normal = N;
-//
-//    return t;
-//}
-//
- //bool point_visible_to_light(vec3 point, vec3 L)
- //{
-//    return true;
-//}
-//
- //vec3 light_point(vec3 position, vec3 normal, vec3 V, light l)
- //{
-//    vec3 ambient = vec3(0.0);
-//
-//    if (!point_visible_to_light(position, l.position))
-//    {
-//        return ambient;
-//    }
-//    else
-//    {
-//        vec3 L = normalize(l.position - position);
-//        vec3 N = normal;
-//        vec3 R = reflect(-L, N);
-//
-//        float rim = clamp(dot(N, V), 0.0, 1.0);
-//        rim = smoothstep(0.0, 1.0, 1.0 - rim);
-//        float diff = clamp(dot(N, L), 0.0, 1.0);
-//        float spec = pow(clamp(dot(R, N), 0.0, 1.0), 260.0);
-//
-//        vec3 rim_color = vec3(0.0);
-//        vec3 diff_color = vec3(0.125);
-//        vec3 spec_color = vec3(0.1);
-//
-//        return ambient + rim_color * rim + diff_color * diff + spec_color * spec;
-//    }
-//}
-
 void main()
 {
-    // Initialize outputs
-    color = vec3(0.0);
-    position = vec3(0.0);
-    reflected = vec3(0.0);
-    refracted = vec3(0.0);
-    reflected_color = vec3(0.0);
-    refracted_color = vec3(0.0);
+    vec2 uv = gl_FragCoord.xy / 800.0;
+    uv = uv * 2.0 - 1.0;
 
     // Construct a ray
-    ray R;
-    R.origin = texelFetch(tex_origin, ivec2(gl_FragCoord.xy), 0).xyz;
-    R.direction = normalize(texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz);
+    vec3 ray_origin = vec3(0.0, 0.0, -4.0);
+    vec3 ray_direction = normalize(vec3(uv, 1.0));
+    ray R = ray (ray_origin, ray_direction);
 
-    R.origin += R.direction * 0.01;
-
-    // Test if ray hits a sphere
-    bool hit;
-    vec3 hitpos;
+    // Test if the ray hits a sphere
+    vec3 hit_pos;
     vec3 normal;
-    for (int i = 0; i < num_spheres; i++)
+    bool hit;
+    for (int i = 0; i < my_spheres.length; ++i)
     {
-        hit = intersect_ray_sphere(R, spheres[i], hitpos, normal);
+        hit = intersect_ray_sphere(my_spheres[i], R, hit_pos, normal);
         if (hit)
         {
-            color = vec3(1.0);
+            out_color = vec3(1.0);
         }
         else
         {
-            color = vec3(1.0, 0.0, 0.0);
+            out_color = vec3(0.0);
         }
     }
-
-//    vec3 input_color = texelFetch(tex_color, ivec2(gl_FragCoord.xy), 0).rgb;
-//    vec3 hit_position = vec3(0.0);
-//    vec3 hit_normal = vec3(0.0);
-
-// TODO: What does this do?
-//    if (all(lessThan(input_color, vec3(0.05))))
-//    {
-//        return;
-//    }
-//
-//    ray refl;
-//    ray refr;
-    //float min_t = 1000000.0f;
-    // if (t < min_t) {}
-    //min_t = t;
-
-
-//    int foobar[] = { 1, 1, 1, 1, 1, 1, 1 };
-//
-//    for (i = 0; i < 6; i++)
-//    {
-//        t = intersect_ray_plane(R, P[i], hitpos, normal);
-//        if (t)
-//        {
-//            color = ve4(1.0);
-//            return;
-//        }
-//        else
-//        {
-//            return
-//        }
-//
-//        if (foobar[i] != 0 && t != 0.0)
-//        {
-//            if (t < min_t)
-//            {
-//                min_t = t;
-//                hit_position = hitpos;
-//                hit_normal = normal;
-//                sphere_index = i * 25;
-//            }
-//        }
-//    }
-
-//    if (min_t < 100000.0f)
-//    {
-//        vec3 my_color = vec3(0.0);
-//
-//        for (i = 0; i < num_lights; i++)
-//        {
-//            my_color += light_point(hit_position, hit_normal, -R.direction, lights.L[i]);
-//        }
-//
-//        my_color *= S[sphere_index].color.rgb;
-//        color = input_color * my_color;
-//        vec3 v = normalize(hit_position - R.origin);
-//        position = hit_position;
-//        reflected = reflect(v, hit_normal);
-//        reflected_color = S[sphere_index].color.rgb * 0.5;
-//        refracted = refract(v, hit_normal, 1.73);
-//        refracted_color = input_color * S[sphere_index].color.rgb * 0.5;
-//    }
 }
