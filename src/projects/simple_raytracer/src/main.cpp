@@ -16,10 +16,10 @@ class RayTracer : public Application
 private:
     // Member variables
     static const int m_max_recursion_depth { 5 };
+    int m_max_depth { 2 };
     const int m_max_framebuffer_width { 2048 };
     const int m_max_framebuffer_height { 1024 };
-    const int m_num_spheres{ 1 };
-    int m_max_depth { 2 };
+    const int m_num_spheres{ 3 };
 
     // FBO textures
     GLuint m_tex_composite;
@@ -32,9 +32,9 @@ private:
     // Objects in the scene
     struct sphere
     {
-        float radius { 0 };
-        glm::vec3 center { 0 };
-        //glm::vec4 color { 0 };
+        glm::vec4 center_and_radius { 0, 0, 0, 2.5 };
+//        glm::vec3 center { 0, 0, 0 };
+//        float radius { 2.5 };
     };
 
     struct uniforms_block
@@ -54,11 +54,11 @@ private:
     std::unique_ptr<GlslProgram> m_blit_program;
 
     // Other OpenGL objects
-    std::vector<GLuint> m_ray_fbos {0, 0, 0, 0, 0};
     GLuint m_vao{ 0 };
+    std::vector<GLuint> m_ray_fbos { 0, 0, 0, 0, 0 };
     const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
 
-    glm::vec3 m_view_position{ glm::vec3{0, 0, 5} };
+    glm::vec3 m_view_position{ glm::vec3{ 0, 0, 5 } };
     Camera m_camera{ m_view_position };
 
     virtual void set_info() override
@@ -81,6 +81,9 @@ private:
         glCreateBuffers(1, &m_sphere_buffer);
         glNamedBufferStorage(m_sphere_buffer, m_num_spheres * sizeof(sphere), nullptr, GL_MAP_WRITE_BIT);
 
+        // Bind sphere UBO to index in shader program
+        glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_sphere_buffer, 0, m_num_spheres * sizeof(sphere));
+
         // Create and bind a VAO
         glCreateVertexArrays(1, &m_vao);
         glBindVertexArray(m_vao);
@@ -98,8 +101,8 @@ private:
         glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_tex_reflection_intensity);
         glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_tex_refraction_intensity);
 
-        // Set FBO textures and texture parameters
         // TODO: Use a sampler
+        // Set FBO textures and texture parameters
         for (int i { 0 }; i < m_max_recursion_depth; ++i)
         {
             glNamedFramebufferTexture(m_ray_fbos[i], GL_COLOR_ATTACHMENT0, m_tex_composite, 0);
@@ -134,7 +137,7 @@ private:
     virtual void render(double current_time) override
     {
         // Set uniform data
-        glm::mat4 model_matrix = glm::mat4{1.0};
+        glm::mat4 model_matrix = glm::mat4{ 1.0 };
         glm::mat4 view_matrix = m_camera.get_view_matrix();
 
         auto uniforms_ptr = static_cast<uniforms_block*>(glMapNamedBufferRange(m_uniforms_buffer, 0, sizeof(uniforms_block), GL_MAP_WRITE_BIT));
@@ -143,17 +146,36 @@ private:
         uniforms_ptr->projection_matrix = m_camera.get_proj_matrix();
         glUnmapNamedBuffer(m_uniforms_buffer);
 
-        // Set sphere data
+        // The approach other than mapping a buffer would be glNamedBufferSubData
+        // i.e. glNamedBufferSubData(m_sphere_buffer, 0, sizeof(glm::vec4), &my_value);
         auto sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_num_spheres * sizeof(sphere), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
-            sphere_ptr[i].radius = 1.0f;
-            sphere_ptr[i].center = glm::vec3(0.5, 0, 0);
-            //sphere_ptr[i].color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+            //sphere_ptr[i].radius = 0.5;
+
+            if (!i)
+            {
+                sphere_ptr[i].center_and_radius = glm::vec4 { 2, 0, 0, 2.5 };
+                //sphere_ptr[i].center = glm::vec3{ 2, 2.0, 1 };
+                std::cout<<"yes"<<std::endl;
+            }
+
+            else if (i == 1)
+            {
+                sphere_ptr[i].center_and_radius = glm::vec4 { 3, 0, 0, 2.5 };
+                // sphere_ptr[i].center = glm::vec3{ 0, 2.0, 1 };
+            }
+            else
+            {
+                sphere_ptr[i].center_and_radius = glm::vec4 { -2.5, 0, 0, 2.5 };
+                //  sphere_ptr[i].center = glm::vec3{ 2, 2.0, 1 };
+            }
+
         }
         glUnmapNamedBuffer(m_sphere_buffer);
 
-        // Set up draw
+        // Setup draw
         glViewport(0, 0, m_info.window_width, m_info.window_height);
         m_prepare_program->use();
         m_prepare_program->uniform("ray_origin", m_view_position);
