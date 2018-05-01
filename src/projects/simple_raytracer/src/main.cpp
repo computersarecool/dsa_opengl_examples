@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <vector>
-#include <iostream>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
@@ -15,11 +14,11 @@ class RayTracer : public Application
 {
 private:
     // Member variables
-    static const int m_max_recursion_depth { 5 };
     int m_max_depth { 2 };
+    static const int m_max_recursion_depth { 5 };
     const int m_max_framebuffer_width { 2048 };
     const int m_max_framebuffer_height { 1024 };
-    const int m_num_spheres{ 3 };
+    const int m_num_spheres{ 4 };
 
     // FBO textures
     GLuint m_tex_composite;
@@ -32,9 +31,8 @@ private:
     // Objects in the scene
     struct sphere
     {
-        glm::vec4 center_and_radius { 0, 0, 0, 2.5 };
-//        glm::vec3 center { 0, 0, 0 };
-//        float radius { 2.5 };
+        glm::vec3 center{ 0, 0, 0 };
+        float radius { 1.0 };
     };
 
     struct uniforms_block
@@ -79,7 +77,7 @@ private:
         glNamedBufferStorage(m_uniforms_buffer, sizeof(uniforms_block), nullptr, GL_MAP_WRITE_BIT);
 
         glCreateBuffers(1, &m_sphere_buffer);
-        glNamedBufferStorage(m_sphere_buffer, m_num_spheres * sizeof(sphere), nullptr, GL_MAP_WRITE_BIT);
+        glNamedBufferStorage(m_sphere_buffer, m_num_spheres * sizeof(sphere), nullptr, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
 
         // Bind sphere UBO to index in shader program
         glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_sphere_buffer, 0, m_num_spheres * sizeof(sphere));
@@ -140,38 +138,20 @@ private:
         glm::mat4 model_matrix = glm::mat4{ 1.0 };
         glm::mat4 view_matrix = m_camera.get_view_matrix();
 
+        // TODO: This is not mapped correctly to do anything
         auto uniforms_ptr = static_cast<uniforms_block*>(glMapNamedBufferRange(m_uniforms_buffer, 0, sizeof(uniforms_block), GL_MAP_WRITE_BIT));
         uniforms_ptr->model_view_matrix = view_matrix * model_matrix;
         uniforms_ptr->view_matrix = view_matrix;
         uniforms_ptr->projection_matrix = m_camera.get_proj_matrix();
         glUnmapNamedBuffer(m_uniforms_buffer);
 
-        // The approach other than mapping a buffer would be glNamedBufferSubData
+        // The alternative to mapping a buffer could be using glNamedBufferSubData
         // i.e. glNamedBufferSubData(m_sphere_buffer, 0, sizeof(glm::vec4), &my_value);
         auto sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_num_spheres * sizeof(sphere), GL_MAP_WRITE_BIT));
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
-
-            //sphere_ptr[i].radius = 0.5;
-
-            if (!i)
-            {
-                sphere_ptr[i].center_and_radius = glm::vec4 { 2, 0, 0, 2.5 };
-                //sphere_ptr[i].center = glm::vec3{ 2, 2.0, 1 };
-                std::cout<<"yes"<<std::endl;
-            }
-
-            else if (i == 1)
-            {
-                sphere_ptr[i].center_and_radius = glm::vec4 { 3, 0, 0, 2.5 };
-                // sphere_ptr[i].center = glm::vec3{ 0, 2.0, 1 };
-            }
-            else
-            {
-                sphere_ptr[i].center_and_radius = glm::vec4 { -2.5, 0, 0, 2.5 };
-                //  sphere_ptr[i].center = glm::vec3{ 2, 2.0, 1 };
-            }
-
+            sphere_ptr[i].radius = 0.5;
+            sphere_ptr[i].center = glm::vec3 { -3 + i * 2, 0, 0 };
         }
         glUnmapNamedBuffer(m_sphere_buffer);
 
@@ -228,10 +208,11 @@ private:
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-//        if (depth != (m_max_depth - 1))
-//        {
-//            recurse(depth + 1);
-//        }
+        // TODO: Add recursion
+        if (depth != (m_max_depth - 1))
+        {
+            recurse(depth + 1);
+        }
 
         glDisablei(GL_BLEND, 0);
     }

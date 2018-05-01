@@ -1,20 +1,15 @@
 #version 440 core
 
-// Outputs
-layout (location = 0) out vec3 color;
-layout (location = 1) out vec3 position;
-layout (location = 2) out vec3 reflected;
-layout (location = 3) out vec3 refracted;
-layout (location = 4) out vec3 reflected_color;
-layout (location = 5) out vec3 refracted_color;
+layout (location = 0) out vec3 out_color;
 
-// Sampler inputs
 layout (binding = 0) uniform sampler2D tex_origin;
 layout (binding = 1) uniform sampler2D tex_direction;
-layout (binding = 2) uniform sampler2D tex_color;
 
-uniform int num_spheres = 7;
-const float epsilon = .001;
+struct sphere
+{
+    vec3 center;
+    float radius;
+};
 
 struct ray
 {
@@ -22,57 +17,23 @@ struct ray
     vec3 direction;
 };
 
-struct sphere
+layout (std140, binding = 0) uniform SPHERES
 {
-    vec3 center;
-    float radius;
-    vec4 color;
+    sphere my_spheres[4];
 };
 
-layout (std140, binding = 1) uniform SPHERES
+// TODO: What is epsilon?
+const float epsilon = 0.001;
+
+bool intersect_ray_sphere(in sphere sph, in ray r, out vec3 hit_pos, out vec3 normal)
 {
-    sphere spheres[128];
-};
+    vec3 sphere_center = sph.center;
+    float sphere_radius = sph.radius;
 
-//bool intersect_ray_sphere(ray R, sphere S, out vec3 hitpos, out vec3 normal)
-//{
-//    vec3 v = R.origin - S.center;
-//    float a = 1.0;
-//    float b = 2.0 * dot(R.direction, v);
-//    float c = dot(v, v) - pow(S.radius, 2);
-//
-//    float num = pow(b, 2) - 4.0 * a * c;
-//
-//    if (num < 0.0)
-//    {
-//        return false;
-//    }
-//
-//    float d = sqrt(num);
-//    float e = 1.0 / (2.0 * a);
-//
-//    float t1 = (-b - d) * e;
-//    float t2 = (-b + d) * e;
-//    float t = min(max(t1, 0.0), max(t2, 0.0));
-//
-//    if (t == 0.0)
-//    {
-//        return false;
-//    }
-//
-//    hitpos = R.origin + t * R.direction;
-//    normal = normalize(hitpos - S.center);
-//
-//    return true;
-//}
-
-
-bool intersect_ray_sphere(in sphere sph, in ray r, out vec3 hitpos, out vec3 normal)
-{
     float t;
-    vec3 temp = r.origin - sph.center;
+    vec3 temp = r.origin - sphere_center;
     float b = 2.0 * dot(temp, r.direction);
-    float c = dot(temp, temp) - sph.radius * sph.radius;
+    float c = dot(temp, temp) - sphere_radius * sphere_radius;
 
     float discriminant = b * b - 4.0 * c;
 
@@ -100,46 +61,45 @@ bool intersect_ray_sphere(in sphere sph, in ray r, out vec3 hitpos, out vec3 nor
         return false;
     }
 
-    hitpos = r.origin + t *r.direction;
-    normal = normalize(hitpos - sph.center);
+    hit_pos = r.origin + t * r.direction;
+    normal = normalize(hit_pos - sphere_center);
 
     return true;
 }
 
-
-
-
 void main()
 {
-    // Initialize outputs
-    color = vec3(0.0);
-    position = vec3(0.0);
-    reflected = vec3(0.0);
-    refracted = vec3(0.0);
-    reflected_color = vec3(0.0);
-    refracted_color = vec3(0.0);
+    vec2 uv = gl_FragCoord.xy / 800.0;
+    uv = uv * 2.0 - 1.0;
+//    out_color = normalize(vec3(uv, 1.0));
 
-    // Construct a ray
-    ray R;
-    R.origin = texelFetch(tex_origin, ivec2(gl_FragCoord.xy), 0).xyz;
-    R.direction = normalize(texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz);
-    R.direction.z *= -1.0;
-    R.origin += R.direction * 0.01;
+    out_color = normalize(texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz);
 
-    // Test if ray hits a sphere
-    bool hit;
-    vec3 hitpos;
-    vec3 normal;
-    for (int i = 0; i < num_spheres; i++)
-    {
-        hit = intersect_ray_sphere(spheres[i], R, hitpos, normal);
-        if (hit)
-        {
-            color = vec3(1.0);
-        }
-        else
-        {
-            color = vec3(1.0, 0.0, 0.0);
-        }
-    }
+//    // Construct a ray
+//    vec3 ray_origin = vec3(0.0, 0.0, -4.0);
+//    vec3 ray_direction = normalize(vec3(uv, 1.0));
+//    ray R = ray (ray_origin, ray_direction);
+//
+//    // Test if the ray hits a sphere
+//    vec3 hit_pos = {100000.0, 100000.0, 100000.0};
+//    bool hit_something = false;
+//    vec3 normal;
+//    for (int i = 0; i < my_spheres.length(); ++i)
+//    {
+//        vec3 temp_hit;
+//        if (intersect_ray_sphere(my_spheres[i], R, temp_hit, normal))
+//        {
+//            // There is a hit but is it closer than any previous?
+//            if (length(ray_origin - temp_hit) < length(ray_origin - hit_pos))
+//            {
+//                hit_pos = temp_hit;
+//                out_color = vec3(1.0);
+//                hit_something = true;
+//            }
+//        }
+//    }
+//    if (!hit_something)
+//    {
+//        out_color = vec3(0.0);
+//    }
 }
