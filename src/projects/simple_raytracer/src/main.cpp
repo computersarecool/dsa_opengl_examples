@@ -14,11 +14,16 @@ class RayTracer : public Application
 {
 private:
     // Member variables
-    int m_max_depth { 2 };
-    static const int m_max_recursion_depth { 5 };
-    const int m_max_framebuffer_width { 2048 };
-    const int m_max_framebuffer_height { 1024 };
+    int m_max_depth{ 2 };
+    static const int m_max_recursion_depth{ 5 };
+    const int m_max_framebuffer_width{ 2048 };
+    const int m_max_framebuffer_height{ 1024 };
     const int m_num_spheres{ 4 };
+    const int m_num_lights{ 2 };
+    const int m_num_planes{ 6 };
+    const GLuint m_sphere_ubo_binding_index{ 1 };
+    const GLuint m_light_ubo_binding_index{ 2 };
+    const GLuint m_plane_ubo_binding_index{ 2 };
 
     // FBO textures
     GLuint m_tex_composite;
@@ -28,11 +33,22 @@ private:
     GLuint m_tex_refracted[m_max_recursion_depth];
     GLuint m_tex_refraction_intensity[m_max_recursion_depth];
 
-    // Objects in the scene
+    // UBO structs
     struct sphere
     {
-        glm::vec3 center{ 0, 0, 0 };
+        glm::vec3 center{ 0 };
         float radius { 1.0 };
+    };
+
+    struct light
+    {
+        glm::vec3 center{ 0 };
+    };
+
+    struct plane
+    {
+        glm::vec3 normal;
+        float d;
     };
 
     struct uniforms_block
@@ -43,8 +59,10 @@ private:
     };
 
     // Buffer objects
-    GLuint m_uniforms_buffer;
+    GLuint m_light_buffer;
     GLuint m_sphere_buffer;
+    GLuint m_plane_buffer;
+    GLuint m_uniforms_buffer;
 
     // GLSL Programs
     std::unique_ptr<GlslProgram> m_prepare_program;
@@ -53,9 +71,8 @@ private:
 
     // Other OpenGL objects
     GLuint m_vao{ 0 };
-    std::vector<GLuint> m_ray_fbos { 0, 0, 0, 0, 0 };
+    std::vector<GLuint> m_ray_fbos{ 0, 0, 0, 0, 0 };
     const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-
     glm::vec3 m_view_position{ glm::vec3{ 0, 0, 5 } };
     Camera m_camera{ m_view_position };
 
@@ -72,15 +89,22 @@ private:
         m_trace_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/raytracer.vert").fragment("../assets/shaders/raytracer.frag")});
         m_blit_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/blit.vert").fragment("../assets/shaders/blit.frag")});
 
-        // Create buffers
+        // Create buffers and bind UBOs
         glCreateBuffers(1, &m_uniforms_buffer);
         glNamedBufferStorage(m_uniforms_buffer, sizeof(uniforms_block), nullptr, GL_MAP_WRITE_BIT);
+        glBindBufferRange(GL_UNIFORM_BUFFER, m_sphere_ubo_binding_index, m_sphere_buffer, 0, m_num_spheres * sizeof(sphere));
 
         glCreateBuffers(1, &m_sphere_buffer);
         glNamedBufferStorage(m_sphere_buffer, m_num_spheres * sizeof(sphere), nullptr, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
+        glBindBufferRange(GL_UNIFORM_BUFFER, m_sphere_ubo_binding_index, m_sphere_buffer, 0, m_num_spheres * sizeof(sphere));
 
-        // Bind sphere UBO to index in shader program
-        glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_sphere_buffer, 0, m_num_spheres * sizeof(sphere));
+        glCreateBuffers(1, &m_light_buffer);
+        glNamedBufferStorage(m_light_buffer, m_num_lights * sizeof(light), nullptr, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
+        glBindBufferRange(GL_UNIFORM_BUFFER, m_light_ubo_binding_index, m_light_buffer, 0, m_num_lights * sizeof(light));
+
+        glCreateBuffers(1, &m_plane_buffer);
+        glNamedBufferStorage(m_plane_buffer, m_num_planes* sizeof(plane), nullptr, GL_MAP_WRITE_BIT | GL_DYNAMIC_STORAGE_BIT);
+        glBindBufferRange(GL_UNIFORM_BUFFER, m_plane_ubo_binding_index, m_plane_buffer, 0, m_num_planes * sizeof(plane));
 
         // Create and bind a VAO
         glCreateVertexArrays(1, &m_vao);
@@ -151,9 +175,36 @@ private:
         for (int i { 0 }; i < m_num_spheres; ++i)
         {
             sphere_ptr[i].radius = 0.5;
-            sphere_ptr[i].center = glm::vec3 { -3 + i * 2, 0, 0 };
+            sphere_ptr[i].center = glm::vec3 { -3 + i * 2, 0, -15 };
         }
         glUnmapNamedBuffer(m_sphere_buffer);
+
+        auto light_ptr = static_cast<light*>(glMapNamedBufferRange(m_light_buffer, 0, m_num_lights * sizeof(light), GL_MAP_WRITE_BIT));
+        for (int i { 0 }; i < m_num_lights; ++i)
+        {
+            light_ptr[i].center = glm::vec3 { i, 2, -15 };
+        }
+        glUnmapNamedBuffer(m_light_buffer);
+
+        auto plane_ptr = static_cast<plane*>(glMapNamedBufferRange(m_plane_buffer, 0, m_num_planes * sizeof(plane), GL_MAP_WRITE_BIT));
+        plane_ptr[0].normal = glm::vec3(0.0f, 0.0f, -20.0f);
+        plane_ptr[0].d = 30.0f;
+
+        plane_ptr[1].normal = glm::vec3(0.0f, 0.0f, 20.0f);
+        plane_ptr[1].d = 30.0f;
+
+        plane_ptr[2].normal = glm::vec3(-20.0f, 0.0f, 0.0f);
+        plane_ptr[2].d = 30.0f;
+
+        plane_ptr[3].normal = glm::vec3(20.0f, 0.0f, 0.0f);
+        plane_ptr[3].d = 30.0f;
+
+        plane_ptr[4].normal = glm::vec3(0.0f, -20.0f, 0.0f);
+        plane_ptr[4].d = 30.0f;
+
+        plane_ptr[5].normal = glm::vec3(0.0f, 20.0f, 0.0f);
+        plane_ptr[5].d = 30.0f;
+        glUnmapNamedBuffer(m_plane_buffer);
 
         // Setup draw
         glViewport(0, 0, m_info.window_width, m_info.window_height);
@@ -208,7 +259,6 @@ private:
 
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        // TODO: Add recursion
         if (depth != (m_max_depth - 1))
         {
             recurse(depth + 1);
