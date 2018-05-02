@@ -26,7 +26,5 @@ void main()
 
     vec3 ray_direction = position.xyz - ray_origin;
 
-    // TODO: Why do we flip ray direction?
-    ray_direction *= vec3(1.0, 1.0, -1.0);
-    vs_out.ray_direction = (ray_lookat * vec4(ray_direction, 0.0)).xyz;
+    vs_out.ray_direction = normalize((ray_lookat * vec4(ray_direction, 0.0)).xyz);
 }

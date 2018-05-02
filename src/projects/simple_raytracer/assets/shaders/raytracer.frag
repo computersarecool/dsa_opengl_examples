@@ -69,37 +69,30 @@ bool intersect_ray_sphere(in sphere sph, in ray r, out vec3 hit_pos, out vec3 no
 
 void main()
 {
-    vec2 uv = gl_FragCoord.xy / 800.0;
-    uv = uv * 2.0 - 1.0;
-//    out_color = normalize(vec3(uv, 1.0));
+    vec3 ray_origin = texelFetch(tex_origin, ivec2(gl_FragCoord.xy), 0).xyz;
+    vec3 ray_direction = normalize(texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz);
+    ray R = ray (ray_origin, ray_direction);
 
-    out_color = normalize(texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz);
-
-//    // Construct a ray
-//    vec3 ray_origin = vec3(0.0, 0.0, -4.0);
-//    vec3 ray_direction = normalize(vec3(uv, 1.0));
-//    ray R = ray (ray_origin, ray_direction);
-//
-//    // Test if the ray hits a sphere
-//    vec3 hit_pos = {100000.0, 100000.0, 100000.0};
-//    bool hit_something = false;
-//    vec3 normal;
-//    for (int i = 0; i < my_spheres.length(); ++i)
-//    {
-//        vec3 temp_hit;
-//        if (intersect_ray_sphere(my_spheres[i], R, temp_hit, normal))
-//        {
-//            // There is a hit but is it closer than any previous?
-//            if (length(ray_origin - temp_hit) < length(ray_origin - hit_pos))
-//            {
-//                hit_pos = temp_hit;
-//                out_color = vec3(1.0);
-//                hit_something = true;
-//            }
-//        }
-//    }
-//    if (!hit_something)
-//    {
-//        out_color = vec3(0.0);
-//    }
+    // Test if the ray hits a sphere
+    vec3 hit_pos = {100000.0, 100000.0, 100000.0};
+    bool hit_something = false;
+    vec3 normal;
+    for (int i = 0; i < my_spheres.length(); ++i)
+    {
+        vec3 temp_hit;
+        if (intersect_ray_sphere(my_spheres[i], R, temp_hit, normal))
+        {
+            // There is a hit but is it closer than any previous?
+            if (length(ray_origin - temp_hit) < length(ray_origin - hit_pos))
+            {
+                hit_pos = temp_hit;
+                out_color = vec3(1.0);
+                hit_something = true;
+            }
+        }
+    }
+    if (!hit_something)
+    {
+        out_color = vec3(0.0);
+    }
 }
