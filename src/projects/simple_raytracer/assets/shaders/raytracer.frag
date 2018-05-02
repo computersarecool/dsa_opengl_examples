@@ -1,10 +1,9 @@
 #version 440 core
 
 // TODO:
-// Confirm lack of need for point_visible_to_light (in lighting equation)
+// Confirm need for point_visible_to_light (in lighting equation)
 // Fix reflect and refract outputs
 // Add plane intersection test
-// Add sphere color
 
 layout (location = 0) out vec3 out_color;
 layout (location = 1) out vec3 position;
@@ -13,9 +12,9 @@ layout (location = 3) out vec3 refracted;
 layout (location = 4) out vec3 reflected_color;
 layout (location = 5) out vec3 refracted_color;
 
-layout (binding = 0) uniform sampler2D tex_origin;
-layout (binding = 1) uniform sampler2D tex_direction;
-layout (binding = 2) uniform sampler2D tex_color;
+layout (binding = 0) uniform sampler2D origin_texture;
+layout (binding = 1) uniform sampler2D direction_texture;
+layout (binding = 2) uniform sampler2D color_texture;
 
 struct ray
 {
@@ -25,13 +24,14 @@ struct ray
 
 struct sphere
 {
-    vec3 center;
+    vec4 center;
+    vec4 color;
     float radius;
 };
 
 struct light
 {
-    vec3 center;
+    vec4 center;
 };
 
 layout (std140, binding = 1) uniform SPHERES
@@ -54,7 +54,7 @@ const float max_t = 1000000.0;
 
 float intersect_ray_sphere(in ray r, in sphere sph, out vec3 hit_pos, out vec3 normal)
 {
-    vec3 temp = r.origin - sph.center;
+    vec3 temp = r.origin - sph.center.xyz;
     float b = 2.0 * dot(temp, r.direction);
     float c = dot(temp, temp) - sph.radius * sph.radius;
 
@@ -87,7 +87,7 @@ float intersect_ray_sphere(in ray r, in sphere sph, out vec3 hit_pos, out vec3 n
     }
 
     hit_pos = r.origin + t * r.direction;
-    normal = normalize(hit_pos - sph.center);
+    normal = normalize(hit_pos - sph.center.xyz);
 
     return t;
 }
@@ -96,7 +96,7 @@ vec3 light_point(vec3 position, vec3 normal, vec3 V, light l)
 {
     vec3 ambient = vec3(0.0);
 
-    vec3 L = normalize(l.center - position);
+    vec3 L = normalize(l.center.xyz - position);
     vec3 N = normal;
     vec3 R = reflect(-L, N);
 
@@ -116,7 +116,7 @@ vec3 light_point(vec3 position, vec3 normal, vec3 V, light l)
 void main()
 {
     // Initialize outputs
-    vec3 color = vec3(0.0);
+    out_color = vec3(0.0);
     position = vec3(0.0);
     reflected = vec3(0.0);
     refracted = vec3(0.0);
@@ -124,12 +124,11 @@ void main()
     refracted_color = vec3(0.0);
 
     // Construct a ray
-    vec3 ray_origin = texelFetch(tex_origin, ivec2(gl_FragCoord.xy), 0).xyz;
-    vec3 ray_direction = normalize(texelFetch(tex_direction, ivec2(gl_FragCoord.xy), 0).xyz);
+    vec3 ray_origin = texelFetch(origin_texture, ivec2(gl_FragCoord.xy), 0).xyz;
+    vec3 ray_direction = normalize(texelFetch(direction_texture, ivec2(gl_FragCoord.xy), 0).xyz);
     ray R = ray(ray_origin, ray_direction);
-    vec3 input_color = texelFetch(tex_color, ivec2(gl_FragCoord.xy), 0).rgb;
 
-    // Saved variables
+    // Saved intersection test variables
     vec3 hit_position = vec3(0.0);
     vec3 hit_normal = vec3(0.0);
     float min_t = max_t;
@@ -155,26 +154,24 @@ void main()
         }
     }
 
+    // Color point if there is a hit inside bounds
     if (min_t < max_t)
     {
-        vec3 my_color = vec3(0.0);
-
         for (int i = 0; i < my_lights.length(); ++i)
         {
-            my_color += light_point(hit_position, hit_normal, -R.direction, my_lights[i]);
+            out_color += light_point(hit_position, hit_normal, -R.direction, my_lights[i]);
         }
 
-        //my_color *= S[sphere_index].color.rgb;
-        my_color *= input_color;
+        vec3 input_color = texelFetch(color_texture, ivec2(gl_FragCoord.xy), 0).rgb;
+
+        out_color *= my_spheres[sphere_index].color.rgb;
+        out_color *= input_color;
+
         vec3 v = normalize(hit_position - R.origin);
         position = hit_position;
         reflected = reflect(v, hit_normal);
         reflected_color = vec3(0.5);///* input_color * */ my_spheres[sphere_index].color.rgb * 0.5;
         refracted = refract(v, hit_normal, 1.73);
         refracted_color = input_color * vec3(0.5);//S[sphere_index].color.rgb * 0.5;
-
-        color = my_color;
     }
-
-    out_color = color;
 }
