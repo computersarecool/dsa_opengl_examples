@@ -1,10 +1,10 @@
 #version 440 core
 
 // TODO:
-// Confirm need for point_visible_to_light (in lighting equation)
 // Fix reflect and refract outputs
 // Add plane intersection test
 
+// Outputs
 layout (location = 0) out vec3 out_color;
 layout (location = 1) out vec3 position;
 layout (location = 2) out vec3 reflected;
@@ -12,10 +12,12 @@ layout (location = 3) out vec3 refracted;
 layout (location = 4) out vec3 reflected_color;
 layout (location = 5) out vec3 refracted_color;
 
+// Samplers
 layout (binding = 0) uniform sampler2D origin_texture;
 layout (binding = 1) uniform sampler2D direction_texture;
 layout (binding = 2) uniform sampler2D color_texture;
 
+// Scene structs
 struct ray
 {
     vec3 origin;
@@ -34,6 +36,7 @@ struct light
     vec4 center;
 };
 
+// UBOs
 layout (std140, binding = 1) uniform SPHERES
 {
     sphere my_spheres[4];
@@ -49,6 +52,7 @@ layout (std140, binding = 3) uniform LIGHTS
     light my_lights[2];
 };
 
+// Scene constants
 const float epsilon = 0.001;
 const float max_t = 1000000.0;
 
@@ -92,11 +96,11 @@ float intersect_ray_sphere(in ray r, in sphere sph, out vec3 hit_pos, out vec3 n
     return t;
 }
 
-vec3 light_point(vec3 position, vec3 normal, vec3 V, light l)
+vec3 light_point(vec3 position, vec3 normal, vec3 V, light my_light)
 {
     vec3 ambient = vec3(0.0);
 
-    vec3 L = normalize(l.center.xyz - position);
+    vec3 L = normalize(my_light.center.xyz - position);
     vec3 N = normal;
     vec3 R = reflect(-L, N);
 
@@ -106,11 +110,10 @@ vec3 light_point(vec3 position, vec3 normal, vec3 V, light l)
     float spec = pow(clamp(dot(R, N), 0.0, 1.0), 260.0);
 
     vec3 rim_color = vec3(0.01, 0.0, 0.03);
-    vec3 diff_color = vec3(0.125);
+    vec3 diff_color = vec3(0.45);
     vec3 spec_color = vec3(0.1);
 
     return ambient + rim_color * rim + diff_color * diff + spec_color * spec;
-
 }
 
 void main()
@@ -159,18 +162,22 @@ void main()
     {
         for (int i = 0; i < my_lights.length(); ++i)
         {
+            // Insert check if visibile to light here (for shadows)
             out_color += light_point(hit_position, hit_normal, -R.direction, my_lights[i]);
         }
 
         vec3 input_color = texelFetch(color_texture, ivec2(gl_FragCoord.xy), 0).rgb;
-
-        out_color *= my_spheres[sphere_index].color.rgb;
         out_color *= input_color;
+        out_color *= my_spheres[sphere_index].color.rgb;
 
+        // Probably could just be ray direction
         vec3 v = normalize(hit_position - R.origin);
         position = hit_position;
         reflected = reflect(v, hit_normal);
-        reflected_color = vec3(0.5);///* input_color * */ my_spheres[sphere_index].color.rgb * 0.5;
+        // Multiply by .5 to make slighly less bright
+        reflected_color = my_spheres[sphere_index].color.rgb * 0.5;
+
+        // Look up refract function
         refracted = refract(v, hit_normal, 1.73);
         refracted_color = input_color * vec3(0.5);//S[sphere_index].color.rgb * 0.5;
     }
