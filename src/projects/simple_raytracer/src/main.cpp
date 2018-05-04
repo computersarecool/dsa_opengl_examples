@@ -19,20 +19,20 @@ private:
 	// These use alignas to avoid the need for padding
 	struct alignas(16) sphere
 	{
-		glm::vec4 center{ 0 };
-		glm::vec4 color{ 0 };
-		float radius{ 1.0 };
+		glm::vec4 center;
+		glm::vec4 color;
+		float radius;
 	};
 
 	struct light
 	{
-		glm::vec4 center{ 0 };
+		glm::vec4 center;
 	};
 
-	struct alignas(16) plane
+	struct plane
 	{
+		glm::vec4 center;
 		glm::vec4 normal;
-		float d;
 	};
 
 	struct uniforms_block
@@ -179,7 +179,7 @@ private:
 		glm::mat4 model_matrix = glm::mat4{ 1.0 };
 		glm::mat4 view_matrix = m_camera.get_view_matrix();
 
-		// TODO: This is not mapped correctly
+		// TODO: This is not mapped to anything
 		auto uniforms_ptr = static_cast<uniforms_block*>(glMapNamedBufferRange(m_uniforms_buffer, 0, sizeof(uniforms_block), GL_MAP_WRITE_BIT));
 		uniforms_ptr->model_view_matrix = view_matrix * model_matrix;
 		uniforms_ptr->view_matrix = view_matrix;
@@ -205,23 +205,23 @@ private:
 		glUnmapNamedBuffer(m_light_buffer);
 
 		auto plane_ptr = static_cast<plane*>(glMapNamedBufferRange(m_plane_buffer, 0, m_num_planes * sizeof(plane), GL_MAP_WRITE_BIT));
-		plane_ptr[0].normal = glm::vec4(0.0f, 0.0f, -20.0f, 0);
-		plane_ptr[0].d = 30.0f;
+		plane_ptr[0].center = glm::vec4{ -20, 0, 0, 0 };
+		plane_ptr[0].normal = glm::vec4{ 1, 0, 0, 0 };
 
-		plane_ptr[1].normal = glm::vec4(0.0f, 0.0f, 20.0f, 0);
-		plane_ptr[1].d = 30.0f;
+		plane_ptr[1].center = glm::vec4{ 20, 0, 0, 0 };
+		plane_ptr[1].normal = glm::vec4{ -1, 0, 0, 0 };
 
-		plane_ptr[2].normal = glm::vec4(-20.0f, 0.0f, 0.0f, 0);
-		plane_ptr[2].d = 30.0f;
+		plane_ptr[2].center = glm::vec4{ 0, -20, 0, 0 };
+		plane_ptr[2].normal = glm::vec4{ 0, 1, 0, 0 };
 
-		plane_ptr[3].normal = glm::vec4(20.0f, 0.0f, 0.0f, 0);
-		plane_ptr[3].d = 30.0f;
+		plane_ptr[3].center = glm::vec4{ 0, 20, 0, 0 };
+		plane_ptr[3].normal = glm::vec4{ 0, -1, 0, 0 };
 
-		plane_ptr[4].normal = glm::vec4(0.0f, -20.0f, 0.0f, 0);
-		plane_ptr[4].d = 30.0f;
+		plane_ptr[4].center = glm::vec4{ 0, 0, -20, 0 };
+		plane_ptr[4].normal = glm::vec4{ 0, 0, 1, 0 };
 
-		plane_ptr[5].normal = glm::vec4(0.0f, 20.0f, 0.0f, 0);
-		plane_ptr[5].d = 30.0f;
+		plane_ptr[5].center = glm::vec4{ 0, 0, 20, 0 };
+		plane_ptr[5].normal = glm::vec4{ 0, 0, -1, 0 };
 		glUnmapNamedBuffer(m_plane_buffer);
 
 		// Setup draw
