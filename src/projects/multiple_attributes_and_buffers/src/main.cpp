@@ -1,7 +1,7 @@
 ﻿// This uses mapped buffers to upload data
-// The buffer backing the VAO is switched to change vertex data quickly
+// The buffer backing the square's VAO is switched to change vertex data quickly
 // The attribute binding could also be switched to change the vertex data quickly
-// https://stackoverflow.com/a/21652955/3291506 explains buffer binding indices nicely
+// https://stackoverflow.com/a/21652955/3291506 explains buffer binding indices
 // Interactivity: Spacebar toggles which buffer back the active VAO
 
 #include <memory>
@@ -11,7 +11,7 @@
 #include "glsl_program.h"
 
 static const GLfloat vertices[]{
-	// Positions          // Colors
+	 // Positions        // Colors
 	-0.5f, -0.5f, 0.0f,  1.0, 0.0f, 0.0f,
 	 0.5f, -0.5f, 0.0f,  0.0f, 1.0, 0.0f,
 	-0.5f,  0.5,  0.0f,	 0.0f, 0.0f, 1.0f,
@@ -22,7 +22,7 @@ static const GLfloat vertices[]{
 };
 
 static const GLfloat vertices2[]{
-	// Positions          // Colors
+	 // Positions        // Colors
 	-0.5f, -0.5f, 0.0f,  1.0, 0.0f, 0.0f,
 	 0.5, -0.5f,  0.0f,  0.0f, 1.0, 0.0f,
 	-0.5f, 0.5f,  0.0f,	 0.0f, 0.0f, 1.0f,
@@ -35,6 +35,14 @@ static const GLfloat vertices2[]{
 class MultipleAttributeExample : public Application
 {
 private:
+    GLuint m_vao;
+    const GLuint m_attrib_stride{ sizeof(GLfloat) * 6 };
+	const GLuint m_attrib_offset{ 0 };
+	const GLuint m_attrib_binding_index{ 0 };
+	bool m_buffer_zero{ false };
+    const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
+	std::vector<GLuint> m_buffers{ 0, 0 };
+	std::unique_ptr<GlslProgram> m_shader;
 	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
@@ -43,11 +51,14 @@ private:
 		if (key == GLFW_KEY_SPACE && action == GLFW_PRESS)
 		{
 			if (m_buffer_zero)
+			{
 				glVertexArrayVertexBuffer(m_vao, m_attrib_binding_index, m_buffers[0], m_attrib_offset, m_attrib_stride);
-
+			}
 			else
+			{
 				glVertexArrayVertexBuffer(m_vao, m_attrib_binding_index, m_buffers[1], m_attrib_offset, m_attrib_stride);
 
+			}
             m_buffer_zero = !m_buffer_zero;
         }
 	}
@@ -64,7 +75,7 @@ private:
 		glCreateBuffers(static_cast<GLsizei>(m_buffers.size()), m_buffers.data());
 
         // Map buffers and upload data
-        const GLsizeiptr buffer_size = sizeof(vertices);
+        const GLsizeiptr buffer_size { sizeof(vertices) };
         for (int i { 0 }; i < m_buffers.size(); ++i)
         {
             glNamedBufferStorage(m_buffers[i], buffer_size, nullptr, GL_MAP_WRITE_BIT);
@@ -72,11 +83,11 @@ private:
 
             if (!i)
             {
-                memcpy(ptr, vertices, buffer_size);
+                memcpy(ptr, vertices, static_cast<size_t>(buffer_size));
             }
             else
             {
-                memcpy(ptr, vertices2, buffer_size);
+                memcpy(ptr, vertices2, static_cast<size_t>(buffer_size));
             }
             glUnmapNamedBuffer(m_buffers[i]);
         }
@@ -116,7 +127,7 @@ private:
 	{
 		// Render code
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
 		m_shader->use();
@@ -124,14 +135,7 @@ private:
 		glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(*vertices));
 	};
 
-	const GLuint m_attrib_stride{ sizeof(GLfloat) * 6 };
-	const GLuint m_attrib_offset{ 0 };
-	const GLuint m_attrib_binding_index{ 0 };
-	bool m_buffer_zero{ false };
-	GLuint m_vao { 0 };
-    const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-    std::vector<GLuint> m_buffers{ 0, 0 };
-    std::unique_ptr<GlslProgram> m_shader;
+
 };
 
 int main(int argc, char* argv[])

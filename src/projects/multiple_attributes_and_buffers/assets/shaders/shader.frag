@@ -2,13 +2,12 @@
 
 in VS_OUT
 {
-    vec3 projectionPos;
 	vec3 color;
 } fs_in;
 
-out vec4 FragColor;
+out vec4 frag_color;
 
 void main()
 {
-    FragColor = vec4(fs_in.color, 1.0);
+    frag_color = vec4(fs_in.color, 1.0);
 }

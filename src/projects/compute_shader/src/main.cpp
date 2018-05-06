@@ -1,6 +1,7 @@
 ﻿// This renders a cube to an FBO then uses a compute shader to invert that image
 
 #include <memory>
+#include <vector>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
@@ -9,7 +10,7 @@
 #include "camera.h"
 
 // Cube vertices
-static const GLfloat vertices[]{
+static const GLfloat cube_vertices[]{
        // Positions       // Normals
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -57,6 +58,23 @@ static const GLfloat vertices[]{
 class ComputeShaderExample : public Application
 {
 private:
+	GLuint m_cube_vao;
+	GLuint m_full_screen_quad_vao;
+	GLuint m_cube_vbo;
+	GLuint m_src_fbo;
+	GLuint m_color_texture;
+	GLuint m_depth_texture;
+	GLuint m_second_color_texture;
+	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
+	const GLuint m_vertices_per_cube{ sizeof(cube_vertices) / sizeof(*cube_vertices) };
+	const int m_number_cubes{ 9 };
+	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	const GLfloat m_depth_reset_val{ 1.0f };
+	std::unique_ptr<GlslProgram> m_cube_shader;
+	std::unique_ptr<GlslProgram> m_full_screen_quad_shader;
+	std::unique_ptr<GlslProgram> m_compute_shader;
+
 	virtual void set_info() override
 	{
 		Application::set_info();
@@ -97,7 +115,7 @@ private:
 		// Set up VBO and its data store
 		const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_cube_vbo);
-		glNamedBufferStorage(m_cube_vbo, sizeof(vertices), vertices, flags);
+		glNamedBufferStorage(m_cube_vbo, sizeof(cube_vertices), cube_vertices, flags);
 
 		// Set up cube VAO
 		glCreateVertexArrays(1, &m_cube_vao);
@@ -116,25 +134,25 @@ private:
 	void setup_textures_and_buffers()
 	{
 		// Create a framebuffer
-		const GLenum draw_buffers[]{ GL_COLOR_ATTACHMENT0 };
+		const std::vector<GLenum> draw_buffers{ GL_COLOR_ATTACHMENT0 };
 		glCreateFramebuffers(1, &m_src_fbo);
-		glNamedFramebufferDrawBuffers(m_src_fbo, 1, draw_buffers);
+		glNamedFramebufferDrawBuffers(m_src_fbo, 1, draw_buffers.data());
 
 		// Create depth texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_depth_texture);
-		glTextureStorage2D(m_depth_texture, 10, GL_DEPTH_COMPONENT32F, m_src_fbo_size, m_src_fbo_size);
+		glTextureStorage2D(m_depth_texture, 10, GL_DEPTH_COMPONENT32F, m_info.window_width, m_info.window_height);
 		glTextureParameteri(m_depth_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_depth_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Create the color texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_color_texture);
-		glTextureStorage2D(m_color_texture, 1, GL_RGBA32F, m_src_fbo_size, m_src_fbo_size);
+		glTextureStorage2D(m_color_texture, 1, GL_RGBA32F, m_info.window_width, m_info.window_height);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Create the second color texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_second_color_texture);
-		glTextureStorage2D(m_second_color_texture, 1, GL_RGBA32F, m_src_fbo_size, m_src_fbo_size);
+		glTextureStorage2D(m_second_color_texture, 1, GL_RGBA32F, m_info.window_width, m_info.window_height);
 		glTextureParameteri(m_second_color_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_second_color_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -159,19 +177,19 @@ private:
 		m_cube_shader->use();
 		glBindVertexArray(m_cube_vao);
 		glBindFramebuffer(GL_FRAMEBUFFER, m_src_fbo);
-		glViewport(0, 0, m_src_fbo_size, m_src_fbo_size);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glViewport(0, 0, m_info.window_width, m_info.window_height);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
 		glEnable(GL_DEPTH_TEST);
 		
-		for (int i{ 0 }; i != m_number_cubes; ++i)
+		for (int index{ 0 }; index != m_number_cubes; ++index)
 		{
 			glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 			model_matrix = glm::translate(model_matrix, glm::vec3{ -1.5, 0, 0 });
-			model_matrix = glm::translate(model_matrix, glm::vec3{i, static_cast<float>(i) / 5, i * -2 });
+			model_matrix = glm::translate(model_matrix, glm::vec3{index, static_cast<float>(index) / 5, index * -2 });
 			model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
-			m_cube_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-			m_cube_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
+			m_cube_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix);
+			m_cube_shader->uniform("u_projection_matrix", m_camera.get_proj_matrix());
 			glDrawArrays(GL_TRIANGLES, 0, m_vertices_per_cube);
 		}
 
@@ -190,25 +208,6 @@ private:
 		glDisable(GL_DEPTH_TEST);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	};
-
-	// Member variables
-	GLuint m_cube_vao { 0 };
-	GLuint m_full_screen_quad_vao { 0 };
-	GLuint m_cube_vbo { 0 };
-	GLuint m_src_fbo { 0 };
-	GLuint m_color_texture { 0 };
-	GLuint m_depth_texture { 0 };
-	GLuint m_second_color_texture { 0 };
-	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
-	const GLuint m_vertices_per_cube{ 36 };
-	const int m_number_cubes{ 9 };
-	const int m_src_fbo_size{ 800 };
-	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	const GLfloat m_depth_reset_val{ 1.0f };
-    std::unique_ptr<GlslProgram> m_cube_shader;
-    std::unique_ptr<GlslProgram> m_full_screen_quad_shader;
-    std::unique_ptr<GlslProgram> m_compute_shader;
 };
 
 int main(int argc, char* argv[])

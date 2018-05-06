@@ -1,6 +1,7 @@
 ﻿// A rotating basic cube with model-space positions as colors
 
 #include <memory>
+#include <vector>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
@@ -8,7 +9,7 @@
 #include "glsl_program.h"
 #include "camera.h"
 
-static const GLfloat vertices[]{
+static const GLfloat cube_vertices[]{
     // Positions          // Normals
     -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
      0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -56,6 +57,14 @@ static const GLfloat vertices[]{
 class BasicCubeExample : public Application
 {
 private:
+    GLuint m_vao;
+    GLuint m_vbo;
+    std::unique_ptr<GlslProgram> m_shader;
+    const GLsizei m_num_vertices { 36 };
+    Camera m_camera{ glm::vec3{0, 0, 5} };
+    const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
+    const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
+
     virtual void set_info() override
     {
         Application::set_info();
@@ -93,7 +102,7 @@ private:
         // Set up the cube VBO
         const GLuint flags{ 0 };
         glCreateBuffers(1, &m_vbo);
-        glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
+        glNamedBufferStorage(m_vbo, sizeof(cube_vertices), cube_vertices, flags);
 
         // Create and bind cube VAO
         glCreateVertexArrays(1, &m_vao);
@@ -121,25 +130,16 @@ private:
     {
         // Set default framebuffer parameters
         glViewport(0, 0, m_info.window_width, m_info.window_height);
-        glClearBufferfv(GL_COLOR, 0, m_clear_color);
+        glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
         glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
         
         // Set uniforms and draw cube
         glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
         model_matrix = glm::rotate(model_matrix, static_cast<float>(current_time), m_world_up);
-        m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-        m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
-        glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
+        m_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix);
+        m_shader->uniform("u_projection_matrix", m_camera.get_proj_matrix());
+        glDrawArrays(GL_TRIANGLES, 0, sizeof(cube_vertices) / sizeof(*cube_vertices));
     };
-
-    // Member variables
-    GLuint m_vao{ 0 };
-    GLuint m_vbo { 0 };
-    Camera m_camera{ glm::vec3{0, 0, 5} };
-    const GLuint m_num_vertices{ 36 };
-    const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
-    const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-    std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])
