@@ -36,7 +36,7 @@ private:
 	};
 
     // Spheres (positions, colors, radii)
-    std::vector<sphere> m_spheres {
+    std::vector<sphere> m_spheres{
         {
             glm::vec4{ 0 },
             glm::vec4{ 0.8f, 0.5f, 0.5f, 0 },
@@ -66,19 +66,19 @@ private:
         {
             glm::vec4{ 1, 0, 0, 0 },
             glm::vec4{ -3, 0, 0, 0 },
-            glm::vec4{ 1.0f, 0.42f, 0.42f, 0 }
+            glm::vec4{ 1, 0.4f, 0.4f, 0 }
         },
         // Right plane
         {
             glm::vec4{ -1, 0, 0, 0 },
             glm::vec4{ 3, 0, 0, 0 },
-            glm::vec4{ 0.31f, 0.8f, 0.77f, 0 }
+            glm::vec4{ 0.3f, 0.8f, 0.8f, 0 }
         },
         // Bottom plane
         {
             glm::vec4{ 0, 1, 0, 0 },
             glm::vec4{ 0, -2, 0, 0 },
-            glm::vec4{ 0.97f, 1.0f, 0.97f, 0 }
+            glm::vec4{ 0.9f, 1, 0.9f, 0 }
         },
         // Top plane
         {
@@ -91,13 +91,13 @@ private:
         {
             glm::vec4{ 0, 0, 1, 0 },
             glm::vec4{ 0, 0, -10, 0 },
-            glm::vec4{ 1.0f, 0.9f, 0.43f, 0 }
+            glm::vec4{ 1, 0.9f, 0.4, 0 }
         },
         // Front plane
         {
             glm::vec4{ 0, 0, -1, 0 },
             glm::vec4{ 0, 0, 10, 0 },
-            glm::vec4{ 0.7, 0, 0, 0 }
+            glm::vec4{ 0.7f, 0, 0, 0 }
         }
     };
 
@@ -132,6 +132,8 @@ private:
 	// Other OpenGL objects
 	GLuint m_vao;
     GLuint m_sampler;
+    GLsync m_sync_object;
+    sphere* m_sphere_ptr;
 
     // Make sure there is an FBO for every recursion level
     std::vector<GLuint> m_ray_fbos { std::vector<GLuint>(m_max_recursion_depth) };
@@ -141,6 +143,16 @@ private:
         GL_COLOR_ATTACHMENT2,
         GL_COLOR_ATTACHMENT3
     };
+
+    void lock_buffer()
+    {
+        if (m_sync_object)
+        {
+            glDeleteSync(m_sync_object);
+        }
+
+        m_sync_object = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    }
 
 	virtual void set_info() override
 	{
@@ -157,7 +169,7 @@ private:
 
 		// Create buffers and bind UBOs
 		glCreateBuffers(1, &m_sphere_buffer);
-		glNamedBufferStorage(m_sphere_buffer, m_spheres.size() * sizeof(sphere), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT);
+		glNamedBufferStorage(m_sphere_buffer, m_spheres.size() * sizeof(sphere), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
 		glBindBufferRange(GL_UNIFORM_BUFFER, m_sphere_ubo_binding_index, m_sphere_buffer, 0, m_spheres.size() * sizeof(sphere));
 
 		glCreateBuffers(1, &m_light_buffer);
@@ -178,6 +190,9 @@ private:
         auto light_ptr = static_cast<light*>(glMapNamedBufferRange(m_light_buffer, 0, m_lights.size() * sizeof(light), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT));
         memcpy(light_ptr, m_lights.data(), m_lights.size() * sizeof(light));
         glUnmapNamedBuffer(m_light_buffer);
+
+        // The sphere data is updated every frame so its buffer is persistently mapped
+        m_sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_spheres.size() * sizeof(sphere), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_INVALIDATE_RANGE_BIT));
 
 		// Create and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -226,27 +241,19 @@ private:
 
 	virtual void render(double current_time) override
 	{
+        // Wait until GPU is done with buffer
+        glClientWaitSync(m_sync_object, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
+
         // Update sphere position data
-        // It would be better to use a uniform. This is for practice with mapping buffers
-        // TODO: Make this mapped buffer persistent
-		auto sphere_x_offset = static_cast<float>(cos(current_time)) / 2.0f;
-        auto sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_spheres.size() * sizeof(sphere), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT));
+        // This could be done with a uniform
+		auto sphere_x_offset { static_cast<float>(cos(current_time)) / 2.0f };
         for (int index{ 0 }; index < m_spheres.size(); ++index)
 		{
             float sphere_x { static_cast<float>(index) / m_spheres.size() * 4.5f - 1.25f };
-            float sphere_y { -1 };
-            float sphere_z { -5 };
 
-            // Move one sphere
-            if (!index)
-            {
-                sphere_x += 0.2;
-                sphere_z = -4;
-            }
-
-            sphere_ptr[index].center = glm::vec4{ sphere_x + sphere_x_offset, sphere_y, sphere_z, 0 };
-            sphere_ptr[index].color = m_spheres[index].color;
-            sphere_ptr[index].radius = m_spheres[index].radius;
+            m_sphere_ptr[index].center = glm::vec4{ sphere_x + sphere_x_offset, -1, -5, 0 };
+            m_sphere_ptr[index].color = m_spheres[index].color;
+            m_sphere_ptr[index].radius = m_spheres[index].radius;
 		}
         glUnmapNamedBuffer(m_sphere_buffer);
 
@@ -270,6 +277,8 @@ private:
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glBindTextureUnit(0, m_composite_texture);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        lock_buffer();
 	};
 
 	void recurse(int depth) {
