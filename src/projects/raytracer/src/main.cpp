@@ -1,527 +1,310 @@
-﻿/*
- * Copyright � 2012-2015 Graham Sellers
- *
- * Permission is hereby granted, free of charge, to any person obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction, including without limitation
- * the rights to use, copy, modify, merge, publish, distribute, sublicense,
- * and/or sell copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice (including the next
- * paragraph) shall be included in all copies or substantial portions of the
- * Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
- * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
- * DEALINGS IN THE SOFTWARE.
- */
+﻿// A raytracer
+// TODO: Make fullscreen quads separable programs
 
-#include <sb7.h>
-#include <vmath.h>
+#include <memory>
+#include <vector>
+#include <iostream>
 
-#include <object.h>
-#include <sb7ktx.h>
-#include <shader.h>
+#include "glm/glm/gtc/matrix_transform.hpp"
 
-class raytracer_app : public sb7::application
+#include "base_app.h"
+#include "glsl_program.h"
+#include "camera.h"
+
+class RayTracer : public Application
 {
-public:
-    raytracer_app()
-            : prepare_program(0),
-              trace_program(0),
-              blit_program(0),
-              max_depth(1),
-              debug_depth(0),
-              debug_mode(DEBUG_NONE),
-              paused(false)
-    {
-    }
+private:
+	// UBO structs
+	// These use `alignas` to avoid padding
+	struct alignas(16) sphere
+	{
+		glm::vec4 center;
+		glm::vec4 color;
+		float radius;
+	};
 
-protected:
-    void init()
-    {
-        static const char title[] = "OpenGL SuperBible - Ray Tracing";
+	struct light
+	{
+		glm::vec4 center;
+	};
 
-        sb7::application::init();
+	struct alignas(16) plane
+	{
+        glm::vec4 normal;
+        glm::vec4 center;
+        glm::vec4 color;
+	};
 
-        memcpy(info.title, title, sizeof(title));
-    }
-
-    void startup();
-    void render(double currentTime);
-    void onKey(int key, int action);
-
-    /*
-    void init()
-    {
-        sb7::application::init();
-        info.windowWidth = 0;
-        info.windowHeight = 0;
-        info.flags.fullscreen = 1;
-    }
-    */
-    void load_shaders();
-
-    GLuint          prepare_program;
-    GLuint          trace_program;
-    GLuint          blit_program;
-
-    struct uniforms_block
-    {
-        vmath::mat4     mv_matrix;
-        vmath::mat4     view_matrix;
-        vmath::mat4     proj_matrix;
+    // Spheres (positions, colors, radii)
+    std::vector<sphere> m_spheres{
+        {
+            glm::vec4{ 0 },
+            glm::vec4{ 0.8f, 0.5f, 0.5f, 0 },
+            0.5f
+        },
+        {
+            glm::vec4{ 0 },
+            glm::vec4{0.8f, 0.8f, 0.8f, 0},
+            0.75f
+        },
+        {
+            glm::vec4{ 0 },
+            glm::vec4{ 0.3f, 0.3f, 0.8f, 0 },
+            0.25f
+        }
     };
 
-    GLuint          uniforms_buffer;
-    GLuint          sphere_buffer;
-    GLuint          plane_buffer;
-    GLuint          light_buffer;
-
-    struct
-    {
-        GLint           ray_origin;
-        GLint           ray_lookat;
-        GLint           aspect;
-    } uniforms;
-
-    GLuint          vao;
-
-    struct sphere
-    {
-        vmath::vec3     center;
-        float           radius;
-        // unsigned int    : 32; // pad
-        vmath::vec4     color;
+    // Lights (positions, ignoring the fourth component)
+    std::vector<glm::vec4> m_lights{
+        glm::vec4{ -2, 2, -1, 0 },
+        glm::vec4{ 2, -2, 1, 0 }
     };
 
-    struct plane
-    {
-        vmath::vec3     normal;
-        float           d;
+    // Planes (normals, positions and colors, ignoring the fourth component)
+    std::vector<plane> m_planes{
+        // Left plane
+        {
+            glm::vec4{ 1, 0, 0, 0 },
+            glm::vec4{ -3, 0, 0, 0 },
+            glm::vec4{ 1, 0.4f, 0.4f, 0 }
+        },
+        // Right plane
+        {
+            glm::vec4{ -1, 0, 0, 0 },
+            glm::vec4{ 3, 0, 0, 0 },
+            glm::vec4{ 0.3f, 0.8f, 0.8f, 0 }
+        },
+        // Bottom plane
+        {
+            glm::vec4{ 0, 1, 0, 0 },
+            glm::vec4{ 0, -2, 0, 0 },
+            glm::vec4{ 0.9f, 1, 0.9f, 0 }
+        },
+        // Top plane
+        {
+            glm::vec4{ 0, -1, 0, 0 },
+            glm::vec4{ 0, 2, 0, 0 },
+            glm::vec4{ 0.5, 0, 0.5, 0 }
+
+        },
+        // Back plane
+        {
+            glm::vec4{ 0, 0, 1, 0 },
+            glm::vec4{ 0, 0, -10, 0 },
+            glm::vec4{ 1, 0.9f, 0.4, 0 }
+        },
+        // Front plane
+        {
+            glm::vec4{ 0, 0, -1, 0 },
+            glm::vec4{ 0, 0, 10, 0 },
+            glm::vec4{ 0.7f, 0, 0, 0 }
+        }
     };
 
-    struct light
-    {
-        vmath::vec3     position;
-        unsigned int    : 32;       // pad
+    // Constants
+    static const int m_max_recursion_depth{ 5 };
+
+    // UBO binding indices
+	const GLuint m_sphere_ubo_binding_index{ 0 };
+    const GLuint m_plane_ubo_binding_index{ 1 };
+    const GLuint m_light_ubo_binding_index{ 2 };
+
+	// UBO handles
+	GLuint m_light_buffer;
+	GLuint m_sphere_buffer;
+	GLuint m_plane_buffer;
+
+	// FBO texture handles
+	GLuint m_composite_texture;
+	GLuint m_ray_origin_texture[m_max_recursion_depth];
+	GLuint m_ray_direction_texture[m_max_recursion_depth];
+	GLuint m_ray_reflection_color_texture[m_max_recursion_depth];
+
+	// GLSL Programs
+	std::unique_ptr<GlslProgram> m_prepare_program;
+	std::unique_ptr<GlslProgram> m_trace_program;
+    std::unique_ptr<GlslProgram> m_blit_program;
+
+    // Camera constants
+    glm::vec3 m_view_position{ glm::vec3{ 0, 0, 5 } };
+    Camera m_camera{ m_view_position };
+
+	// Other OpenGL objects
+	GLuint m_vao;
+    GLuint m_sampler;
+    GLsync m_sync_object;
+    sphere* m_sphere_ptr;
+
+    // Make sure there is an FBO for every recursion level
+    std::vector<GLuint> m_ray_fbos { std::vector<GLuint>(m_max_recursion_depth) };
+    std::vector<GLenum> m_fbo_draw_buffers{
+        GL_COLOR_ATTACHMENT0,
+        GL_COLOR_ATTACHMENT1,
+        GL_COLOR_ATTACHMENT2,
+        GL_COLOR_ATTACHMENT3
     };
 
-    enum
+    void lock_buffer()
     {
-        MAX_RECURSION_DEPTH     = 5,
-        MAX_FB_WIDTH            = 2048,
-        MAX_FB_HEIGHT           = 1024
-    };
+        if (m_sync_object)
+        {
+            glDeleteSync(m_sync_object);
+        }
 
-    enum DEBUG_MODE
-    {
-        DEBUG_NONE,
-        DEBUG_REFLECTED,
-        DEBUG_REFRACTED,
-        DEBUG_REFLECTED_COLOR,
-        DEBUG_REFRACTED_COLOR
-    };
-
-    GLuint              tex_composite;
-    GLuint              ray_fbo[MAX_RECURSION_DEPTH];
-    GLuint              tex_position[MAX_RECURSION_DEPTH];
-    GLuint              tex_reflected[MAX_RECURSION_DEPTH];
-    GLuint              tex_reflection_intensity[MAX_RECURSION_DEPTH];
-    GLuint              tex_refracted[MAX_RECURSION_DEPTH];
-    GLuint              tex_refraction_intensity[MAX_RECURSION_DEPTH];
-
-    int                 max_depth;
-    int                 debug_depth;
-    DEBUG_MODE          debug_mode;
-    bool                paused;
-
-    void                recurse(int depth);
-};
-
-void raytracer_app::startup()
-{
-    int i;
-
-    load_shaders();
-
-    glGenBuffers(1, &uniforms_buffer);
-    glBindBuffer(GL_UNIFORM_BUFFER, uniforms_buffer);
-    glBufferData(GL_UNIFORM_BUFFER, sizeof(uniforms_block), NULL, GL_DYNAMIC_DRAW);
-
-    glGenBuffers(1, &sphere_buffer);
-    glBindBuffer(GL_UNIFORM_BUFFER, sphere_buffer);
-    glBufferData(GL_UNIFORM_BUFFER, 128 * sizeof(sphere), NULL, GL_DYNAMIC_DRAW);
-
-    glGenBuffers(1, &plane_buffer);
-    glBindBuffer(GL_UNIFORM_BUFFER, plane_buffer);
-    glBufferData(GL_UNIFORM_BUFFER, 128 * sizeof(plane), NULL, GL_DYNAMIC_DRAW);
-
-    glGenBuffers(1, &light_buffer);
-    glBindBuffer(GL_UNIFORM_BUFFER, light_buffer);
-    glBufferData(GL_UNIFORM_BUFFER, 128 * sizeof(sphere), NULL, GL_DYNAMIC_DRAW);
-
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    glGenFramebuffers(MAX_RECURSION_DEPTH, ray_fbo);
-    glGenTextures(1, &tex_composite);
-    glGenTextures(MAX_RECURSION_DEPTH, tex_position);
-    glGenTextures(MAX_RECURSION_DEPTH, tex_reflected);
-    glGenTextures(MAX_RECURSION_DEPTH, tex_refracted);
-    glGenTextures(MAX_RECURSION_DEPTH, tex_reflection_intensity);
-    glGenTextures(MAX_RECURSION_DEPTH, tex_refraction_intensity);
-
-    glBindTexture(GL_TEXTURE_2D, tex_composite);
-    glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, MAX_FB_WIDTH, MAX_FB_HEIGHT);
-
-    for (i = 0; i < MAX_RECURSION_DEPTH; i++)
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, ray_fbo[i]);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, tex_composite, 0);
-
-        glBindTexture(GL_TEXTURE_2D, tex_position[i]);
-        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB32F, MAX_FB_WIDTH, MAX_FB_HEIGHT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, tex_position[i], 0);
-
-        glBindTexture(GL_TEXTURE_2D, tex_reflected[i]);
-        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, MAX_FB_WIDTH, MAX_FB_HEIGHT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, tex_reflected[i], 0);
-
-        glBindTexture(GL_TEXTURE_2D, tex_refracted[i]);
-        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, MAX_FB_WIDTH, MAX_FB_HEIGHT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, tex_refracted[i], 0);
-
-        glBindTexture(GL_TEXTURE_2D, tex_reflection_intensity[i]);
-        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, MAX_FB_WIDTH, MAX_FB_HEIGHT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT4, tex_reflection_intensity[i], 0);
-
-        glBindTexture(GL_TEXTURE_2D, tex_refraction_intensity[i]);
-        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB16F, MAX_FB_WIDTH, MAX_FB_HEIGHT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT5, tex_refraction_intensity[i], 0);
+        m_sync_object = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-}
+	virtual void set_info() override
+	{
+		Application::set_info();
+		m_info.title = "Raytracer example";
+	}
 
-void raytracer_app::render(double currentTime)
-{
-    static const GLfloat zeros[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    static const GLfloat gray[] = { 0.1f, 0.1f, 0.1f, 0.0f };
-    static const GLfloat ones[] = { 1.0f };
-    static double last_time = 0.0;
-    static double total_time = 0.0;
+	virtual void setup() override
+	{
+		// Load shaders
+		m_prepare_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/trace_prepare.vert").fragment("../assets/shaders/trace_prepare.frag") });
+		m_trace_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/raytracer.vert").fragment("../assets/shaders/raytracer.frag") });
+		m_blit_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/blit.vert").fragment("../assets/shaders/blit.frag") });
 
-    if (!paused)
-        total_time += (currentTime - last_time);
-    last_time = currentTime;
+		// Create buffers and bind UBOs
+		glCreateBuffers(1, &m_sphere_buffer);
+		glNamedBufferStorage(m_sphere_buffer, m_spheres.size() * sizeof(sphere), nullptr, GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT);
+		glBindBufferRange(GL_UNIFORM_BUFFER, m_sphere_ubo_binding_index, m_sphere_buffer, 0, m_spheres.size() * sizeof(sphere));
 
-    float f = (float)total_time;
+		glCreateBuffers(1, &m_light_buffer);
+		glNamedBufferStorage(m_light_buffer, m_lights.size() * sizeof(light), nullptr, GL_MAP_WRITE_BIT);
+		glBindBufferRange(GL_UNIFORM_BUFFER, m_light_ubo_binding_index, m_light_buffer, 0, m_lights.size() * sizeof(light));
 
-    vmath::vec3 view_position = vmath::vec3(sinf(f * 0.3234f) * 28.0f, cosf(f * 0.4234f) * 28.0f, cosf(f * 0.1234f) * 28.0f); // sinf(f * 0.2341f) * 20.0f - 8.0f);
-    vmath::vec3 lookat_point = vmath::vec3(sinf(f * 0.214f) * 8.0f, cosf(f * 0.153f) * 8.0f, sinf(f * 0.734f) * 8.0f);
-    vmath::mat4 view_matrix = vmath::lookat(view_position,
-                                            lookat_point,
-                                            vmath::vec3(0.0f, 1.0f, 0.0f));
+		glCreateBuffers(1, &m_plane_buffer);
+		glNamedBufferStorage(m_plane_buffer, m_planes.size() * sizeof(plane), nullptr, GL_MAP_WRITE_BIT);
+		glBindBufferRange(GL_UNIFORM_BUFFER, m_plane_ubo_binding_index, m_plane_buffer, 0, m_planes.size() * sizeof(plane));
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, 0, uniforms_buffer);
-    uniforms_block * block = (uniforms_block *)glMapBufferRange(GL_UNIFORM_BUFFER,
-                                                                0,
-                                                                sizeof(uniforms_block),
-                                                                GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+        // Upload data that does not change to UBOs
+        // An alternative to mapping a buffer could be using glNamedBufferSubData
+        // i.e. glNamedBufferSubData(m_sphere_buffer, 0, sizeof(glm::vec4), &my_value);
+        auto plane_ptr = static_cast<plane*>(glMapNamedBufferRange(m_plane_buffer, 0, m_planes.size() * sizeof(plane), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT));
+        memcpy(plane_ptr, m_planes.data(), m_planes.size() * sizeof(plane));
+        glUnmapNamedBuffer(m_plane_buffer);
 
-    vmath::mat4 model_matrix = vmath::scale(7.0f);
+        auto light_ptr = static_cast<light*>(glMapNamedBufferRange(m_light_buffer, 0, m_lights.size() * sizeof(light), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT));
+        memcpy(light_ptr, m_lights.data(), m_lights.size() * sizeof(light));
+        glUnmapNamedBuffer(m_light_buffer);
 
-    // f = 0.0f;
+        // The sphere data is updated every frame so its buffer is persistently mapped
+        m_sphere_ptr = static_cast<sphere*>(glMapNamedBufferRange(m_sphere_buffer, 0, m_spheres.size() * sizeof(sphere), GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_INVALIDATE_RANGE_BIT));
 
-    block->mv_matrix = view_matrix * model_matrix;
-    block->view_matrix = view_matrix;
-    block->proj_matrix = vmath::perspective(50.0f,
-                                            (float)info.windowWidth / (float)info.windowHeight,
-                                            0.1f,
-                                            1000.0f);
+		// Create and bind a VAO
+		glCreateVertexArrays(1, &m_vao);
+		glBindVertexArray(m_vao);
 
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+		// Create FBOs
+		glCreateFramebuffers(static_cast<GLsizei>(m_max_recursion_depth), m_ray_fbos.data());
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, 1, sphere_buffer);
-    sphere * s = (sphere *)glMapBufferRange(GL_UNIFORM_BUFFER, 0, 128 * sizeof(sphere), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+        // Create a sampler
+        // This is used by all three of our samplers
+        glCreateSamplers(1, &m_sampler);
+        glSamplerParameteri(m_sampler, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glSamplerParameteri(m_sampler, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        for (GLuint index{ 0 }; index < 3; ++index)
+        {
+            glBindSampler(index, m_sampler);
+        }
 
-    int i;
+		// Create the composite texture
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_composite_texture);
+		glTextureStorage2D(m_composite_texture, 1, GL_RGB16F, m_info.window_width, m_info.window_height);
 
-    for (i = 0; i < 128; i++)
-    {
-        // float f = 0.0f;
-        float fi = (float)i / 128.0f;
-        s[i].center = vmath::vec3(sinf(fi * 123.0f + f) * 15.75f, cosf(fi * 456.0f + f) * 15.75f, (sinf(fi * 300.0f + f) * cosf(fi * 200.0f + f)) * 20.0f);
-        s[i].radius = fi * 2.3f + 3.5f;
-        float r = fi * 61.0f;
-        float g = r + 0.25f;
-        float b = g + 0.25f;
-        r = (r - floorf(r)) * 0.8f + 0.2f;
-        g = (g - floorf(g)) * 0.8f + 0.2f;
-        b = (b - floorf(b)) * 0.8f + 0.2f;
-        s[i].color = vmath::vec4(r, g, b, 1.0f);
-    }
+        // Create the other FBO textures
+		glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_ray_origin_texture);
+		glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_ray_direction_texture);
+		glCreateTextures(GL_TEXTURE_2D, m_max_recursion_depth, m_ray_reflection_color_texture);
 
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+        // Set up the FBOs' textures' stores and the FBO draw buffers
+        for (int index{ 0 }; index < m_max_recursion_depth; ++index)
+		{
+            // Set up FBOs' textures' stores
+            glTextureStorage2D(m_ray_origin_texture[index], 1, GL_RGB32F, m_info.window_width, m_info.window_height);
+            glTextureStorage2D(m_ray_direction_texture[index], 1, GL_RGB16F, m_info.window_width, m_info.window_height);
+            glTextureStorage2D(m_ray_reflection_color_texture[index], 1, GL_RGB16F, m_info.window_width, m_info.window_height);
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, 2, plane_buffer);
-    plane * p = (plane *)glMapBufferRange(GL_UNIFORM_BUFFER, 0, 128 * sizeof(plane), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+            // Set FBOs framebuffer textures
+            glNamedFramebufferTexture(m_ray_fbos[index], GL_COLOR_ATTACHMENT0, m_composite_texture, 0);
+			glNamedFramebufferTexture(m_ray_fbos[index], GL_COLOR_ATTACHMENT1, m_ray_origin_texture[index], 0);
+			glNamedFramebufferTexture(m_ray_fbos[index], GL_COLOR_ATTACHMENT2, m_ray_direction_texture[index], 0);
+			glNamedFramebufferTexture(m_ray_fbos[index], GL_COLOR_ATTACHMENT3, m_ray_reflection_color_texture[index], 0);
 
-    //for (i = 0; i < 1; i++)
-    {
-        p[0].normal = vmath::vec3(0.0f, 0.0f, -1.0f);
-        p[0].d = 30.0f;
+            // Set FBOs draw buffers
+            glNamedFramebufferDrawBuffers(m_ray_fbos[index], static_cast<GLsizei>(m_fbo_draw_buffers.size()), m_fbo_draw_buffers.data());
+        }
+	}
 
-        p[1].normal = vmath::vec3(0.0f, 0.0f, 1.0f);
-        p[1].d = 30.0f;
+	virtual void render(double current_time) override
+	{
+        // Wait until GPU is done with buffer
+        glClientWaitSync(m_sync_object, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
 
-        p[2].normal = vmath::vec3(-1.0f, 0.0f, 0.0f);
-        p[2].d = 30.0f;
+        // Update sphere position data
+        // This could be done with a uniform
+		auto sphere_x_offset { static_cast<float>(cos(current_time)) / 2.0f };
+        for (int index{ 0 }; index < m_spheres.size(); ++index)
+		{
+            float sphere_x { static_cast<float>(index) / m_spheres.size() * 4.5f - 1.25f };
 
-        p[3].normal = vmath::vec3(1.0f, 0.0f, 0.0f);
-        p[3].d = 30.0f;
+            m_sphere_ptr[index].center = glm::vec4{ sphere_x + sphere_x_offset, -1, -5, 0 };
+            m_sphere_ptr[index].color = m_spheres[index].color;
+            m_sphere_ptr[index].radius = m_spheres[index].radius;
+		}
+        glUnmapNamedBuffer(m_sphere_buffer);
 
-        p[4].normal = vmath::vec3(0.0f, -1.0f, 0.0f);
-        p[4].d = 30.0f;
+        // Set viewport dimensions
+		glViewport(0, 0, m_info.window_width, m_info.window_height);
 
-        p[5].normal = vmath::vec3(0.0f, 1.0f, 0.0f);
-        p[5].d = 30.0f;
-    }
+        // Setup draw
+        m_prepare_program->use();
+		m_prepare_program->uniform("ray_origin", m_view_position);
+		m_prepare_program->uniform("ray_lookat", m_camera.get_view_matrix());
+        glBindFramebuffer(GL_FRAMEBUFFER, m_ray_fbos[0]);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
+        // Trace draw
+		m_trace_program->use();
+        recurse(0);
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, 3, light_buffer);
-    light * l = (light *)glMapBufferRange(GL_UNIFORM_BUFFER, 0, 128 * sizeof(light), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
+        // Blit draw
+		m_blit_program->use();
 
-    f *= 1.0f;
-
-    for (i = 0; i < 128; i++)
-    {
-        float fi = 3.33f - (float)i; //  / 35.0f;
-        l[i].position = vmath::vec3(sinf(fi * 2.0f - f) * 15.75f,
-                                    cosf(fi * 5.0f - f) * 5.75f,
-                                    (sinf(fi * 3.0f - f) * cosf(fi * 2.5f - f)) * 19.4f);
-    }
-
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-    glBindVertexArray(vao);
-    glViewport(0, 0, info.windowWidth, info.windowHeight);
-
-    glUseProgram(prepare_program);
-    glUniformMatrix4fv(uniforms.ray_lookat, 1, GL_FALSE, view_matrix);
-    glUniform3fv(uniforms.ray_origin, 1, view_position);
-    glUniform1f(uniforms.aspect, (float)info.windowHeight / (float)info.windowWidth);
-    glBindFramebuffer(GL_FRAMEBUFFER, ray_fbo[0]);
-    static const GLenum draw_buffers[] =
-            {
-                    GL_COLOR_ATTACHMENT0,
-                    GL_COLOR_ATTACHMENT1,
-                    GL_COLOR_ATTACHMENT2,
-                    GL_COLOR_ATTACHMENT3,
-                    GL_COLOR_ATTACHMENT4,
-                    GL_COLOR_ATTACHMENT5
-            };
-    glDrawBuffers(6, draw_buffers);
-
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    glUseProgram(trace_program);
-    recurse(0);
-
-    glUseProgram(blit_program);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glDrawBuffer(GL_BACK);
-
-    glActiveTexture(GL_TEXTURE0);
-    switch (debug_mode)
-    {
-        case DEBUG_NONE:
-            glBindTexture(GL_TEXTURE_2D, tex_composite);
-            break;
-        case DEBUG_REFLECTED:
-            glBindTexture(GL_TEXTURE_2D, tex_reflected[debug_depth]);
-            break;
-        case DEBUG_REFRACTED:
-            glBindTexture(GL_TEXTURE_2D, tex_refracted[debug_depth]);
-            break;
-        case DEBUG_REFLECTED_COLOR:
-            glBindTexture(GL_TEXTURE_2D, tex_reflection_intensity[debug_depth]);
-            break;
-        case DEBUG_REFRACTED_COLOR:
-            glBindTexture(GL_TEXTURE_2D, tex_refraction_intensity[debug_depth]);
-            break;
-    }
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    /*
-    glClearBufferfv(GL_COLOR, 0, gray);
-    glClearBufferfv(GL_DEPTH, 0, ones);
-
-
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    */
-}
-
-void raytracer_app::recurse(int depth)
-{
-    glBindFramebuffer(GL_FRAMEBUFFER, ray_fbo[depth + 1]);
-
-    static const GLenum draw_buffers[] =
-            {
-                    GL_COLOR_ATTACHMENT0,
-                    GL_COLOR_ATTACHMENT1,
-                    GL_COLOR_ATTACHMENT2,
-                    GL_COLOR_ATTACHMENT3,
-                    GL_COLOR_ATTACHMENT4,
-                    GL_COLOR_ATTACHMENT5
-            };
-    glDrawBuffers(6, draw_buffers);
-
-    glEnablei(GL_BLEND, 0);
-    glBlendFunci(0, GL_ONE, GL_ONE);
-
-    // static const float zeros[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    // glClearBufferfv(GL_COLOR, 0, zeros);
-
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex_position[depth]);
-
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, tex_reflected[depth]);
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, tex_reflection_intensity[depth]);
-
-    // Render
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    if (depth != (max_depth - 1))
-    {
-        recurse(depth + 1);
-    }
-    //*/
-
-    /*
-    if (depth != 0)
-    {
-        glBindTexture(GL_TEXTURE_2D, tex_refracted[depth]);
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, tex_refraction_intensity[depth]);
-
-        // Render
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindTextureUnit(0, m_composite_texture);
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-        if (depth != (max_depth - 1))
-        {
-            recurse(depth + 1);
-        }
-    }
-    //**/
+        lock_buffer();
+	};
 
-    glDisablei(GL_BLEND, 0);
-}
+	void recurse(int depth) {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_ray_fbos[depth + 1]);
 
-void raytracer_app::onKey(int key, int action)
+        // Enable additive blending
+        glEnablei(GL_BLEND, 0);
+		glBlendFunci(0, GL_ONE, GL_ONE);
+
+		glBindTextureUnit(0, m_ray_origin_texture[depth]);
+		glBindTextureUnit(1, m_ray_direction_texture[depth]);
+		glBindTextureUnit(2, m_ray_reflection_color_texture[depth]);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		if (depth != (m_max_recursion_depth - 1))
+		{
+			recurse(depth + 1);
+		}
+
+        // Do not blend the blit operation
+		glDisablei(GL_BLEND, 0);
+	}
+};
+
+int main(int argc, char* argv[])
 {
-    if (action)
-    {
-        switch (key)
-        {
-            case GLFW_KEY_KP_ADD:
-                max_depth++;
-                if (max_depth > MAX_RECURSION_DEPTH)
-                    max_depth = MAX_RECURSION_DEPTH;
-                break;
-            case GLFW_KEY_KP_SUBTRACT:
-                max_depth--;
-                if (max_depth < 1)
-                    max_depth = 1;
-                break;
-            case 'P':
-                paused = !paused;
-                break;
-            case 'R':
-                load_shaders();
-                break;
-            case 'Q':
-                debug_mode = DEBUG_NONE;
-                break;
-            case 'W':
-                debug_mode = DEBUG_REFLECTED;
-                break;
-            case 'E':
-                debug_mode = DEBUG_REFRACTED;
-                break;
-            case 'S':
-                debug_mode = DEBUG_REFLECTED_COLOR;
-                break;
-            case 'D':
-                debug_mode = DEBUG_REFRACTED_COLOR;
-                break;
-            case 'A':
-                debug_depth++;
-                if (debug_depth > MAX_RECURSION_DEPTH)
-                    debug_depth = MAX_RECURSION_DEPTH;
-                break;
-            case 'Z':
-                debug_depth--;
-                if (debug_depth < 0)
-                    debug_depth = 0;
-                break;
-        }
-    }
+	std::unique_ptr<Application> app{ new RayTracer };
+	app->run();
 }
-
-void raytracer_app::load_shaders()
-{
-    GLuint      shaders[2];
-
-    shaders[0] = sb7::shader::load("media/shaders/raytracer/trace-prepare.vs.glsl", GL_VERTEX_SHADER);
-    shaders[1] = sb7::shader::load("media/shaders/raytracer/trace-prepare.fs.glsl", GL_FRAGMENT_SHADER);
-
-    if (prepare_program != 0)
-        glDeleteProgram(prepare_program);
-
-    prepare_program = sb7::program::link_from_shaders(shaders, 2, true);
-
-    uniforms.ray_origin = glGetUniformLocation(prepare_program, "ray_origin");
-    uniforms.ray_lookat = glGetUniformLocation(prepare_program, "ray_lookat");
-    uniforms.aspect = glGetUniformLocation(prepare_program, "aspect");
-
-    shaders[0] = sb7::shader::load("media/shaders/raytracer/raytracer.vs.glsl", GL_VERTEX_SHADER);
-    shaders[1] = sb7::shader::load("media/shaders/raytracer/raytracer.fs.glsl", GL_FRAGMENT_SHADER);
-
-    if (trace_program)
-        glDeleteProgram(trace_program);
-
-    trace_program = sb7::program::link_from_shaders(shaders, 2, true);
-
-    shaders[0] = sb7::shader::load("media/shaders/raytracer/blit.vs.glsl", GL_VERTEX_SHADER);
-    shaders[1] = sb7::shader::load("media/shaders/raytracer/blit.fs.glsl", GL_FRAGMENT_SHADER);
-
-    if (blit_program)
-        glDeleteProgram(blit_program);
-
-    blit_program = sb7::program::link_from_shaders(shaders, 2, true);
-}
-
-DECLARE_MAIN(raytracer_app)
