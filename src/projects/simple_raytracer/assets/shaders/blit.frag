@@ -1,10 +1,10 @@
 #version 440 core
 
-layout (binding = 0) uniform sampler2D tex_composite;
-
 layout (location = 0) out vec4 frag_color;
+
+layout (binding = 0) uniform sampler2D composite_color_texture;
 
 void main()
 {
-    frag_color = texelFetch(tex_composite, ivec2(gl_FragCoord.xy), 0);
+    frag_color = texelFetch(composite_color_texture, ivec2(gl_FragCoord.xy), 0);
 }
