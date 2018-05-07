@@ -303,8 +303,6 @@ private:
 		glBindVertexArray(m_lamp_vao);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
-
-
 };
 
 int main(int argc, char* argv[])

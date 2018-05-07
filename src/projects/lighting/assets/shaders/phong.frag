@@ -5,11 +5,11 @@
 // and the following maps:
 // projection, environment, alpha, color
 uniform vec4 u_vertex_color;
-uniform vec3 u_camera_pos;
+uniform vec3 u_camera_position;
 
 // Light properties
 uniform vec3 u_light_color;
-uniform vec3 u_light_pos;
+uniform vec3 u_light_position;
 
 // Spotlight properties
 uniform vec3 u_light_direction;
@@ -58,12 +58,12 @@ void calculatePhong(inout vec3 diffuse_contrib, inout vec3 specular_contrib, int
 
     // Attenuation
     vec3 light_color_sum = true_light_color;
-    float dist = distance(u_light_pos, v_vert.world_space_position);
+    float dist = distance(u_light_position, v_vert.world_space_position);
     float attenuation_factor = 1.0 / (1.0 + linear_light_attenuation * dist + cubic_light_attenuation * pow(dist, 2.0));
     light_color_sum *= attenuation_factor;
 
     // Diffuse
-    vec3 light_dir = normalize(u_light_pos - world_space_position);
+    vec3 light_dir = normalize(u_light_position - world_space_position);
     float diffuse = max(dot(normal, light_dir), 0.0);
     diffuse_contrib = diffuse * light_color_sum;
 
@@ -74,7 +74,7 @@ void calculatePhong(inout vec3 diffuse_contrib, inout vec3 specular_contrib, int
 
     // Note: This treats the light like a spotlight
     // There could be a different function for each type of light
-    vec3 spotlight_dir = normalize(u_light_pos - world_space_position);
+    vec3 spotlight_dir = normalize(u_light_position - world_space_position);
     float theta = dot(spotlight_dir, normalize(-u_light_direction));
     float epsilon = u_light_cutoff - u_light_outer_cutoff;
     float intensity = clamp((theta - u_light_outer_cutoff) / epsilon, 0.0, 1.0);
@@ -90,7 +90,7 @@ vec4 sum_lighting()
     vec3 specular_sum = vec3(0.0);
 
     vec3 normal = v_vert.world_space_normal;
-    vec3 view_vector = normalize(u_camera_pos - v_vert.world_space_position);
+    vec3 view_vector = normalize(u_camera_position - v_vert.world_space_position);
 
     // Flip the backface normals
     if (!gl_FrontFacing) {
@@ -116,7 +116,7 @@ vec4 sum_lighting()
         diffuse_sum += diffuse_contrib;
         specular_sum += specular_contrib;
     }
-
+    
     // Final diffuse contribution
     diffuse_sum *= u_diffuse_color.rgb * u_vertex_color.rgb * vec3(texture(u_diffuse_texture, v_vert.uv));
     out_color.rgb += diffuse_sum;
