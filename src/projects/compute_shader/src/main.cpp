@@ -1,4 +1,5 @@
 ﻿// This renders a cube to an FBO then uses a compute shader to invert that image
+// It uses Image load/store to write the image
 
 #include <memory>
 #include <vector>

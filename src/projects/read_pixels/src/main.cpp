@@ -13,8 +13,8 @@
 #include "glsl_program.h"
 #include "camera.h"
 
-// Cube vertices
-const GLfloat vertices[]{
+// Cube cube_vertices
+const GLfloat cube_vertices[]{
      // Positions         // Normals
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -62,6 +62,17 @@ const GLfloat vertices[]{
 class ReadPixelsExample : public Application
 {
 private:
+	GLuint m_vao;
+	GLuint m_vbo;
+	int m_data_size;
+	int m_pbo_index;
+	Camera m_camera{ glm::vec3{ 0, 0, 5} };
+	std::vector<GLuint>(m_pbos) { 0, 0 };
+	const GLuint m_num_vertices{ 36 };
+	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	std::unique_ptr<GlslProgram> m_shader;
+
 	virtual void set_info() override
 	{
 		Application::set_info();
@@ -79,7 +90,7 @@ private:
 	}
 
 	void take_screen_shot()
-	{	// This will take a screenshot of the last frame using double PBOs for improved performance
+	{	// This will take a screenshot of the last frame using two PBOs for improved performance
 
         // Bind PBO to trigger asynchronous reads and begin data read
         glBindBuffer(GL_PIXEL_PACK_BUFFER, m_pbos[m_pbo_index]);
@@ -184,7 +195,7 @@ private:
 		// Setup the cube VBO and its data store
 		const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_vbo);
-		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
+		glNamedBufferStorage(m_vbo, sizeof(cube_vertices), cube_vertices, flags);
 
         // Setup the PBOs
         glCreateBuffers(static_cast<GLsizei>(m_pbos.size()), m_pbos.data());
@@ -213,17 +224,17 @@ private:
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
 
 		// Set uniforms and draw first cube
-		m_shader->use();
-		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
-		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
-		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
+        glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
+        model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
+        m_shader->use();
+		m_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix);
+		m_shader->uniform("u_projection_matrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
 		// Set uniforms and draw second cube
@@ -231,21 +242,9 @@ private:
 		model_matrix2 = glm::translate(model_matrix2, glm::vec3{ 1.25f, 2.0f, 0.0f });
 		model_matrix2 = glm::rotate(model_matrix2, static_cast<GLfloat>(current_time), m_world_up);
 		model_matrix2 = glm::scale(model_matrix2, glm::vec3{ 0.5f });
-		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix2);
+		m_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix2);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
-
-	// Member variables
-	GLuint m_vao { 0 };
-	GLuint m_vbo { 0 };
-    std::vector<GLuint>(m_pbos) { 0, 0 };
-    int m_data_size { 0 };
-	int m_pbo_index { 0 };
-	Camera m_camera{ glm::vec3{ 0, 0, 5} };
-	const GLuint m_num_vertices{ 36 };
-	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

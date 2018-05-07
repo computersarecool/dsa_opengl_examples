@@ -1,8 +1,10 @@
 ﻿// An example that uses a displacment map to offset vertices and tesselation
 // This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
+// Interactivity: `w` key toggles showing wireframe
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -14,6 +16,25 @@
 class DisplacmentMapTesselationExample : public Application
 {
 private:
+	const GLfloat m_time_divisor{ 0.03f };
+	GLfloat m_slow_time { 0 };
+	GLfloat m_camera_rotation_value { 0 };
+	GLfloat m_camera_y_value { 0 };
+	const std::string m_displacement_map_path{ "../assets/images/noise.jpg"};
+	const std::string m_color_map_path{ "../assets/images/noise_color.jpg" };
+	bool m_show_wireframe{ false };
+	const GLuint m_vertices_per_patch{ 4 };
+	const GLuint m_num_instances{ 64 * 64 };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	const GLfloat displace_weight{ 6.0 };
+	Camera m_camera;
+	glm::mat4 view_matrix;
+	glm::mat4 proj_matrix;
+	GLuint m_vao;
+	GLuint m_displacement_texture;
+	GLuint m_color_texture;
+	std::unique_ptr<GlslProgram> m_shader;
+
 	virtual void set_info() override
 	{
 		Application::set_info();	
@@ -39,7 +60,6 @@ private:
 		glBindVertexArray(m_vao);
 
 		// Load images
-		// TODO: Make this a function
 		GLint displacement_map_width;
 		GLint displacement_map_height;
 		GLint displacement_map_channels;
@@ -69,7 +89,6 @@ private:
 		glBindSampler(1, repeat_linear_sampler);
 
 		// Set up textures
-		// TODO: Make this a function
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_displacement_texture);
 		glTextureStorage2D(m_displacement_texture, 1, GL_RGB8, displacement_map_width, displacement_map_height);
 		glTextureSubImage2D(m_displacement_texture, 0, 0, 0, displacement_map_width, displacement_map_height, GL_RGB, GL_UNSIGNED_BYTE, displacement_map_data);
@@ -91,7 +110,7 @@ private:
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
@@ -108,7 +127,7 @@ private:
 		}
 
 		// Move camera position over time
-		// The magic numbers here just offset it arbitrarily
+		// The numbers here just offset the camera position over time
 		m_slow_time = static_cast<GLfloat>(current_time) * m_time_divisor;
 		m_camera_rotation_value = sinf(m_slow_time * 5.0f) * 15.0f;
 		m_camera_y_value = cosf(m_slow_time * 5.0f) + 5.0f;
@@ -118,31 +137,11 @@ private:
 		m_shader->use();
 		view_matrix = m_camera.get_view_matrix();
 		proj_matrix = m_camera.get_proj_matrix();
-		m_shader->uniform("uModelViewProjectionMatrix", proj_matrix * view_matrix);
-		m_shader->uniform("uDisplacementWeight", displace_weight);
+		m_shader->uniform("u_model_view_projection_matrix", proj_matrix * view_matrix);
+		m_shader->uniform("u_displacement_weight", displace_weight);
 
 		glDrawArraysInstanced(GL_PATCHES, 0, m_vertices_per_patch, m_num_instances);
 	};
-
-	// Member variables
-	const GLfloat m_time_divisor{ 0.03f };
-	GLfloat m_slow_time { 0 };
-	GLfloat m_camera_rotation_value { 0 };
-	GLfloat m_camera_y_value { 0 };
-	GLuint m_vao { 0 };
-	GLuint m_displacement_texture { 0 };
-	GLuint m_color_texture { 0 };
-	const std::string m_displacement_map_path{ "../assets/images/noise.jpg"};
-	const std::string m_color_map_path{ "../assets/images/noise_color.jpg" };
-	bool m_show_wireframe{ false };
-	const GLuint m_vertices_per_patch{ 4 };
-	const GLuint m_num_instances{ 64 * 64 };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	const GLfloat displace_weight{ 6.0 };
-	Camera m_camera;
-	glm::mat4 view_matrix;
-	glm::mat4 proj_matrix;
-	std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

@@ -51,11 +51,16 @@ void Camera::process_mouse_movement(float x_offset, float y_offset, bool constra
 
 	if (constrain_pitch)
 	{
-		if (m_pitch > maximum_pitch)
-			m_pitch = maximum_pitch;
+		if (m_pitch > m_maximum_pitch)
+		{
+			m_pitch = m_maximum_pitch;
+		}
 
-		else if (m_pitch < minimum_pitch)
-			m_pitch = minimum_pitch;
+		else if (m_pitch < m_minimum_pitch)
+		{
+
+			m_pitch = m_minimum_pitch;
+		}
 	}
 
 	update_camera_vectors();
@@ -63,21 +68,28 @@ void Camera::process_mouse_movement(float x_offset, float y_offset, bool constra
 
 void Camera::process_mouse_scroll(float y_offset)
 {
-	if (m_zoom >= minimum_zoom && m_zoom <= maximum_zoom)
+	if (m_zoom >= m_minimum_zoom && m_zoom <= m_maximum_zoom)
+	{
 		m_zoom -= y_offset;
+	}
 
-	else if (m_zoom <= minimum_zoom)
-		m_zoom = minimum_zoom;
-	
-	else if (m_zoom >= maximum_zoom)
-		m_zoom = maximum_zoom;
+	else if (m_zoom <= m_minimum_zoom)
+	{
+		m_zoom = m_minimum_zoom;
+	}
+
+	else if (m_zoom >= m_minimum_zoom)
+	{
+		m_zoom = m_minimum_zoom;
+	}
 }
 
 Camera::Camera(const glm::vec3& position, const glm::vec3& front, const glm::vec3& up, float yaw, float pitch, float speed, float zoom, float sensitivity) :
 	m_position{ position }, m_front{ front }, m_world_up{ up },
     m_yaw{ yaw }, m_pitch{ pitch }, m_movement_speed{ speed },
     m_zoom{ zoom }, m_mouse_sensitivity{ sensitivity },
-    m_far_plane{initial_far_plane}, m_near_plane{initial_near_plane}
+    m_far_plane{default_far_plane}, m_near_plane{default_near_plane},
+	m_minimum_pitch{default_minimum_pitch}, m_maximum_pitch{default_maximum_pitch}
 {
 	update_camera_vectors();
 }
@@ -86,8 +98,8 @@ Camera::Camera(float pos_x, float pos_y, float pos_z, float up_x, float up_y, fl
 	m_position{ glm::vec3{pos_x, pos_y, pos_z} },
     m_world_up{ glm::vec3{up_x, up_y, up_z} },
     m_yaw{ yaw }, m_pitch{ pitch },
-    m_far_plane{initial_far_plane}, m_near_plane{initial_near_plane}
-
+	m_far_plane{default_far_plane}, m_near_plane{default_near_plane},
+	m_minimum_pitch{default_minimum_pitch}, m_maximum_pitch{default_maximum_pitch}
 {
 	update_camera_vectors();
 }

@@ -1,6 +1,7 @@
-﻿// Pass through geometry shader
+﻿// Passthrough geometry shader
 
 #include <memory>
+#include <vector>
 
 #include "base_app.h"
 #include "glsl_program.h"
@@ -16,6 +17,18 @@ static const GLfloat vertices[]{
 class GeometryShaderExample : public Application
 {
 private:
+
+	bool m_show_wireframe{ false };
+	const GLuint m_vertices_per_patch{ 4 };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	glm::mat4 m_model_matrix{ glm::mat4{ 1.0f } };
+	glm::mat4 m_view_matrix;
+	glm::mat4 m_projection_matrix;
+	Camera m_camera;
+	GLuint m_vao;
+	GLuint m_vbo;
+	std::unique_ptr<GlslProgram> m_shader;
+
 	virtual void set_info() override
 	{
 		Application::set_info();	
@@ -67,7 +80,7 @@ private:
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LEQUAL);
@@ -86,23 +99,11 @@ private:
 		// Set uniforms
 		m_view_matrix = m_camera.get_view_matrix();
 		m_projection_matrix = m_camera.get_proj_matrix();
-		m_shader->uniform("uModelViewMatrix", m_view_matrix * m_model_matrix);
-		m_shader->uniform("uProjectionMatrix", m_projection_matrix * m_model_matrix);
+		m_shader->uniform("u_model_view_matrix", m_view_matrix * m_model_matrix);
+		m_shader->uniform("u_projection_matrix", m_projection_matrix * m_model_matrix);
 
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	};
-
-	// Member variables
-	GLuint m_vao { 0 };
-	GLuint m_vbo { 0 };
-	bool m_show_wireframe{ false };
-	const GLuint m_vertices_per_patch{ 4 };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	glm::mat4 m_model_matrix{ glm::mat4{ 1.0f } };
-	glm::mat4 m_view_matrix;
-	glm::mat4 m_projection_matrix;
-    Camera m_camera;
-	std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

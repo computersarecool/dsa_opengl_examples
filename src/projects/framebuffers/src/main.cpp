@@ -1,6 +1,7 @@
-﻿// Rendering to a texture example using FBOs
+﻿// Rendering to a texture using FBOs
 
 #include <memory>
+#include <vector>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
@@ -9,7 +10,7 @@
 #include "camera.h"
 
 // Cube
-const GLfloat vertices[]{
+const GLfloat cube_vertices[]{
 	// Positions          // UVs
 	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
@@ -57,6 +58,20 @@ const GLfloat vertices[]{
 class FboExample : public Application
 {
 private:
+	GLuint m_vao;
+	GLuint m_vbo;
+	GLuint m_fbo;
+	GLuint m_color_buffer_texture;
+	GLuint m_depth_buffer_texture;
+	const GLuint m_fbo_width_height{ 800 };
+	const GLuint m_num_vertices{ 36 };
+	const GLfloat m_depth_reset_val{ 1.0f };
+	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	Camera m_camera{ glm::vec3{0, 0, 5} };
+	std::unique_ptr<GlslProgram> m_shader;
+	std::unique_ptr<GlslProgram> m_shader2;
+
 	virtual void setup() override
 	{
 		// Create shaders
@@ -88,7 +103,7 @@ private:
 		// Setup the cube VBO and its data store
 		const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_vbo );
-		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
+		glNamedBufferStorage(m_vbo, sizeof(cube_vertices), cube_vertices, flags);
 
 		// Setup and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -136,48 +151,32 @@ private:
 		// Bind the member FBO
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 		glViewport(0, 0, m_fbo_width_height, m_fbo_width_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
 
-		// Set uniforms and render cube (to member FBO)
-		m_shader->use();
+		// Calculate and set cube uniforms
 		glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
 		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
-		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader->use();
+		m_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix);
+		m_shader->uniform("u_projection_matrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
 		// Return to default framebuffer
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+        glBindTextureUnit(0, m_color_buffer_texture);
+        glViewport(0, 0, m_info.window_width, m_info.window_height);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfv(GL_DEPTH, 0, &m_depth_reset_val);
-
-		glBindTexture(GL_TEXTURE_2D, m_color_buffer_texture);
 
 		// Set uniforms and render textured cube
 		m_shader2->use();
 		model_matrix = glm::mat4{ 1.0f };
 		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time / 2.0), m_world_up);
-		m_shader2->uniform("uModelViewMatrix", m_camera.get_view_matrix() * model_matrix);
-		m_shader2->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader2->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix);
+		m_shader2->uniform("u_projection_matrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
-
-	// Member variables
-	GLuint m_vao { 0 };
-	GLuint m_vbo { 0 };
-	GLuint m_fbo { 0 };
-	GLuint m_color_buffer_texture { 0 };
-	GLuint m_depth_buffer_texture { 0 };
-	const GLuint m_fbo_width_height{ 800 };
-	Camera m_camera{ glm::vec3{0, 0, 5} };
-	const GLuint m_num_vertices{ 36 };
-	const GLfloat m_depth_reset_val{ 1.0f };
-	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	std::unique_ptr<GlslProgram> m_shader;
-	std::unique_ptr<GlslProgram> m_shader2;
 };
 
 int main(int argc, char* argv[])

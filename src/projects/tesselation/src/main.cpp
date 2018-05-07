@@ -1,14 +1,15 @@
 ﻿// This compares the various tesselation spacing options
-// Interactivity: Arrow up increased tesselation, arrow down decreases tesselation
+// Interactivity: Up arrow increases tesselation, down arrow decreases tesselation
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #include "base_app.h"
 #include "glsl_program.h"
 
 // Positions of three triangles
-const GLfloat vertices[]{
+static const GLfloat triangle_vertices[]{
 	-0.75f, -1.0f, 0.0f,
 	 0.0f,  -1.0f, 0.0f,
 	-0.75f,  0.0f, 0.0f,
@@ -25,6 +26,19 @@ const GLfloat vertices[]{
 class TesselationExample : public Application
 {
 private:
+	GLuint m_vao;
+	GLuint m_vbo;
+	GLuint m_vertices_per_face{ 3 };
+	GLuint m_vertices_per_patch{ 3 };
+	GLfloat m_tess_increment{ 0.05f };
+	const GLfloat m_min_tess_level{ 1.0f };
+	GLint m_max_tess_level { 0 };
+	GLfloat m_tess_level{ m_min_tess_level };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	std::unique_ptr<GlslProgram> m_shader_one;
+	std::unique_ptr<GlslProgram> m_shader_two;
+	std::unique_ptr<GlslProgram> m_shader_three;
+
 	virtual void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
@@ -69,7 +83,7 @@ private:
         // Setup triangle VBO
         const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_vbo);
-		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
+		glNamedBufferStorage(m_vbo, sizeof(triangle_vertices), triangle_vertices, flags);
 
         // Set up position attribute in VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -86,37 +100,24 @@ private:
 	virtual void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
 		m_shader_one->use();
 		glBindVertexArray(m_vao);
-		m_shader_one->uniform("tessLevel", m_tess_level);
+		m_shader_one->uniform("tess_level", m_tess_level);
 		glDrawArrays(GL_PATCHES, 0, m_vertices_per_face);
 
 		m_shader_two->use();
 		glBindVertexArray(m_vao);
-		m_shader_two->uniform("tessLevel", m_tess_level);
+		m_shader_two->uniform("tess_level", m_tess_level);
 		glDrawArrays(GL_PATCHES, 3, m_vertices_per_face);
 
 		m_shader_three->use();
 		glBindVertexArray(m_vao);
-		m_shader_three->uniform("tessLevel", m_tess_level);
+		m_shader_three->uniform("tess_level", m_tess_level);
 		glDrawArrays(GL_PATCHES, 6, m_vertices_per_face);
 	};
-
-	GLuint m_vao { 0 };
-	GLuint m_vbo { 0 };;
-	GLuint m_vertices_per_face{ 3 };
-	GLuint m_vertices_per_patch{ 3 };
-	GLfloat m_min_tess_level{ 1.0f };
-	GLfloat m_tess_level{ m_min_tess_level };
-	GLfloat m_tess_increment{ 0.05f };
-	GLint m_max_tess_level { 0 };
-	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-    std::unique_ptr<GlslProgram> m_shader_one;
-    std::unique_ptr<GlslProgram> m_shader_two;
-    std::unique_ptr<GlslProgram> m_shader_three;
 };
 
 int main(int argc, char* argv[])

@@ -26,7 +26,7 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})
 
 # Copy resources
-#add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${PROJECT_BUILD_DIR}/assets)
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${PROJECT_BUILD_DIR}/assets)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
     # Set correct CWD for debugger

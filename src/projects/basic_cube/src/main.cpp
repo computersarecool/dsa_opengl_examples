@@ -60,7 +60,6 @@ private:
     GLuint m_vao;
     GLuint m_vbo;
     std::unique_ptr<GlslProgram> m_shader;
-    const GLsizei m_num_vertices { 36 };
     Camera m_camera{ glm::vec3{0, 0, 5} };
     const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
     const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
@@ -75,6 +74,7 @@ private:
     {
         // Set and use shader
         m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") });
+        m_shader->introspect();
         m_shader->use();
 
         // Cube vertex attributes

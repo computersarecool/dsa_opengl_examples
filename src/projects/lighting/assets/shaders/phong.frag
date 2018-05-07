@@ -4,160 +4,160 @@
 // shadows, ambient lights, emit and constant colors, light multiplying alpha, fog, "darkness emit"
 // and the following maps:
 // projection, environment, alpha, color
-
-const int numLights = 1;
-
-uniform vec4 uVertexColor;
-uniform vec3 uCameraPos;
+uniform vec4 u_vertex_color;
+uniform vec3 u_camera_pos;
 
 // Light properties
-uniform vec3 uLightColor;
-uniform vec3 uLightPos;
-const float linearLightAttenuation = 0.09;
-const float cubicLightAttenuation = 0.032;
+uniform vec3 u_light_color;
+uniform vec3 u_light_pos;
 
 // Spotlight properties
-uniform vec3 uLightDirection;
-uniform float uLightCutoff;
-uniform float uLightOuterCutoff;
+uniform vec3 u_light_direction;
+uniform float u_light_cutoff;
+uniform float u_light_outer_cutoff;
 
 // Material uniforms
-uniform vec4 uDiffuseColor;
-uniform vec4 uAmbientColor;
-uniform vec3 uSpecularColor;
-uniform float uShininess;
-uniform float uShadowStrength;
-uniform vec3 uShadowColor;
-uniform sampler2D uDiffuseTexture;
-uniform sampler2D uSpecularTexture;
+uniform vec4 u_diffuse_color;
+uniform vec4 u_ambient_color;
+uniform vec3 u_specular_color;
+uniform float u_shininess;
+uniform float u_shadow_strength;
+uniform vec3 u_shadow_color;
+uniform sampler2D u_diffuse_texture;
+uniform sampler2D u_specular_texture;
 
-in Vertex {
-    vec3 worldSpacePos;
-    vec3 worldSpaceNorm;
+in VS_OUT {
+    vec3 world_space_position;
+    vec3 world_space_normal;
     vec2 uv;
-} vVert;
+} v_vert;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) out vec4 frag_color;
 
-void calculatePhong(inout vec3 diffuseContrib, inout vec3 specularContrib, int lightIndex, vec3 worldSpacePos,
-                    vec3 normal, float shadowStrength, vec3 shadowColor, vec3 viewVec, float shininess)
+const int num_lights = 1;
+const float linear_light_attenuation = 0.09;
+const float cubic_light_attenuation = 0.032;
+
+void calculatePhong(inout vec3 diffuse_contrib, inout vec3 specular_contrib, int light_index, vec3 world_space_position,
+                    vec3 normal, float shadow_strength, vec3 shadow_color, vec3 view_vector, float shininess)
 {
-    // Note: Use lightIndex to index into an array of lights any time uLightColor is used
+    // Note: Use light_index to index into an array of lights any time u_light_color is used
 
     // If using a projection map:
-    //   trueLightColor = uLightColor * projectionMapColor
+    //   true_light_color = u_light_color * projectionMapColor
     // else:
-    vec3 trueLightColor = uLightColor;
+
+    vec3 true_light_color = u_light_color;
 
     // If using shadows:
     //   if (in a shadow)
-    //      lightColorSum = mix(trueLightColor, shadowColor, shadowStrength)
+    //      light_color_sum = mix(true_light_color, shadow_color, shadow_strength)
     //    else:
-    //      lightColorSum = trueLightColor
+    //      light_color_sum = true_light_color
     // else:
 
     // Attenuation
-    vec3 lightColorSum = trueLightColor;
-    float dist = distance(uLightPos, vVert.worldSpacePos);
-    float attenuationFactor = 1.0 / (1.0 + linearLightAttenuation * dist + cubicLightAttenuation * pow(dist, 2.0));
-    lightColorSum *= attenuationFactor;
+    vec3 light_color_sum = true_light_color;
+    float dist = distance(u_light_pos, v_vert.world_space_position);
+    float attenuation_factor = 1.0 / (1.0 + linear_light_attenuation * dist + cubic_light_attenuation * pow(dist, 2.0));
+    light_color_sum *= attenuation_factor;
 
     // Diffuse
-    vec3 lightDir = normalize(uLightPos - worldSpacePos);
-    float diffuse = max(dot(normal, lightDir), 0.0);
-    diffuseContrib = diffuse * lightColorSum;
+    vec3 light_dir = normalize(u_light_pos - world_space_position);
+    float diffuse = max(dot(normal, light_dir), 0.0);
+    diffuse_contrib = diffuse * light_color_sum;
 
     // Specular
-    vec3 reflectDir = reflect(-lightDir, normal);
-    float specular = pow(max(dot(viewVec, reflectDir), 0.0), shininess);
-    specularContrib = specular * uSpecularColor;
+    vec3 reflection_direction = reflect(-light_dir, normal);
+    float specular = pow(max(dot(view_vector, reflection_direction), 0.0), shininess);
+    specular_contrib = specular * u_specular_color;
 
     // Note: This treats the light like a spotlight
-    // Should have a different function for each different light
-    vec3 spotlightDir = normalize(uLightPos - worldSpacePos);
-    float theta = dot(spotlightDir, normalize(-uLightDirection));
-    float epsilon = uLightCutoff - uLightOuterCutoff;
-    float intensity = clamp((theta - uLightOuterCutoff) / epsilon, 0.0, 1.0);
+    // There could be a different function for each type of light
+    vec3 spotlight_dir = normalize(u_light_pos - world_space_position);
+    float theta = dot(spotlight_dir, normalize(-u_light_direction));
+    float epsilon = u_light_cutoff - u_light_outer_cutoff;
+    float intensity = clamp((theta - u_light_outer_cutoff) / epsilon, 0.0, 1.0);
 
-    diffuseContrib *= intensity;
-    specularContrib *= intensity;
+    diffuse_contrib *= intensity;
+    specular_contrib *= intensity;
 }
 
-vec4 sumLighting()
+vec4 sum_lighting()
 {
-    vec4 outColor = vec4(0.0);
-    vec3 diffuseSum = vec3(0.0);
-    vec3 specularSum = vec3(0.0);
+    vec4 out_color = vec4(0.0);
+    vec3 diffuse_sum = vec3(0.0);
+    vec3 specular_sum = vec3(0.0);
 
-    vec3 normal = vVert.worldSpaceNorm;
-    vec3 viewVec = normalize(uCameraPos - vVert.worldSpacePos);
+    vec3 normal = v_vert.world_space_normal;
+    vec3 view_vector = normalize(u_camera_pos - v_vert.world_space_position);
 
-    // Flip the normals on backfaces
+    // Flip the backface normals
     if (!gl_FrontFacing) {
       normal = -normal;
     }
 
     // Add diffuse and specular contributions for each light
-    for (int i = 0; i < numLights; i++)
+    for (int i = 0; i < num_lights; i++)
     {
-        vec3 diffuseContrib = vec3(0.0);
-        vec3 specularContrib = vec3(0.0);
+        vec3 diffuse_contrib = vec3(0.0);
+        vec3 specular_contrib = vec3(0.0);
 
-        calculatePhong(diffuseContrib,
-                       specularContrib,
+        calculatePhong(diffuse_contrib,
+                       specular_contrib,
                        i,
-                       vVert.worldSpacePos,
+                       v_vert.world_space_position,
                        normal,
-                       uShadowStrength,
-                       uShadowColor,
-                       viewVec,
-            uShininess);
+                       u_shadow_strength,
+                       u_shadow_color,
+                       view_vector,
+            u_shininess);
 
-        diffuseSum += diffuseContrib;
-        specularSum += specularContrib;
+        diffuse_sum += diffuse_contrib;
+        specular_sum += specular_contrib;
     }
 
     // Final diffuse contribution
-    diffuseSum *= uDiffuseColor.rgb * uVertexColor.rgb * vec3(texture(uDiffuseTexture, vVert.uv));
-    outColor.rgb += diffuseSum;
+    diffuse_sum *= u_diffuse_color.rgb * u_vertex_color.rgb * vec3(texture(u_diffuse_texture, v_vert.uv));
+    out_color.rgb += diffuse_sum;
 
     // Final specular contribution
-    specularSum *= uSpecularColor * vec3(texture(uSpecularTexture, vVert.uv));
-    outColor.rgb += specularSum;
+    specular_sum *= u_specular_color * vec3(texture(u_specular_texture, v_vert.uv));
+    out_color.rgb += specular_sum;
 
     // If using ambient light:
     //   (for every ambient light)
-    //     outColor += ambientColor * materialAmbientColor * objectColor
+    //     out_color += ambientColor * materialAmbientColor * objectColor
 
     // If using emit color
-    //   outColor += emitColor * emitMap
+    //   out_color += emitColor * emitMap
 
     // If using constant color
-    //   outColor += constantColor * objectColor
+    //   out_color += constantColor * objectColor
 
     // If light multiplies alpha:
     // calculate lightness (overall value of how much light is affecting the surface) and use in alpha calculation
-    // vec3 lightness = outColor.r * 0.3 + outColor.g * 0.6 + outColor.b * 0.1;
+    // vec3 lightness = out_color.r * 0.3 + out_color.g * 0.6 + out_color.b * 0.1;
 
     // If using color, environment or darkness maps or fog
-    // outColor *= ColorMap
-    // outColor += EnvironementMap * EnvironmentMapColor
-    // outColor = mix(FogColor * FogMapColor, outColor, FogFactor)
-    // outColor = mix(darknessEmitMapColor * darknessEmitColor, outColor, lightness)
+    // out_color *= ColorMap
+    // out_color += EnvironementMap * EnvironmentMapColor
+    // out_color = mix(FogColor * FogMapColor, out_color, FogFactor)
+    // out_color = mix(darknessEmitMapColor * darknessEmitColor, out_color, lightness)
 
     // Alpha calculation
     // If using alpha map or color map with alpha multiply those values here
-    float alpha =  uVertexColor.a * uDiffuseColor.a;
-    outColor.rgb *= alpha;
-    outColor.a = alpha;
+    float alpha =  u_vertex_color.a * u_diffuse_color.a;
+    out_color.rgb *= alpha;
+    out_color.a = alpha;
 
     // If using a diffuse map:
-    // outColor *= diffuseMap
+    // out_color *= diffuseMap
 
-    return outColor;
+    return out_color;
 }
 
 void main()
 {
-    fragColor = sumLighting();
+    frag_color = sum_lighting();
 }

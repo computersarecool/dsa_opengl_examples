@@ -5,27 +5,27 @@ layout (vertices = 4) out;
 in VS_OUT
 {
     vec2 uv;
-} tcsIn[];
+} tcs_in[];
 
 out TCS_OUT
 {
     vec2 uv;
-} tcsOut[];
+} tcs_out[];
+
+uniform mat4 u_model_view_projection_matrix;
 
 const float scale = 16.0;
 const float bias = 1.0;
-
-uniform mat4 uModelViewProjectionMatrix;
 
 void main()
 {
     if (gl_InvocationID == 0)
     {
         // Get point position in clip space
-        vec4 p0 = uModelViewProjectionMatrix * gl_in[0].gl_Position;
-        vec4 p1 = uModelViewProjectionMatrix * gl_in[1].gl_Position;
-        vec4 p2 = uModelViewProjectionMatrix * gl_in[2].gl_Position;
-        vec4 p3 = uModelViewProjectionMatrix * gl_in[3].gl_Position;
+        vec4 p0 = u_model_view_projection_matrix * gl_in[0].gl_Position;
+        vec4 p1 = u_model_view_projection_matrix * gl_in[1].gl_Position;
+        vec4 p2 = u_model_view_projection_matrix * gl_in[2].gl_Position;
+        vec4 p3 = u_model_view_projection_matrix * gl_in[3].gl_Position;
 
         // Get point position in NDC
         p0 /= p0.w;
@@ -64,5 +64,5 @@ void main()
 
     // Set output variables
     gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
-    tcsOut[gl_InvocationID].uv = tcsIn[gl_InvocationID].uv;
+    tcs_out[gl_InvocationID].uv = tcs_in[gl_InvocationID].uv;
 }

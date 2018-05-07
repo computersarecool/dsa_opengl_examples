@@ -1,8 +1,9 @@
 // This calculates the square root of some values and reads it back with transform feedback
-// No image is output
+// There is no graphical output
 
 #include <memory>
 #include <iostream>
+#include <vector>
 
 #include "glad/glad.h"
 
@@ -12,18 +13,25 @@ static const GLchar* vertex_shader_source[] =
 {
 	"#version 440 core\n"
 
-    "in float inValue;\n"
-	"out float outValue;\n"
+    "in float in_value;\n"
+	"out float out_value;\n"
 
 	"void main()\n"
 	"{\n"
-	"	outValue = sqrt(inValue);\n"
+	"	out_value = sqrt(in_value);\n"
 	"}\n"
 };
 
 class TransformFeedbackExample : public Application
 {
 private:
+
+	GLuint m_vao;
+	GLuint m_vbo;
+	GLuint m_tbo;
+	GLfloat m_data[5]{ 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+
     GLuint create_shader_program()
     {
         // Create vertex shader
@@ -45,7 +53,7 @@ private:
         glAttachShader(program, shader);
 
         // Specify transform feedback varyings
-        static const GLchar* feedbackVaryings[] = { "outValue" };
+        static const GLchar* feedbackVaryings[] = { "out_value" };
         glTransformFeedbackVaryings(program, sizeof(feedbackVaryings) / sizeof(*feedbackVaryings), feedbackVaryings, GL_INTERLEAVED_ATTRIBS);
 
         // Link and use program
@@ -71,7 +79,7 @@ private:
 		glNamedBufferStorage(m_vbo, sizeof(m_data), m_data, flags);
 
 		// Create and bind VAO
-		GLint attrib_index{ glGetAttribLocation(program, "inValue") };
+		GLint attrib_index{ glGetAttribLocation(program, "in_value") };
 		const GLuint size{ 1 };
 		const GLenum type{ GL_FLOAT };
 		const GLboolean normalized{ GL_FALSE };
@@ -108,12 +116,6 @@ private:
 			std::cout << value <<std::endl;
 		}
 	}
-
-	GLuint m_vao { 0 };
-	GLuint m_vbo { 0 };
-	GLuint m_tbo { 0 };
-    GLfloat m_data[5]{ 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
-    const GLfloat m_clear_color[4] = { 0.2f, 0.0f, 0.2f, 1.0f };
 };
 
 int main(int argc, char* argv[])

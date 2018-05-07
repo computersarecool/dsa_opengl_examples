@@ -2,15 +2,15 @@
 
 in VS_OUT
 {
-    flat int imageIndex;
+    flat int image_index;
     vec2 uv;
 } fs_in;
 
-uniform sampler2DArray imageSampler;
+uniform sampler2DArray image_sampler;
 
-out vec4 FragColor;
+layout (location = 0) out vec4 frag_color;
 
 void main()
 {
-  FragColor = texture(imageSampler, vec3(fs_in.uv, float(fs_in.imageIndex)));
+  frag_color = texture(image_sampler, vec3(fs_in.uv, float(fs_in.image_index)));
 }

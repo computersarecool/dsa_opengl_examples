@@ -1,14 +1,13 @@
 #version 440 core
 
-uniform sampler2D fboTexture;
+layout (binding = 0) uniform sampler2D fbo_texture;
 
-in vec3 vPosition;
-in vec2 vUv;
+layout (location = 0) in vec2 v_uv;
 
-out vec4 fragColor;
+layout (location = 0) out vec4 frag_color;
 
 void main()
 {
 
-    fragColor = texture(fboTexture, vUv) + vec4(0.5);
+    frag_color = texture(fbo_texture, v_uv) + vec4(0.5);
 }

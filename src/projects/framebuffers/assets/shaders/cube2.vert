@@ -1,17 +1,15 @@
 #version 440 core
 
-uniform mat4 uModelViewMatrix;
-uniform mat4 uProjectionMatrix;
+uniform mat4 u_model_view_matrix;
+uniform mat4 u_projection_matrix;
 
-in vec3 aPosition;
-in vec2 aUv;
+layout (location = 0) in vec3 a_position;
+layout (location = 1) in vec2 a_uv;
 
-out vec3 vPosition;
-out vec2 vUv;
+layout (location = 0) out vec2 v_uv;
 
 void main()
 {
-    vPosition = aPosition;
-    vUv = aUv;
-    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
+    v_uv = a_uv;
+    gl_Position = u_projection_matrix * u_model_view_matrix * vec4(a_position, 1.0);
 }

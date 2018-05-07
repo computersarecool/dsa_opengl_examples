@@ -3,16 +3,16 @@
 layout (triangles) in;
 layout (triangle_strip, max_vertices = 3) out;
 
-in vec4 vPosition[];
+layout (location = 0) in vec4 v_position[];
 
-out vec4 gPosition;
+layout (location = 0) out vec4 g_position;
 
 void main()
 {
     for (int i = 0; i < gl_in.length(); i++)
     {
         gl_Position = gl_in[i].gl_Position;
-        gPosition = vPosition[i];
+        g_position = v_position[i];
         EmitVertex();
     }
     EndPrimitive();

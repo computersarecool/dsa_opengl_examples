@@ -5,11 +5,11 @@ in VS_OUT
     vec2 uv;
 } fs_in;
 
-uniform sampler2D imageSampler;
+uniform sampler2D image_sampler;
 
-out vec4 FragColor;
+out vec4 frag_color;
 
 void main()
 {
-    FragColor = texture(imageSampler, fs_in.uv);
+    frag_color= texture(image_sampler, fs_in.uv);
 }

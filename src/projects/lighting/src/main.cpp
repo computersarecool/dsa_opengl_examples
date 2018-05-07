@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -64,6 +65,36 @@ static const GLfloat cube_vertices[]{
 class LightingExample : public Application
 {
 private:
+	std::string m_diffuse_map_path{ "../assets/images/container2.jpg" };
+	std::string m_specular_map_path{ "../assets/images/container2_specular.jpg" };
+	bool m_first_mouse{ true };
+	double m_last_x{ m_info.window_width / 2.0f };
+	double m_last_y{ m_info.window_height / 2.0f };
+	const int m_num_vertices{ 36 };
+	Camera m_camera{ glm::vec3{ 0.0f, 0.0f, 3.0f } };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	const glm::vec4 m_vertex_color{1.0f, 0.5f, 0.31f, 1.0f };
+	const glm::vec3 m_light_color{ 0.5f };
+	const glm::vec3 m_light_pos{0.0f, 0.25f, 3.0f };
+	const GLfloat m_light_cutoff{ glm::cos(glm::radians(12.5f)) };
+	const GLfloat m_light_outer_cutoff{ glm::cos(glm::radians(17.5f)) };
+	const glm::vec3 m_specular_color{ 1.0f };
+	const glm::vec4 m_diffuse_color{ 0.7, 0.7, 0.7, 1.0 };
+	const glm::vec4 m_ambient_color{ 0.0, 0.0, 0.0, 1.0 };
+	const glm::vec3 m_shadow_color{ 0.0f };
+	const GLfloat m_shadow_strength{ 0.0f };
+	const GLfloat m_shininess{ 100.0 };
+	float m_delta_time;
+	glm::mat4 m_model_matrix;
+	glm::mat4 m_view_matrix;
+	glm::mat4 m_projection_matrix;
+	glm::mat3 m_normal_matrix;
+	GLuint  m_cube_vao;
+	GLuint m_lamp_vao;
+	GLuint m_cube_vbo;
+	std::unique_ptr<GlslProgram> m_lamp_shader;
+	std::unique_ptr<GlslProgram> m_cube_shader;
+
     virtual void set_info() override
     {
         Application::set_info();
@@ -90,7 +121,7 @@ private:
 
 	virtual void on_mouse_move(double x_pos, double y_pos) override
 	{
-		// Avoid initial "jump" movement
+		// Avoid initial jump movement
 		if (m_first_mouse)
 		{
 			m_last_x = x_pos;
@@ -98,8 +129,8 @@ private:
 			m_first_mouse = false;
 		}
 
-		double x_delta{ x_pos - m_last_x };
-		double y_delta{ y_pos - m_last_y };
+		float x_delta{ static_cast<float>(x_pos - m_last_x) };
+		float y_delta{ static_cast<float>(y_pos - m_last_y) };
 
         m_camera.process_mouse_movement(x_delta, y_delta);
 		m_last_x = x_pos;
@@ -108,7 +139,7 @@ private:
 
 	virtual void on_mouse_wheel(GLdouble x_offset, GLdouble  y_offset)
 	{
-		m_camera.process_mouse_scroll(y_offset);
+		m_camera.process_mouse_scroll(static_cast<float>(y_offset));
 	}
 
 	virtual void setup() override
@@ -218,7 +249,7 @@ private:
 	virtual void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
 		// Draw objects in scene
@@ -231,27 +262,27 @@ private:
 		m_normal_matrix = glm::inverseTranspose(glm::mat3(m_model_matrix));
 
 		// Set lighting uniforms
-		m_cube_shader->uniform("uLightColor", m_light_color);
-		m_cube_shader->uniform("uLightPos", m_camera.get_pos());
-		m_cube_shader->uniform("uLightDirection", m_camera.get_front());
-		m_cube_shader->uniform("uLightCutoff", m_light_cutoff);
-		m_cube_shader->uniform("uLightOuterCutoff", m_light_outer_cutoff);
+		m_cube_shader->uniform("u_light_color", m_light_color);
+		m_cube_shader->uniform("u_light_position", m_camera.get_pos());
+		m_cube_shader->uniform("u_light_direction", m_camera.get_front());
+		m_cube_shader->uniform("u_light_cutoff", m_light_cutoff);
+		m_cube_shader->uniform("u_light_outer_cutoff", m_light_outer_cutoff);
 
         // Set material uniforms
-		m_cube_shader->uniform("uSpecularColor", m_specular_color);
-		m_cube_shader->uniform("uDiffuseColor", m_diffuse_color);
-		m_cube_shader->uniform("uAmbientColor", m_ambient_color);
-		m_cube_shader->uniform("uShadowColor", m_shadow_color);
-		m_cube_shader->uniform("uShadowStrength", m_shadow_strength);
-		m_cube_shader->uniform("uShininess", m_shininess);
+		m_cube_shader->uniform("u_specular_color", m_specular_color);
+		m_cube_shader->uniform("u_diffuse_color", m_diffuse_color);
+		m_cube_shader->uniform("u_ambient_color", m_ambient_color);
+		m_cube_shader->uniform("u_shadow_color", m_shadow_color);
+		m_cube_shader->uniform("u_shadow_strength", m_shadow_strength);
+		m_cube_shader->uniform("u_shininess", m_shininess);
 
 		// Set other uniforms
-		m_cube_shader->uniform("uCameraPos", m_camera.get_pos());
-		m_cube_shader->uniform("uModelMatrix", m_model_matrix);
-		m_cube_shader->uniform("uViewMatrix", m_view_matrix);
-		m_cube_shader->uniform("uProjectionMatrix", m_projection_matrix);
-		m_cube_shader->uniform("uNormalMatrix", m_normal_matrix);
-		m_cube_shader->uniform("uVertexColor", m_vertex_color);
+		m_cube_shader->uniform("u_camera_position", m_camera.get_pos());
+		m_cube_shader->uniform("u_model_matrix", m_model_matrix);
+		m_cube_shader->uniform("u_view_matrix", m_view_matrix);
+		m_cube_shader->uniform("u_projection_matrix", m_projection_matrix);
+		m_cube_shader->uniform("u_normal_matrix", m_normal_matrix);
+		m_cube_shader->uniform("u_vertex_color", m_vertex_color);
 
 		glBindVertexArray(m_cube_vao);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
@@ -265,43 +296,15 @@ private:
 		m_model_matrix = glm::scale(m_model_matrix, glm::vec3{ 0.2f });
 
         // Set uniforms
-		m_lamp_shader->uniform("uModelMatrix", m_model_matrix);
-		m_lamp_shader->uniform("uViewMatrix", m_view_matrix);
-		m_lamp_shader->uniform("uProjectionMatrix", m_projection_matrix);
+		m_lamp_shader->uniform("u_model_matrix", m_model_matrix);
+		m_lamp_shader->uniform("u_view_matrix", m_view_matrix);
+		m_lamp_shader->uniform("u_projection_matrix", m_projection_matrix);
 
 		glBindVertexArray(m_lamp_vao);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
 
-    std::string m_diffuse_map_path{ "../assets/images/container2.jpg" };
-    std::string m_specular_map_path{ "../assets/images/container2_specular.jpg" };
-	float m_delta_time{ 0.0f };
-	bool m_first_mouse{ true };
-	double m_last_x{ m_info.window_width / 2.0f };
-    double m_last_y{ m_info.window_height / 2.0f };
-	const int m_num_vertices{ 36 };
-	Camera m_camera{ glm::vec3{ 0.0f, 0.0f, 3.0f } };
-    GLuint  m_cube_vao { 0 };
-    GLuint m_lamp_vao { 0 };
-    GLuint m_cube_vbo { 0 };
-	GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	const glm::vec4 m_vertex_color{1.0f, 0.5f, 0.31f, 1.0f };
-	const glm::vec3 m_light_color{ 0.5f };
-	const glm::vec3 m_light_pos{0.0f, 0.25f, 3.0f };
-	const GLfloat m_light_cutoff{ glm::cos(glm::radians(12.5f)) };
-	const GLfloat m_light_outer_cutoff{ glm::cos(glm::radians(17.5f)) };
-	const glm::vec3 m_specular_color{ 1.0f };
-	const glm::vec4 m_diffuse_color{ 0.7, 0.7, 0.7, 1.0 };
-	const glm::vec4 m_ambient_color{ 0.0, 0.0, 0.0, 1.0 };
-	const glm::vec3 m_shadow_color{ 0.0f };
-	const GLfloat m_shadow_strength{ 0.0f };
-	const GLfloat m_shininess{ 100.0 };
-    glm::mat4 m_model_matrix;
-    glm::mat4 m_view_matrix;
-    glm::mat4 m_projection_matrix;
-    glm::mat3 m_normal_matrix;
-    std::unique_ptr<GlslProgram>  m_lamp_shader;
-    std::unique_ptr<GlslProgram> m_cube_shader;
+
 };
 
 int main(int argc, char* argv[])

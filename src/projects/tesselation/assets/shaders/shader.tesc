@@ -1,6 +1,6 @@
 #version 440 core
 
-uniform float tessLevel;
+uniform float tess_level;
 
 layout (vertices = 3) out;
 
@@ -13,9 +13,9 @@ void main()
     // The conditional is here because if gl_TessLevel is not the same across TCS invocations behavior is undefined
     if (gl_InvocationID == 0)
     {
-        gl_TessLevelInner[0] = tessLevel;
-        gl_TessLevelOuter[0] = tessLevel;
-        gl_TessLevelOuter[1] = tessLevel;
-        gl_TessLevelOuter[2] = tessLevel;
+        gl_TessLevelInner[0] = tess_level;
+        gl_TessLevelOuter[0] = tess_level;
+        gl_TessLevelOuter[1] = tess_level;
+        gl_TessLevelOuter[2] = tess_level;
     }
 }

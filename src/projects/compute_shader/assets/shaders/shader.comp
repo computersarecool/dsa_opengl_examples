@@ -9,6 +9,8 @@ void main()
 {
     ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
     vec4 texel = imageLoad(input_image, pixel);
+
+    // Invert the pixel color
     texel = vec4(1.0) - texel;
     imageStore(output_image, pixel, texel);
 }

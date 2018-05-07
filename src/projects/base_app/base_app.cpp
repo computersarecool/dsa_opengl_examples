@@ -82,7 +82,7 @@ void Application::init()
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
-		return;
+		throw;
 	}
 }
 
@@ -97,7 +97,7 @@ void Application::draw()
 	} while (!(glfwWindowShouldClose(m_window)));
 }
 
-// Call what is needed to start the app
+// Start the app
 void Application::run()
 {
 	set_info();
@@ -118,7 +118,7 @@ void Application::on_key(int key, int action)
 	}
 }
 
-// Function to check OpenGL errors. #defined as check_gl_error
+// Function to check OpenGL errors
 void Application::_check_gl_error(const char* file, int line)
 {
 	GLenum err;

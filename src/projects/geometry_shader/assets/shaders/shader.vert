@@ -1,13 +1,13 @@
 #version 440 core
 
-uniform mat4 uModelViewMatrix;
+uniform mat4 u_model_view_matrix;
 
-in vec4 aPosition;
+layout (location = 0) in vec4 a_position;
 
-out vec4 vPosition;
+layout (location = 0) out vec4 v_position;
 
 void main()
 {
-    gl_Position = uModelViewMatrix * aPosition;
-    vPosition = gl_Position;
+    gl_Position = u_model_view_matrix * a_position;
+    v_position = gl_Position;
 }

@@ -29,6 +29,7 @@ public:
 	};
 
 	void use() const;
+	void introspect() const;
 	void uniform(const std::string& name, GLboolean value) const;
 	void uniform(const std::string& name, GLuint value) const;
 	void uniform(const std::string& name, GLfloat value) const;
@@ -45,5 +46,4 @@ private:
 	GLuint m_handle;
 	GLuint compile_shader(const std::string& shader_string, GLenum shader_type) const;
 	void check_compile_errors(GLuint program_or_shader, GLenum program_or_shader_type) const;
-	void introspect() const;
 };

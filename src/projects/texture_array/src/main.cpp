@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <cmath>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -13,12 +14,19 @@
 class TextureArrayExample : public Application
 {
 private:
+	GLuint m_vao;
+	GLuint m_texture_array;
+	const std::string m_image_base_path{ "../assets/texture_array/" };
+	const GLuint m_num_billboards{ 4 };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	std::unique_ptr<GlslProgram> m_shader;
+
 	virtual void setup() override
 	{
 		// Set and use shader
 		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("../assets/shaders/simple_quad.frag") });
 		m_shader->use();
-
+        m_shader->introspect();
 		// Create and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
 		glBindVertexArray(m_vao);
@@ -26,10 +34,10 @@ private:
 		// Make a 2D array texture
 		glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_texture_array);
 
-		for (int i{ 0 }; i < m_num_billboards; ++i)
+		for (int index{ 0 }; index != m_num_billboards; ++index)
 		{
 			// Get image path
-			std::string image_path{ m_image_base_path + std::to_string(i) + ".jpg" };
+			std::string image_path{ m_image_base_path + std::to_string(index) + ".jpg" };
 
 			// Load the image
 			GLint width;
@@ -42,12 +50,12 @@ private:
 			}
 
 			// Use first image to set texture storage parameters
-			if (!i)
+			if (!index)
 			{
 				glTextureStorage3D(m_texture_array, 1, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, width, height, m_num_billboards);
 			}
 
-			glTextureSubImage3D(m_texture_array, 0, 0, 0, i, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTextureSubImage3D(m_texture_array, 0, 0, 0, index, width, height, 1, GL_RGB, GL_UNSIGNED_BYTE, data);
 			stbi_image_free(data);
 		}
 		
@@ -60,31 +68,23 @@ private:
 	virtual void render(double current_time)
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		for (int i{ 0 }; i < m_num_billboards; i++)
+		for (GLuint index{ 0 }; index != m_num_billboards; ++index)
 		{
-			// These require narrowing
-			const GLuint index = static_cast<GLuint>(i);
+			// Set uniforms
 			const GLfloat offset_x = static_cast<GLfloat>(std::fmod(current_time / 2, 3) * 2.0 - 3.0);
-			const GLfloat offset_y = static_cast<GLfloat>(6 - index * 2.0);
-			const GLfloat scale = static_cast<GLfloat>(0.1 + index / 8);
-			m_shader->uniform("imageIndex", index);
-			m_shader->uniform("offsetX", offset_x);
-			m_shader->uniform("offsetY", offset_y);
-			m_shader->uniform("scale", scale);
+			const GLfloat offset_y = static_cast<GLfloat>(6.0f - static_cast<float>(index) * 2.0f);
+			const GLfloat scale = static_cast<GLfloat>(0.1f + static_cast<float>(index) / 8.0f);
+			m_shader->uniform("u_image_index", index);
+			m_shader->uniform("u_offset_x", offset_x);
+			m_shader->uniform("u_offset_y", offset_y);
+			m_shader->uniform("u_scale", scale);
+
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		}
 	};
-
-protected:
-	GLuint m_vao { 0 };
-	GLuint m_texture_array { 0 };
-	const std::string m_image_base_path{ "../assets/texture_array/" };
-	const GLuint m_num_billboards{ 4 };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	std::unique_ptr<GlslProgram> m_shader;
 };
 
 int main(int argc, char* argv[])

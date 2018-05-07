@@ -71,6 +71,24 @@ void GlslProgram::use() const
 	glUseProgram(m_handle);
 }
 
+void GlslProgram::introspect() const
+{
+	const int max_name_length{ 64 };
+	const int num_parameters{ 2 };
+	GLint num_outputs{ 0 };
+	glGetProgramInterfaceiv(m_handle, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &num_outputs);
+
+	static const GLenum properties[]{ GL_TYPE, GL_LOCATION };
+	GLint params[num_parameters];
+	GLchar name[max_name_length];
+	for (GLuint index{ 0 }; index != num_outputs; ++index)
+	{
+		glGetProgramResourceName(m_handle, GL_PROGRAM_OUTPUT, index, sizeof(name), nullptr, name);
+		glGetProgramResourceiv(m_handle, GL_PROGRAM_OUTPUT, index, num_parameters, properties, num_parameters, nullptr, params);
+		std::cout << "Index: " << index << " is type: " << params[0] << " is named: " << name << " is at location: " << params[1] << std::endl;
+	}
+}
+
 void GlslProgram::uniform(const std::string& name, GLboolean value) const
 {
 	glUniform1i(glGetUniformLocation(m_handle, name.c_str()), value);
@@ -119,8 +137,6 @@ void GlslProgram::uniform(const std::string& name, const glm::mat4& value) const
 GlslProgram::GlslProgram(const Format& format, bool separable)
 {
 	m_handle = glCreateProgram();
-	// Add all active shader handles to a vector
-	// TODO: Make std::optional and only add valid shader sources to vector
 	std::vector<GLuint> shader_handles;
 	shader_handles.push_back(compile_shader(format.m_vertex_shader, GL_VERTEX_SHADER));
 	shader_handles.push_back(compile_shader(format.m_tess_control_shader, GL_TESS_CONTROL_SHADER));
@@ -132,18 +148,19 @@ GlslProgram::GlslProgram(const Format& format, bool separable)
 	// Attach all valid shader handles to program
 	for (GLuint shader_handle : shader_handles)
 	{
+		// shader_handle will be 0 if it is not valid
 		if (shader_handle)
 		{
 			glAttachShader(m_handle, shader_handle);
 		}
 	}
 
-	// Link program
 	if (separable)
 	{
 		glProgramParameteri(m_handle, GL_PROGRAM_SEPARABLE, GL_TRUE);
 	}
 
+	// Link program and check errors
 	glLinkProgram(m_handle);
 	check_compile_errors(m_handle, GL_SHADER);
 
@@ -156,8 +173,6 @@ GlslProgram::GlslProgram(const Format& format, bool separable)
 			glDeleteShader(shader_handle);
 		}
 	}
-
-	introspect();
 }
 
 GLuint GlslProgram::compile_shader(const std::string& shader_string, GLenum shader_type) const
@@ -166,7 +181,7 @@ GLuint GlslProgram::compile_shader(const std::string& shader_string, GLenum shad
 
 	if (!shader_string.empty())
 	{
-		const char* shader_c_string = shader_string.c_str();
+		const char* shader_c_string { shader_string.c_str() };
 		shader_handle = glCreateShader(shader_type);
 		glShaderSource(shader_handle, 1, &shader_c_string, nullptr);
 		glCompileShader(shader_handle);
@@ -174,25 +189,6 @@ GLuint GlslProgram::compile_shader(const std::string& shader_string, GLenum shad
 	}
 
 	return shader_handle;
-}
-
-// TODO: Improve
-void GlslProgram::introspect() const
-{
-	const int max_name_length{ 64 };
-	const int num_parameters{ 2 };
-	GLint num_outputs{ 0 };
-	glGetProgramInterfaceiv(m_handle, GL_PROGRAM_OUTPUT, GL_ACTIVE_RESOURCES, &num_outputs);
-	
-	static const GLenum properties[]{ GL_TYPE, GL_LOCATION };
-	GLint params[num_parameters];
-	GLchar name[max_name_length];
-	for (int index{ 0 }; index != num_outputs; ++index)
-	{
-		glGetProgramResourceName(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), sizeof(name), nullptr, name);
-		glGetProgramResourceiv(m_handle, GL_PROGRAM_OUTPUT, static_cast<GLuint>(index), num_parameters, properties, num_parameters, nullptr, params);
-		std::cout << "Index: " << index << " is type: " << params[0] << " is named: " << name << " is at location: " << params[1] << std::endl;
-	}
 }
 
 void GlslProgram::check_compile_errors(const GLuint program_or_shader, const GLenum program_or_shader_type) const

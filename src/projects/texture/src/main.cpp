@@ -1,8 +1,9 @@
-﻿// This loads an image in the S3TC compressed format
-// It checks to make sure it is compressed and gets the compressed size
+﻿// This loads a jpeg image and stores it in the S3TC compressed format
+// It checks that it is compressed and gets the compressed size
 
 #include <iostream>
 #include <memory>
+#include <vector>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb/stb_image.h"
@@ -13,6 +14,14 @@
 class TextureArrayExample : public Application
 {
 private:
+	GLuint m_vao;
+	GLuint m_texture;
+	GLint m_is_image_compressed;
+	GLint m_image_compressed_size;
+	const std::string m_image_path{ "../assets/images/0.jpg" };
+	const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
+	std::unique_ptr<GlslProgram> m_shader;
+
 	virtual void setup() override
 	{
 		// Set and use shader
@@ -44,17 +53,17 @@ private:
 		glTextureParameteri(m_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		
-		GLint is_compressed{ 0 };
-		glGetTextureLevelParameteriv(m_texture, 0, GL_TEXTURE_COMPRESSED, &is_compressed);
-		if (is_compressed)
+
+		glGetTextureLevelParameteriv(m_texture, 0, GL_TEXTURE_COMPRESSED, &m_is_image_compressed);
+		if (m_is_image_compressed)
 		{
 			std::cout << "Texture is compressed" << std::endl;
 		}
 
-		GLint compressed_size{ 0 };
-		glGetTextureLevelParameteriv(m_texture, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &compressed_size);
+
+		glGetTextureLevelParameteriv(m_texture, 0, GL_TEXTURE_COMPRESSED_IMAGE_SIZE, &m_image_compressed_size);
 		{
-			std::cout << "Texture size is: " << compressed_size << std::endl;
+			std::cout << "Texture size is: " << m_image_compressed_size << std::endl;
 		}
 
 		glBindTextureUnit(0, m_texture);
@@ -63,16 +72,11 @@ private:
 	virtual void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	};
 
-protected:
-	GLuint m_vao { 0 };
-	GLuint m_texture { 0 };
-	const std::string m_image_path{ "../assets/images/0.jpg" };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-	std::unique_ptr<GlslProgram> m_shader;
+
 };
 
 int main(int argc, char* argv[])

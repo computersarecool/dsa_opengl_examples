@@ -1,11 +1,10 @@
 #version 440 core
 
-in vec4 gPosition;
+layout (location = 0)in vec4 g_position;
 
-out vec4 fragColor;
+layout (location = 0) out vec4 frag_color;
 
 void main()
 {
-    fragColor = gPosition;
-//    fragColor = gl_FragCoord;
+    frag_color = g_position;
 }

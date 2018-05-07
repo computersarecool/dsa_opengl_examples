@@ -1,6 +1,7 @@
 ﻿// A cube geometry shader which converts faces to lines to show normals
 
 #include <memory>
+#include <vector>
 
 #include "glm/glm/gtc/matrix_transform.hpp"
 
@@ -9,7 +10,7 @@
 #include "camera.h"
 
 // Cube
-const GLfloat vertices[] {
+const GLfloat cube_vertices[] {
 	 // Positions	      // Normals
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 	 0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -64,6 +65,18 @@ const GLfloat vertices[] {
 class GeometryShaderExample : public Application
 {
 private:
+	GLuint m_vao;
+	GLuint m_vbo;
+	glm::mat4 m_model_matrix{ glm::mat4{1.0f } };
+	Camera m_camera{ glm::vec3{0, 0, 5} };
+	const GLuint m_num_vertices{ 36 };
+	const GLfloat m_normal_length{ 0.5f};
+	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
+	const GLfloat m_rotation_rate{ 0.001f };
+	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+	std::unique_ptr<GlslProgram> m_shader;
+	std::unique_ptr<GlslProgram> m_normal_shader;
+
 	virtual void set_info() override
 	{
 		Application::set_info();
@@ -99,7 +112,7 @@ private:
 		// Setup the cube VBO and its data store
 		const GLuint flags{ 0 };
 		glCreateBuffers(1, &m_vbo);
-		glNamedBufferStorage(m_vbo, sizeof(vertices), vertices, flags);
+		glNamedBufferStorage(m_vbo, sizeof(cube_vertices), cube_vertices, flags);
 
 		// Setup and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -116,46 +129,35 @@ private:
 		glVertexArrayAttribBinding(m_vao, normal_index, binding_index);
 
 		glVertexArrayVertexBuffer(m_vao, binding_index, m_vbo, offset, element_stride);
+
+		// Turn on depth test
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LEQUAL);
 	}
 
 	virtual void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
-		glClearBufferfv(GL_COLOR, 0, m_clear_color);
+		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LEQUAL);
 
 		// Update uniforms
 		m_model_matrix = glm::rotate(m_model_matrix, m_rotation_rate, m_world_up);
 
-		// Set for normals
+		// Set uniforms for normals
 		m_normal_shader->use();
-		m_normal_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
-		m_normal_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
-		m_normal_shader->uniform("uNormalLength", m_normal_length);
+		m_normal_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * m_model_matrix);
+		m_normal_shader->uniform("u_projection_matrix", m_camera.get_proj_matrix());
+		m_normal_shader->uniform("u_normal_length", m_normal_length);
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 
-        // Set for faces
+        // Set uniforms for faces
 		m_shader->use();
-		m_shader->uniform("uModelViewMatrix", m_camera.get_view_matrix() * m_model_matrix);
-		m_shader->uniform("uProjectionMatrix", m_camera.get_proj_matrix());
+		m_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * m_model_matrix);
+		m_shader->uniform("u_projection_matrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);
 	};
-
-	// Member variables
-	GLuint m_vao { 0 };
-	GLuint m_vbo { 0 };
-	glm::mat4 m_model_matrix{ glm::mat4{1.0f } };
-	Camera m_camera{ glm::vec3{0, 0, 5} };
-	const GLuint m_num_vertices{ 36 };
-	const GLfloat m_normal_length{ 0.5f};
-	const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
-	const GLfloat m_rotation_rate{ 0.001f };
-	const GLfloat m_clear_color[4]{ 0.2f, 0.0f, 0.2f, 1.0f };
-    std::unique_ptr<GlslProgram> m_shader;
-    std::unique_ptr<GlslProgram> m_normal_shader;
 };
 
 int main(int argc, char* argv[])
