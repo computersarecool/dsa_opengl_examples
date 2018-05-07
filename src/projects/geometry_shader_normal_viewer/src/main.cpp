@@ -1,4 +1,4 @@
-﻿// A cube geometry shader which converts faces to lines to show normals
+﻿// This is a cube geometry shader which converts faces to lines to show normals
 
 #include <memory>
 #include <vector>

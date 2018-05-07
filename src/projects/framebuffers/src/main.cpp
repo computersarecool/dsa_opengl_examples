@@ -1,4 +1,4 @@
-﻿// Rendering to a texture using FBOs
+﻿// This renders to a texture using and FBO
 
 #include <memory>
 #include <vector>

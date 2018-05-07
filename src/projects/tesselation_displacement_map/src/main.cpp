@@ -1,4 +1,4 @@
-﻿// An example that uses a displacment map to offset vertices and tesselation
+﻿// This uses a displacment map to offset vertices and tesselation
 // This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
 // Interactivity: `w` key toggles showing wireframe
 

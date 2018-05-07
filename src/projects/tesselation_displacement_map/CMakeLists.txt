@@ -1,5 +1,5 @@
 # Name for this project
-set(PROJECT_NAME "tesselation_displacement")
+set(PROJECT_NAME "tesselation_displacement_map")
 
 # Choose the library for the final build
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME})

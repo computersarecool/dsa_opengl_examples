@@ -1,4 +1,4 @@
-﻿// A simple point sprite example
+﻿// This is a very simple point sprite example
 
 #include <iostream>
 #include <memory>

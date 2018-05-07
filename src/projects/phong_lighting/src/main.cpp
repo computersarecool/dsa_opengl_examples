@@ -1,4 +1,4 @@
-// Phong lighting example
+// This is a Phong lighting example
 // Interactivity: This implements cursor lock to control camera position
 // Mouse wheel to move forward / black
 

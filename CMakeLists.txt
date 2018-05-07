@@ -49,11 +49,11 @@ add_subdirectory(${PROJECTS_DIR}/tesselation)
 add_subdirectory(${PROJECTS_DIR}/tesselation_displacement_map)
 add_subdirectory(${PROJECTS_DIR}/transform_feedback)
 add_subdirectory(${PROJECTS_DIR}/geometry_shader)
-add_subdirectory(${PROJECTS_DIR}/geometry_shader_normals)
+add_subdirectory(${PROJECTS_DIR}/geometry_shader_normal_viewer)
 add_subdirectory(${PROJECTS_DIR}/framebuffers)
 add_subdirectory(${PROJECTS_DIR}/read_pixels)
 add_subdirectory(${PROJECTS_DIR}/point_sprites)
-add_subdirectory(${PROJECTS_DIR}/lighting)
+add_subdirectory(${PROJECTS_DIR}/phong_lighting)
 add_subdirectory(${PROJECTS_DIR}/raytracer)
 
 # Create a variable that is set to true and cached after the first configuration

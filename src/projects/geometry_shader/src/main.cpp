@@ -1,4 +1,4 @@
-﻿// Passthrough geometry shader
+﻿// This is a pass through geometry shader
 
 #include <memory>
 #include <vector>

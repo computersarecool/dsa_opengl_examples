@@ -1,5 +1,5 @@
 ﻿// This compares the various tesselation spacing options
-// Interactivity: Up arrow increases tesselation, down arrow decreases tesselation
+// Interactivity: The up arrow increases tesselation, down arrow decreases tesselation
 
 #include <iostream>
 #include <memory>
