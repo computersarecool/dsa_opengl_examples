@@ -31,8 +31,11 @@ This is a rotating cube with model-space positions as colors
   
 #### multiple_attributes_and_buffers
 This uses mapped buffers to upload data
+
 The buffer backing the VAO is switched to change vertex data quickly
+
 The attribute binding could also be switched to change the vertex data quickly
+
 Interactivity: The spacebar toggles which buffer backs the active VAO 
   
 #### compute_shader
@@ -40,24 +43,30 @@ This renders a cube to an FBO then uses a compute shader to invert that image
   
 #### texture
 This loads an image in the S3TC format
+
 It checks to make sure it is compressed and gets the compressed size
 
 #### texture_array
 This loads a jpeg image and stores it in the S3TC compressed format
+
 It checks that it is compressed and gets the compressed size
 
 #### tesselation
 This compares the various tesselation spacing options
+
 Interactivity: The up arrow increases tesselation, down arrow decreases tesselationThis compares the var
   
 #### tesselation_displacement_map
 This uses a displacment map to offset vertices and tesselation
+
 This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
+
 Interactivity: `w` key toggles showing wireframeThis uses a displacment map to offset vertices and tesselation
   
 #### transform_feedback
 This calculates the square root of some values and reads it back with transform feedback
-There is no graphical outputNo image is output
+
+There is no graphical output
 
 #### geometry_shader
 This is a pass through geometry shader
@@ -70,7 +79,9 @@ This renders to a texture using and FBO
   
 #### read_pixels
 This uses glReadnPixels a safer version of glReadPixels and mapped Pixel Buffer Objects to improve performance
+
 It saves the rendered image as a .tga file
+
 Interactivity: Press spacebar to take a screenshot
 
 #### point_sprites
@@ -78,7 +89,9 @@ This is a very simple point sprite example
   
 #### phong_lighting
 This is a Phong lighting example
+
 Interactivity: This implements cursor lock to control camera position
+
 Mouse wheel to move forward / black
 
 #### raytracer
