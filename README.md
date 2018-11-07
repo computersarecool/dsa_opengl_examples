@@ -2,7 +2,8 @@
 *Examples of DSA OpenGL*
 
 ## Description
-These are a collection of examples of modern OpenGL and Direct Sate Access (DSA).
+These are a collection of examples of modern OpenGL using Direct Sate Access (DSA).
+They are mostly API examples but some have interesting graphical output.
 
 ## Tested On
 - Linux
@@ -10,13 +11,15 @@ These are a collection of examples of modern OpenGL and Direct Sate Access (DSA)
 
 ## To Build
 This project uses [Git LFS](https://git-lfs.github.com/) for assets and CMAKE to build
-- Update all the submodules with: `git submodule update --init --recursive`
+- From the root of this project update all the submodules with: `git submodule update --init --recursive`
 - `cd` into the `build` directory and type: `cmake -G "${GENERATOR_TYPE}"`
-Note: The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 2017 Win64` as Clion reads the CMAKE file directly
+
+NOTE: The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 2017 Win64` as Clion reads the CMAKE file directly
 
 ## To Use
-- Run the individual examples after building. 
-Note: Paths to assets are relative and expect your current working directory to be where the binary is (i.e. `/bin/basic_cube/Debug`)
+- Build and run the individual examples
+
+NOTE: Paths to assets are relative and expect your current working directory to be where the binary is (i.e. `/bin/basic_cube/Debug`)
 
 ## Project Structure
 - `bin`: This is where the final binary applications are put
@@ -24,11 +27,17 @@ Note: Paths to assets are relative and expect your current working directory to 
 - `include`: This includes headers from this project and third parties
 - `src`: This holds the source code for these examples
 
+There are three classes used in the examples: `Application`, `Camera` and `Glslprogram`.  
+These provided basic needed functionality.
+
 ## Functionality
+
+#### base_app
+This is an abstract base class and should be ignored
 
 #### basic_cube
 This is a rotating cube with model-space positions as colors
-  
+
 #### multiple_attributes_and_buffers
 This uses mapped buffers to upload data
 
@@ -86,7 +95,7 @@ Interactivity: Press spacebar to take a screenshot
 
 #### point_sprites
 This is a very simple point sprite example
-  
+
 #### phong_lighting
 This is a Phong lighting example
 
@@ -97,7 +106,7 @@ Mouse wheel to move forward / black
 #### raytracer
 A raytracer
 
-## Extra Notes
+## Extra NOTEs
 - To use these examples your graphics card must support at least OpenGL 4.5
 
 ### License

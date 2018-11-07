@@ -45,7 +45,7 @@ void Application::init()
 	glfwSetWindowUserPointer(m_window, this);
 	glfwSetInputMode(m_window, GLFW_CURSOR, m_info.cursor);
 
-	// Define GLFW Callbacks
+	// Define GLFW interaction callbacks
 	auto glfw_on_resize = [](GLFWwindow* w, int width, int height)
 	{
 		static_cast<Application*>(glfwGetWindowUserPointer(w))->on_resize(width, height);
@@ -71,7 +71,7 @@ void Application::init()
 		static_cast<Application*>(glfwGetWindowUserPointer(w))->on_mouse_wheel(x_offset, y_offset);
 	};
 
-	// Set GLFW Callbacks
+	// Set GLFW callbacks
 	glfwSetWindowSizeCallback(m_window, glfw_on_resize);
 	glfwSetKeyCallback(m_window, glfw_on_key);
 	glfwSetMouseButtonCallback(m_window, glfw_on_mouse_button);

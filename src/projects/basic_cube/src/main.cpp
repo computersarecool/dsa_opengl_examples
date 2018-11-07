@@ -57,23 +57,25 @@ static const GLfloat cube_vertices[]{
 class BasicCubeExample : public Application
 {
 private:
-    GLuint m_vao;
-    GLuint m_vbo;
+    GLuint m_vao{ 0 };
+    GLuint m_vbo{ 0 };
     std::unique_ptr<GlslProgram> m_shader;
     Camera m_camera{ glm::vec3{0, 0, 5} };
     const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
     const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
+    const std::string m_model_view_matrix_name = "u_model_view_matrix";
+    const std::string m_projection_matrix_name = "u_projection_matrix";
 
-    virtual void set_info() override
+    void set_info() override
     {
         Application::set_info();
         m_info.title = "Basic cube example";
     }
 
-    virtual void setup() override
+    void setup() override
     {
         // Set and use shader
-        m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") });
+        m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag"));
         m_shader->introspect();
         m_shader->use();
 
@@ -126,18 +128,18 @@ private:
         glDepthFunc(GL_LEQUAL);
     }
 
-    virtual void render(double current_time) override
+    void render(double current_time) override
     {
         // Set default framebuffer parameters
         glViewport(0, 0, m_info.window_width, m_info.window_height);
         glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
-        glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
-        
+        glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0, 0);
+
         // Set uniforms and draw cube
         glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
         model_matrix = glm::rotate(model_matrix, static_cast<float>(current_time), m_world_up);
-        m_shader->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix);
-        m_shader->uniform("u_projection_matrix", m_camera.get_proj_matrix());
+        m_shader->uniform(m_model_view_matrix_name, m_camera.get_view_matrix() * model_matrix);
+        m_shader->uniform(m_projection_matrix_name, m_camera.get_proj_matrix());
         glDrawArrays(GL_TRIANGLES, 0, sizeof(cube_vertices) / sizeof(*cube_vertices));
     };
 };
