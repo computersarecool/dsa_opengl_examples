@@ -5,6 +5,12 @@
 These are a collection of examples of modern OpenGL using Direct Sate Access (DSA).
 They are mostly API examples but some have interesting graphical output.
 
+### Dependencies
+- [GLM](https://github.com/g-truc/glm) (For math)
+- [GLFW](https://github.com/glfw/glfw) (For window creation)
+- [GLAD](https://github.com/Dav1dde/gladhttps://github.com/Dav1dde/glad) (For Opengl function loading)
+- [STB](https://github.com/nothings/stb) (For image loading)
+
 ## Tested On
 - Linux
 - Windows
