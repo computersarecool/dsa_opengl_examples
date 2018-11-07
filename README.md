@@ -112,7 +112,7 @@ Mouse wheel to move forward / black
 #### raytracer
 A raytracer
 
-## Extra NOTEs
+## Extra notes
 - To use these examples your graphics card must support at least OpenGL 4.5
 
 ### License
