@@ -93,7 +93,7 @@ This is a cube geometry shader which converts faces to lines to show normals
 This renders to a texture using and FBO
   
 #### read_pixels
-This uses glReadnPixels a safer version of glReadPixels and mapped Pixel Buffer Objects to improve performance
+This uses glReadnPixels and mapped Pixel Buffer Objects (to improve performance)
 
 It saves the rendered image as a .tga file
 
