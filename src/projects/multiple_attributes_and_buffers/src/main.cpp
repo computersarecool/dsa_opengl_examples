@@ -35,7 +35,7 @@ static const GLfloat vertices2[]{
 class MultipleAttributeExample : public Application
 {
 private:
-    GLuint m_vao;
+    GLuint m_vao { 0 };
     const GLuint m_attrib_stride{ sizeof(GLfloat) * 6 };
 	const GLuint m_attrib_offset{ 0 };
 	const GLuint m_attrib_binding_index{ 0 };
@@ -43,7 +43,8 @@ private:
     const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
 	std::vector<GLuint> m_buffers{ 0, 0 };
 	std::unique_ptr<GlslProgram> m_shader;
-	virtual void on_key(int key, int action) override
+
+	void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 
@@ -63,10 +64,11 @@ private:
         }
 	}
 
-	virtual void setup() override
+	void setup() override
 	{
 		// Create shader
-		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag")});
+		m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag"));
+		m_shader->use();
 
 		// Create buffers, map them, upload data, unmap them
 		const GLuint flags{ 0 };
@@ -123,14 +125,13 @@ private:
 		glVertexArrayVertexBuffer(m_vao, m_attrib_binding_index, m_buffers[0], m_attrib_offset, m_attrib_stride);
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		// Render code
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
 		glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
 
-		m_shader->use();
 		glBindVertexArray(m_vao);
 		glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / sizeof(*vertices));
 	};

@@ -65,8 +65,8 @@ const GLfloat cube_vertices[] {
 class GeometryShaderExample : public Application
 {
 private:
-	GLuint m_vao;
-	GLuint m_vbo;
+	GLuint m_vao{ 0 };
+	GLuint m_vbo{ 0 };
 	glm::mat4 m_model_matrix{ glm::mat4{1.0f } };
 	Camera m_camera{ glm::vec3{0, 0, 5} };
 	const GLuint m_num_vertices{ 36 };
@@ -77,17 +77,17 @@ private:
 	std::unique_ptr<GlslProgram> m_shader;
 	std::unique_ptr<GlslProgram> m_normal_shader;
 
-	virtual void set_info() override
+	void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Geometry shader example";
 	}
 
-	virtual void setup() override
+	void setup() override
 	{
 		// Create shaders
-		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
-		m_normal_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/normal_viewer.vert").fragment("../assets/shaders/normal_viewer.frag").geometry("../assets/shaders/normal_viewer.geom")});
+		m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag"));
+		m_normal_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/normal_viewer.vert").fragment("../assets/shaders/normal_viewer.frag").geometry("../assets/shaders/normal_viewer.geom"));
 
 		// Cube position vertex attribute parameters
         const GLuint elements_per_face{ 6 };
@@ -135,7 +135,7 @@ private:
 		glDepthFunc(GL_LEQUAL);
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);

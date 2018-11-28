@@ -26,9 +26,9 @@ class TransformFeedbackExample : public Application
 {
 private:
 
-	GLuint m_vao;
-	GLuint m_vbo;
-	GLuint m_tbo;
+	GLuint m_vao{ 0 };
+	GLuint m_vbo{ 0 };
+	GLuint m_tbo{ 0 };
 	GLfloat m_data[5]{ 1.0f, 2.0f, 3.0f, 4.0f, 5.0f };
 	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
 
@@ -68,7 +68,7 @@ private:
         return program;
     }
 
-	virtual void setup() override
+	void setup() override
 	{
         GLuint program = create_shader_program();
 		glUseProgram(program);

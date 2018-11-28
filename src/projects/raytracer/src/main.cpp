@@ -1,5 +1,4 @@
 ﻿// A raytracer
-// TODO: Make fullscreen quads separable programs
 
 #include <memory>
 #include <vector>
@@ -15,7 +14,7 @@ class RayTracer : public Application
 {
 private:
 	// UBO structs
-	// These use `alignas` to avoid padding
+	// These use `alignas` to avoid needing to pad the structs
 	struct alignas(16) sphere
 	{
 		glm::vec4 center;
@@ -23,19 +22,19 @@ private:
 		float radius;
 	};
 
+	struct alignas(16) plane
+	{
+		glm::vec4 normal;
+		glm::vec4 center;
+		glm::vec4 color;
+	};
+
 	struct light
 	{
 		glm::vec4 center;
 	};
 
-	struct alignas(16) plane
-	{
-        glm::vec4 normal;
-        glm::vec4 center;
-        glm::vec4 color;
-	};
-
-    // Spheres (positions, colors, radii)
+    // Spheres random (positions, colors, radii)
     std::vector<sphere> m_spheres{
         {
             glm::vec4{ 0 },
@@ -110,12 +109,12 @@ private:
     const GLuint m_light_ubo_binding_index{ 2 };
 
 	// UBO handles
-	GLuint m_light_buffer;
-	GLuint m_sphere_buffer;
-	GLuint m_plane_buffer;
+	GLuint m_light_buffer{ 0 };
+	GLuint m_sphere_buffer{ 0 };
+	GLuint m_plane_buffer{ 0 };
 
 	// FBO texture handles
-	GLuint m_composite_texture;
+	GLuint m_composite_texture{ 0 };
 	GLuint m_ray_origin_texture[m_max_recursion_depth];
 	GLuint m_ray_direction_texture[m_max_recursion_depth];
 	GLuint m_ray_reflection_color_texture[m_max_recursion_depth];
@@ -129,11 +128,11 @@ private:
     glm::vec3 m_view_position{ glm::vec3{ 0, 0, 5 } };
     Camera m_camera{ m_view_position };
 
-	// Other OpenGL objects
-	GLuint m_vao;
-    GLuint m_sampler;
-    GLsync m_sync_object;
-    sphere* m_sphere_ptr;
+	// Other OpenGL handles
+	GLuint m_vao{ 0 };
+    GLuint m_sampler{ 0 };
+    GLsync m_sync_object{ nullptr };
+    sphere* m_sphere_ptr{ nullptr };
 
     // Make sure there is an FBO for every recursion level
     std::vector<GLuint> m_ray_fbos { std::vector<GLuint>(m_max_recursion_depth) };
@@ -143,6 +142,9 @@ private:
         GL_COLOR_ATTACHMENT2,
         GL_COLOR_ATTACHMENT3
     };
+
+    // Other member variables
+    const float m_time_divisor{ 2.0 };
 
     void lock_buffer()
     {
@@ -154,18 +156,18 @@ private:
         m_sync_object = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     }
 
-	virtual void set_info() override
+    void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Raytracer example";
 	}
 
-	virtual void setup() override
+	void setup() override
 	{
 		// Load shaders
-		m_prepare_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/trace_prepare.vert").fragment("../assets/shaders/trace_prepare.frag") });
-		m_trace_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/raytracer.vert").fragment("../assets/shaders/raytracer.frag") });
-		m_blit_program.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/blit.vert").fragment("../assets/shaders/blit.frag") });
+		m_prepare_program = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/trace_prepare.vert").fragment("../assets/shaders/trace_prepare.frag"));
+		m_trace_program = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/raytracer.vert").fragment("../assets/shaders/raytracer.frag"));
+		m_blit_program = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/blit.vert").fragment("../assets/shaders/blit.frag"));
 
 		// Create buffers and bind UBOs
 		glCreateBuffers(1, &m_sphere_buffer);
@@ -239,16 +241,17 @@ private:
         }
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
         // Wait until GPU is done with buffer
         glClientWaitSync(m_sync_object, GL_SYNC_FLUSH_COMMANDS_BIT, 1);
 
         // Update sphere position data
-        // This could be done with a uniform
-		auto sphere_x_offset { static_cast<float>(cos(current_time)) / 2.0f };
+        // Normally this would be could be done with a uniform but it is good practice with mapped buffers
+		auto sphere_x_offset { static_cast<float>(cos(current_time)) / m_time_divisor };
         for (int index{ 0 }; index < m_spheres.size(); ++index)
 		{
+        	// The numbers here are offsets for the spheres
             float sphere_x { static_cast<float>(index) / m_spheres.size() * 4.5f - 1.25f };
 
             m_sphere_ptr[index].center = glm::vec4{ sphere_x + sphere_x_offset, -1, -5, 0 };

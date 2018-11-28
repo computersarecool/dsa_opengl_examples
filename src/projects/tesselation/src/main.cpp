@@ -26,8 +26,8 @@ static const GLfloat triangle_vertices[]{
 class TesselationExample : public Application
 {
 private:
-	GLuint m_vao;
-	GLuint m_vbo;
+	GLuint m_vao{ 0 };
+	GLuint m_vbo{ 0 };
 	GLuint m_vertices_per_face{ 3 };
 	GLuint m_vertices_per_patch{ 3 };
 	GLfloat m_tess_increment{ 0.05f };
@@ -39,7 +39,7 @@ private:
 	std::unique_ptr<GlslProgram> m_shader_two;
 	std::unique_ptr<GlslProgram> m_shader_three;
 
-	virtual void on_key(int key, int action) override
+	void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 
@@ -53,20 +53,20 @@ private:
 		}
 	}
 
-	virtual void set_info() override
+	void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Tesselation Example";
 	}
 
-	virtual void setup() override
+	void setup() override
 	{
 		glGetIntegerv(GL_MAX_TESS_GEN_LEVEL, &m_max_tess_level);
 
 		// Create shaders
-		m_shader_one.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader.tese") });
-		m_shader_two.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader2.tese") });
-		m_shader_three.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader3.tese") });
+		m_shader_one = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader.tese"));
+		m_shader_two = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader2.tese"));
+		m_shader_three = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/shader.vert").fragment("../assets/shaders/shader.frag").tess_control("../assets/shaders/shader.tesc").tess_eval("../assets/shaders/shader3.tese"));
 
 		// Vertex attribute parameters
 		const GLuint position_index{ 0 };
@@ -97,7 +97,7 @@ private:
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());

@@ -62,8 +62,8 @@ private:
     std::unique_ptr<GlslProgram> m_shader;
     Camera m_camera{ glm::vec3{0, 0, 5} };
     const glm::vec3 m_world_up{ glm::vec3{ 0, 1, 0 } };
-    const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
-    const std::string m_cube_mv_matrix_name= "u_model_view_matrix";
+    const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
+    const std::string m_cube_mv_matrix_name = "u_model_view_matrix";
     const std::string m_cube_projection_matrix_name = "u_projection_matrix";
 
     void set_info() override

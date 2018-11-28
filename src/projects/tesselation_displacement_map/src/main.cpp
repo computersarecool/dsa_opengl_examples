@@ -28,20 +28,20 @@ private:
 	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
 	const GLfloat displace_weight{ 6.0 };
 	Camera m_camera;
-	glm::mat4 view_matrix;
-	glm::mat4 proj_matrix;
-	GLuint m_vao;
-	GLuint m_displacement_texture;
-	GLuint m_color_texture;
+	glm::mat4 view_matrix{ 1.0 };
+	glm::mat4 proj_matrix{ 1.0 };
+	GLuint m_vao{ 0 };
+	GLuint m_displacement_texture{ 0 };
+	GLuint m_color_texture{ 0 };
 	std::unique_ptr<GlslProgram> m_shader;
 
-	virtual void set_info() override
+	void set_info() override
 	{
 		Application::set_info();	
 		m_info.title = "Tesselation Displacement Map";
 	}
 
-	virtual void on_key(int key, int action) override
+	void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 		if (key == GLFW_KEY_W && action == GLFW_PRESS)
@@ -50,10 +50,10 @@ private:
 		}
 	}
 
-	virtual void setup() override
+	void setup() override
 	{
 		// Create shader
-		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/terrain_disp.vert").fragment("../assets/shaders/terrain_disp.frag").tess_control("../assets/shaders/terrain_disp.tesc").tess_eval("../assets/shaders/terrain_disp.tese")});
+		m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/terrain_disp.vert").fragment("../assets/shaders/terrain_disp.frag").tess_control("../assets/shaders/terrain_disp.tesc").tess_eval("../assets/shaders/terrain_disp.tese"));
 
 		// Create and bind a VAO
 		glCreateVertexArrays(1, &m_vao);
@@ -106,7 +106,7 @@ private:
 		stbi_image_free(color_map_data);		
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		// Set OpenGL state
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
@@ -127,7 +127,7 @@ private:
 		}
 
 		// Move camera position over time
-		// The numbers here just offset the camera position over time
+		// The numbers here offset the camera position arbitrarily over time
 		m_slow_time = static_cast<GLfloat>(current_time) * m_time_divisor;
 		m_camera_rotation_value = sinf(m_slow_time * 5.0f) * 15.0f;
 		m_camera_y_value = cosf(m_slow_time * 5.0f) + 5.0f;

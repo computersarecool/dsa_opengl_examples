@@ -15,8 +15,9 @@ void main()
   };
 
   vec2 position = positions[gl_VertexID].xy;
-  // Flip image Y coordinate
-  vs_out.uv = vec2(0.0, 1.0) - position + 0.5;
+  vec2 uvs = vec2(0.0, 1.0) - position + 0.5;
+  uvs.x = 1.0 - uvs.x;
+  vs_out.uv = uvs;
 
   gl_Position = vec4(position, 0.0, 1.0);
 }
