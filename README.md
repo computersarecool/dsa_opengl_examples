@@ -17,7 +17,7 @@ A very small amount of redundant code was abstracted in the `base_app` class. Th
 Most of the examples in this project are API examples with limited graphical output, but there is some interesting graphical output.
 
 <p align="center">
-  <img src="https://i.imgur.com/PRn5OeT.png" title="Raytracer example" />
+  <img src="https://i.imgur.com/PRn5OeT.png?2" title="Raytracer example" />
 </p>
 
 ### Dependencies
