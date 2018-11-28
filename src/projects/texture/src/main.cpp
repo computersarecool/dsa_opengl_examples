@@ -14,18 +14,18 @@
 class TextureArrayExample : public Application
 {
 private:
-	GLuint m_vao;
-	GLuint m_texture;
-	GLint m_is_image_compressed;
-	GLint m_image_compressed_size;
+	GLuint m_vao{ 0 };
+	GLuint m_texture{ 0 };
+	GLint m_is_image_compressed{ 0 };
+	GLint m_image_compressed_size{ 0 };
 	const std::string m_image_path{ "../assets/images/0.jpg" };
 	const std::vector<GLfloat> m_clear_color { 0.2f, 0.0f, 0.2f, 1.0f };
 	std::unique_ptr<GlslProgram> m_shader;
 
-	virtual void setup() override
+	void setup() override
 	{
 		// Set and use shader
-		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("../assets/shaders/simple_quad.frag") });
+		m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/simple_quad.vert").fragment("../assets/shaders/simple_quad.frag"));
 		m_shader->use();
 
 		// Create and bind a VAO
@@ -69,7 +69,7 @@ private:
 		glBindTextureUnit(0, m_texture);
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());

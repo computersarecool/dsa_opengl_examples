@@ -2,8 +2,20 @@
 *Examples of DSA OpenGL*
 
 ## Description
-These are a collection of examples of modern OpenGL using Direct Sate Access (DSA).
-They are mostly API examples but some have interesting graphical output.
+The evolution of OpenGL basically goes like this:
+Immediate mode -> Modern OpenGL (3.0+) -> Direct State Access -> Vulkan
+After some exploration into graphics APIs, I found Direct State Access to provide a nice balance between verbosity and control.
+Early OpenGL does not provide enough control to the user, but Vulkan can make getting started with graphics very intimidating.
+
+For instance the full screen quads in the Raytracer demo could be separable programs.
+
+A very small amount of redundant code was abstracted in the `base_app` class. This takes care of loading shaders and setting up a window.
+
+Most of the examples in this project are API examples, but the following show graphics concepts as well.
+- Phong Lighting
+- Raytracer
+
+[Spec](https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_direct_state_access.txt)
 
 ### Dependencies
 - [GLM](https://github.com/g-truc/glm) (math)
@@ -41,7 +53,7 @@ These provided basic needed functionality.
 ## Functionality
 
 #### base_app
-This is an abstract base class and should be ignored
+This is an abstract base class used in the examples but it has no graphical output
 
 #### basic_cube
 This is a rotating cube with model-space positions as colors

@@ -70,6 +70,7 @@ private:
 	bool m_first_mouse{ true };
 	double m_last_x{ m_info.window_width / 2.0f };
 	double m_last_y{ m_info.window_height / 2.0f };
+	const float model_scale { 0.2 };
 	const int m_num_vertices{ 36 };
 	Camera m_camera{ glm::vec3{ 0.0f, 0.0f, 3.0f } };
 	const std::vector<GLfloat> m_clear_color{ 0.2f, 0.0f, 0.2f, 1.0f };
@@ -84,25 +85,25 @@ private:
 	const glm::vec3 m_shadow_color{ 0.0f };
 	const GLfloat m_shadow_strength{ 0.0f };
 	const GLfloat m_shininess{ 100.0 };
-	float m_delta_time;
-	glm::mat4 m_model_matrix;
-	glm::mat4 m_view_matrix;
-	glm::mat4 m_projection_matrix;
-	glm::mat3 m_normal_matrix;
-	GLuint  m_cube_vao;
-	GLuint m_lamp_vao;
-	GLuint m_cube_vbo;
+	float m_delta_time { 0.0 };
+	glm::mat4 m_model_matrix{ 1.0 };
+	glm::mat4 m_view_matrix{ 1.0 };
+	glm::mat4 m_projection_matrix{ 1.0 };
+	glm::mat3 m_normal_matrix{ 1.0 };
+	GLuint  m_cube_vao{ 0 };
+	GLuint m_lamp_vao{ 0 };
+	GLuint m_cube_vbo{ 0 };
 	std::unique_ptr<GlslProgram> m_lamp_shader;
 	std::unique_ptr<GlslProgram> m_cube_shader;
 
-    virtual void set_info() override
+	void set_info() override
     {
         Application::set_info();
         m_info.cursor = GLFW_CURSOR_DISABLED;
         m_info.title = "Phong lighting example";
     }
 
-	virtual void on_key(int key, int action) override
+    void on_key(int key, int action) override
 	{
 		Application::on_key(key, action);
 
@@ -119,7 +120,7 @@ private:
 			m_camera.process_keyboard(Camera_Movement::RIGHT, m_delta_time);
 	}
 
-	virtual void on_mouse_move(double x_pos, double y_pos) override
+	void on_mouse_move(double x_pos, double y_pos) override
 	{
 		// Avoid initial jump movement
 		if (m_first_mouse)
@@ -137,16 +138,16 @@ private:
 		m_last_y = y_pos;
 	}
 
-	virtual void on_mouse_wheel(GLdouble x_offset, GLdouble  y_offset)
+	void on_mouse_wheel(GLdouble x_offset, GLdouble  y_offset) override
 	{
 		m_camera.process_mouse_scroll(static_cast<float>(y_offset));
 	}
 
-	virtual void setup() override
+	void setup() override
 	{
 		// Create shaders
-        m_cube_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/phong.vert").fragment("../assets/shaders/phong.frag")});
-		m_lamp_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/lamp.vert").fragment("../assets/shaders/lamp.frag")});
+        m_cube_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/phong.vert").fragment("../assets/shaders/phong.frag"));
+		m_lamp_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/lamp.vert").fragment("../assets/shaders/lamp.frag"));
 
 		// Create the cube shape VBO (this is used for both the cube and lamp)
 		const GLuint flags{ 0 };
@@ -223,7 +224,8 @@ private:
 		}
 
 		// Generate OpenGL textures
-		GLuint box_textures[2];
+		const int num_box_textures{ 2 };
+		GLuint box_textures[num_box_textures];
 		const GLuint diffuse_map_index{ 0 };
 		const GLuint specular_map_index{ 1 };
 		GLint diffuse_map_size;
@@ -232,7 +234,7 @@ private:
 		GLint level_to_load = 0;
 		GLint y_offset = 0;
 		GLint x_offset = 0;
-		glCreateTextures(GL_TEXTURE_2D, 2, box_textures);
+		glCreateTextures(GL_TEXTURE_2D, num_box_textures, box_textures);
 		glTextureStorage2D(box_textures[diffuse_map_index], levels, GL_RGB8, diffuse_width, diffuse_height);
 		glTextureStorage2D(box_textures[specular_map_index], levels, GL_RGB8, diffuse_width, diffuse_height);
 		glTextureSubImage2D(box_textures[diffuse_map_index], level_to_load, x_offset, y_offset, diffuse_width, diffuse_height, GL_RGB, GL_UNSIGNED_BYTE, diffuse_data);
@@ -246,7 +248,7 @@ private:
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		glViewport(0, 0, m_info.window_width, m_info.window_height);
 		glClearBufferfv(GL_COLOR, 0, m_clear_color.data());
@@ -293,7 +295,7 @@ private:
         // Calculate uniforms
 		m_model_matrix = glm::mat4{ 1.0f };
 		m_model_matrix = glm::translate(m_model_matrix, m_light_pos);
-		m_model_matrix = glm::scale(m_model_matrix, glm::vec3{ 0.2f });
+		m_model_matrix = glm::scale(m_model_matrix, glm::vec3{ model_scale });
 
         // Set uniforms
 		m_lamp_shader->uniform("u_model_matrix", m_model_matrix);

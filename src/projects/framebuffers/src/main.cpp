@@ -58,11 +58,12 @@ const GLfloat cube_vertices[]{
 class FboExample : public Application
 {
 private:
-	GLuint m_vao;
-	GLuint m_vbo;
-	GLuint m_fbo;
-	GLuint m_color_buffer_texture;
-	GLuint m_depth_buffer_texture;
+	GLuint m_vao { 0 };
+	GLuint m_vbo{ 0 };
+	GLuint m_fbo{ 0 };
+	GLuint m_color_buffer_texture{ 0 };
+	GLuint m_depth_buffer_texture{ 0 };
+	const float m_time_divisor { 2.0 };
 	const GLuint m_fbo_width_height{ 800 };
 	const GLuint m_num_vertices{ 36 };
 	const GLfloat m_depth_reset_val{ 1.0f };
@@ -72,11 +73,11 @@ private:
 	std::unique_ptr<GlslProgram> m_shader;
 	std::unique_ptr<GlslProgram> m_shader2;
 
-	virtual void setup() override
+	void setup() override
 	{
 		// Create shaders
-		m_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag")});
-		m_shader2.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube2.vert").fragment("../assets/shaders/cube2.frag")});
+		m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag"));
+		m_shader2 = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube2.vert").fragment("../assets/shaders/cube2.frag"));
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 5 };
@@ -146,7 +147,7 @@ private:
         glDepthFunc(GL_LEQUAL);
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		// Bind the member FBO
 		glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
@@ -172,7 +173,7 @@ private:
 		// Set uniforms and render textured cube
 		m_shader2->use();
 		model_matrix = glm::mat4{ 1.0f };
-		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time / 2.0), m_world_up);
+		model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time / m_time_divisor), m_world_up);
 		m_shader2->uniform("u_model_view_matrix", m_camera.get_view_matrix() * model_matrix);
 		m_shader2->uniform("u_projection_matrix", m_camera.get_proj_matrix());
 		glDrawArrays(GL_TRIANGLES, 0, m_num_vertices);

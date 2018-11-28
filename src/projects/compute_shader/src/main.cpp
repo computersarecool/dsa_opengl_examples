@@ -59,13 +59,13 @@ static const GLfloat cube_vertices[]{
 class ComputeShaderExample : public Application
 {
 private:
-	GLuint m_cube_vao;
-	GLuint m_full_screen_quad_vao;
-	GLuint m_cube_vbo;
-	GLuint m_src_fbo;
-	GLuint m_color_texture;
-	GLuint m_depth_texture;
-	GLuint m_second_color_texture;
+	GLuint m_cube_vao{ 0 };
+	GLuint m_full_screen_quad_vao{ 0 };
+	GLuint m_cube_vbo{ 0 };
+	GLuint m_src_fbo{ 0 };
+	GLuint m_color_texture{ 0 };
+	GLuint m_depth_texture{ 0 };
+	GLuint m_second_color_texture{ 0 };
 	Camera m_camera{ glm::vec3{ 0, 0, 5 } };
 	const GLuint m_vertices_per_cube{ sizeof(cube_vertices) / sizeof(*cube_vertices) };
 	const int m_number_cubes{ 9 };
@@ -75,8 +75,9 @@ private:
 	std::unique_ptr<GlslProgram> m_cube_shader;
 	std::unique_ptr<GlslProgram> m_full_screen_quad_shader;
 	std::unique_ptr<GlslProgram> m_compute_shader;
+	const int m_workgroup_divisor { 32 };
 
-	virtual void set_info() override
+	void set_info() override
 	{
 		Application::set_info();
 		m_info.title = "Compute shader example";
@@ -84,9 +85,9 @@ private:
 
 	void load_shaders()
 	{
-		m_cube_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag") });
-		m_full_screen_quad_shader.reset(new GlslProgram{ GlslProgram::Format().vertex("../assets/shaders/full_screen_quad.vert").fragment("../assets/shaders/full_screen_quad.frag") });
-		m_compute_shader.reset(new GlslProgram{ GlslProgram::Format().compute("../assets/shaders/shader.comp") });
+		m_cube_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag"));
+		m_full_screen_quad_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/full_screen_quad.vert").fragment("../assets/shaders/full_screen_quad.frag"));
+		m_compute_shader = std::make_unique<GlslProgram>(GlslProgram::Format().compute("../assets/shaders/shader.comp"));
 	}
 
 	void setup_cube()
@@ -141,7 +142,7 @@ private:
 
 		// Create depth texture
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_depth_texture);
-		glTextureStorage2D(m_depth_texture, 10, GL_DEPTH_COMPONENT32F, m_info.window_width, m_info.window_height);
+		glTextureStorage2D(m_depth_texture, 1, GL_DEPTH_COMPONENT32F, m_info.window_width, m_info.window_height);
 		glTextureParameteri(m_depth_texture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTextureParameteri(m_depth_texture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -165,14 +166,14 @@ private:
 		glCreateVertexArrays(1, &m_full_screen_quad_vao);
 	}
 
-	virtual void setup() override
+	void setup() override
 	{
 		load_shaders();
 		setup_cube();
 		setup_textures_and_buffers();
 	}
 
-	virtual void render(double current_time) override
+	void render(double current_time) override
 	{
 		// Draw scene into the src FBO
 		m_cube_shader->use();
@@ -186,6 +187,7 @@ private:
 		for (int index{ 0 }; index != m_number_cubes; ++index)
 		{
 			glm::mat4 model_matrix{ glm::mat4{ 1.0 } };
+			// Numbers here are just to offset each cube
 			model_matrix = glm::translate(model_matrix, glm::vec3{ -1.5, 0, 0 });
 			model_matrix = glm::translate(model_matrix, glm::vec3{index, static_cast<float>(index) / 5, index * -2 });
 			model_matrix = glm::rotate(model_matrix, static_cast<GLfloat>(current_time), m_world_up);
@@ -198,7 +200,7 @@ private:
 		m_compute_shader->use();
 		glBindImageTexture(0, m_color_texture, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
 		glBindImageTexture(1, m_second_color_texture, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
-		glDispatchCompute(static_cast<GLuint>(m_info.window_width / 32), static_cast<GLuint>(m_info.window_height / 32), 1);
+		glDispatchCompute(static_cast<GLuint>(m_info.window_width / m_workgroup_divisor), static_cast<GLuint>(m_info.window_height / m_workgroup_divisor), 1);
 
 		// Draw full screen quad
 		m_full_screen_quad_shader->use();
