@@ -3,19 +3,22 @@
 
 ## Description
 The evolution of OpenGL basically goes like this:
-Immediate mode -> Modern OpenGL (3.0+) -> Direct State Access -> Vulkan
-After some exploration into graphics APIs, I found Direct State Access to provide a nice balance between verbosity and control.
-Early OpenGL does not provide enough control to the user, but Vulkan can make getting started with graphics very intimidating.
+Immediate mode -> Modern OpenGL (3.0+) -> [Direct State Access](https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_direct_state_access.txt) -> Vulkan.
 
-For instance the full screen quads in the Raytracer demo could be separable programs.
+Direct State Access in OpenGL provides a nice balance between verbosity and control. In particular, getting rid of the “state-machine” construct makes programming feel more similar to C++.
+
+Early OpenGL does not provide enough control to the user, but Vulkan can make getting started with graphics very intimidating and prototyping / experimenting with the GPU challenging.
+
+
+The examples contained in this repo examine many, but not all, of the DSA OpenGL techniques, and use almost, but not but not quite, exclusively, use DSA. There is still a lot more to cover.
 
 A very small amount of redundant code was abstracted in the `base_app` class. This takes care of loading shaders and setting up a window.
 
-Most of the examples in this project are API examples, but the following show graphics concepts as well.
-- Phong Lighting
-- Raytracer
+Most of the examples in this project are API examples with limited graphical output, but there is some interesting graphical output.
 
-[Spec](https://www.khronos.org/registry/OpenGL/extensions/EXT/EXT_direct_state_access.txt)
+<p align="center">
+  <img src="https://i.imgur.com/PRn5OeT.png" title="Raytracer example" />
+</p>
 
 ### Dependencies
 - [GLM](https://github.com/g-truc/glm) (math)
@@ -58,6 +61,18 @@ This is an abstract base class used in the examples but it has no graphical outp
 #### basic_cube
 This is a rotating cube with model-space positions as colors
 
+#### compute_shader
+This renders a cube to an FBO then uses a compute shader to invert that image
+
+#### framebuffers
+This renders to a texture using and FBO
+
+#### geometry_shader
+This is a pass through geometry shader
+  
+#### geometry_shader_normal_viewer
+This is a cube geometry shader which converts faces to lines to show normals
+
 #### multiple_attributes_and_buffers
 This uses mapped buffers to upload data
 
@@ -66,10 +81,39 @@ The buffer backing the VAO is switched to change vertex data quickly
 The attribute binding could also be switched to change the vertex data quickly
 
 Interactivity: The spacebar toggles which buffer backs the active VAO 
-  
-#### compute_shader
-This renders a cube to an FBO then uses a compute shader to invert that image
-  
+
+#### phong_lighting
+This is a Phong lighting example
+
+Interactivity: This implements cursor lock to control camera position
+
+Mouse wheel to move forward / black
+
+#### point_sprites
+This is a very simple point sprite example
+
+#### raytracer
+A raytracer
+
+#### read_pixels
+This uses glReadnPixels and mapped Pixel Buffer Objects (to improve performance)
+
+It saves the rendered image as a .tga file
+
+Interactivity: Press spacebar to take a screenshot
+
+#### tesselation
+This compares the various tesselation spacing options
+
+Interactivity: The up arrow increases tesselation, down arrow decreases tesselationThis compares the var
+
+#### tesselation_displacement_map
+This uses a displacment map to offset vertices and tesselation
+
+This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
+
+Interactivity: `w` key toggles showing wireframeThis uses a displacment map to offset vertices and tesselation
+
 #### texture
 This loads an image in the S3TC format
 
@@ -80,51 +124,10 @@ This loads a jpeg image and stores it in the S3TC compressed format
 
 It checks that it is compressed and gets the compressed size
 
-#### tesselation
-This compares the various tesselation spacing options
-
-Interactivity: The up arrow increases tesselation, down arrow decreases tesselationThis compares the var
-  
-#### tesselation_displacement_map
-This uses a displacment map to offset vertices and tesselation
-
-This uses an instanced quad with vertices embedded in the shader (there are no vertex attributes)
-
-Interactivity: `w` key toggles showing wireframeThis uses a displacment map to offset vertices and tesselation
-  
 #### transform_feedback
 This calculates the square root of some values and reads it back with transform feedback
 
 There is no graphical output
-
-#### geometry_shader
-This is a pass through geometry shader
-  
-#### geometry_shader_normal_viewer
-This is a cube geometry shader which converts faces to lines to show normals
-
-#### framebuffers
-This renders to a texture using and FBO
-  
-#### read_pixels
-This uses glReadnPixels and mapped Pixel Buffer Objects (to improve performance)
-
-It saves the rendered image as a .tga file
-
-Interactivity: Press spacebar to take a screenshot
-
-#### point_sprites
-This is a very simple point sprite example
-
-#### phong_lighting
-This is a Phong lighting example
-
-Interactivity: This implements cursor lock to control camera position
-
-Mouse wheel to move forward / black
-
-#### raytracer
-A raytracer
 
 ## Extra notes
 - To use these examples your graphics card must support at least OpenGL 4.5
@@ -134,4 +137,3 @@ A raytracer
 :copyright: Willy Nolan 2018
 
 [MIT License](http://en.wikipedia.org/wiki/MIT_License)
-
