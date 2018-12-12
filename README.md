@@ -10,7 +10,7 @@ Direct State Access in OpenGL provides a nice balance between verbosity and cont
 Early OpenGL does not provide enough control to the user, but Vulkan can make getting started with graphics very intimidating and prototyping / experimenting with the GPU challenging.
 
 
-The examples contained in this repo examine many, but not all, of the DSA OpenGL techniques, and use almost, but not but not quite, exclusively, use DSA. There is still a lot more to cover.
+The examples contained in this repo examine many OpenGL concepts and almost exclusively use DSA techniques. There remains more that could be covered.
 
 A very small amount of redundant code was abstracted in the `base_app` class. This takes care of loading shaders and setting up a window.
 
