@@ -65,7 +65,7 @@ This is a rotating cube with model-space positions as colors
 This renders a cube to an FBO then uses a compute shader to invert that image
 
 #### framebuffers
-This renders to a texture using and FBO
+This renders to a texture using an FBO
 
 #### geometry_shader
 This is a pass through geometry shader
