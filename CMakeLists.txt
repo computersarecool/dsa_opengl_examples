@@ -8,7 +8,7 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   # Wall: Enable all warnings about constructors
   # Wextra: Enable some extra warnings
   # Werror: Treat all warnings as errors
-  #  set(warnings "-Wall -Wextra -Werror")
+  # set(warnings "-Wall -Wextra -Werror")
 elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   # W4: Show the most warnings
   # WX: Treat all warnings as errors
@@ -55,6 +55,7 @@ add_subdirectory(${PROJECTS_DIR}/read_pixels)
 add_subdirectory(${PROJECTS_DIR}/point_sprites)
 add_subdirectory(${PROJECTS_DIR}/phong_lighting)
 add_subdirectory(${PROJECTS_DIR}/raytracer)
+add_subdirectory(${PROJECTS_DIR}/fullscreen_quad)
 
 # Create a variable that is set to true and cached after the first configuration
 set(CONFIGURED_ONCE TRUE CACHE INTERNAL "A flag showing that CMake has configured at least once.")
