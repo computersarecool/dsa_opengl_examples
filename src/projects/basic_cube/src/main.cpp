@@ -75,7 +75,7 @@ private:
     void setup() override
     {
         // Set and use cube shader
-        m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/quad.vert").fragment("../assets/shaders/quad.frag"));
+        m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag"));
         m_shader->introspect();
         m_shader->use();
 

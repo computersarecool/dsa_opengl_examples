@@ -85,7 +85,7 @@ private:
 
 	void load_shaders()
 	{
-		m_cube_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/quad.vert").fragment("../assets/shaders/quad.frag"));
+		m_cube_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag"));
 		m_full_screen_quad_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/full_screen_quad.vert").fragment("../assets/shaders/full_screen_quad.frag"));
 		m_compute_shader = std::make_unique<GlslProgram>(GlslProgram::Format().compute("../assets/shaders/shader.comp"));
 	}

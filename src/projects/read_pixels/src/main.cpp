@@ -169,7 +169,7 @@ private:
         m_data_size = ((m_info.window_width * 3 + 3) & ~3) *  m_info.window_height;
 
 		// Create shader
-        m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/quad.vert").fragment("../assets/shaders/quad.frag"));
+        m_shader = std::make_unique<GlslProgram>(GlslProgram::Format().vertex("../assets/shaders/cube.vert").fragment("../assets/shaders/cube.frag"));
 
 		// Cube vertex attribute parameters
 		const GLuint elements_per_face{ 6 };
