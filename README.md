@@ -42,7 +42,7 @@ NOTE: The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 201
 ## To Use
 - Build and run the individual examples
 
-NOTE: Paths to assets are relative and expect your current working directory to be where the binary is (i.e. `/bin/basic_cube/Debug`)
+NOTE: Asset paths are relative and expect your current working directory to be where the binary is (i.e. relative to `/bin/basic_cube/Debug`)
 
 ## Project Structure
 - `bin`: This is where the final binary applications are put
