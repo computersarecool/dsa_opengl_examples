@@ -1,7 +1,7 @@
 # Set project name
 set(PROJECT_NAME "basic_cube")
 
-# Set directory for the binary
+# Set directory for the build
 set(PROJECT_BUILD_DIR ${CMAKE_SOURCE_DIR}/bin/${PROJECT_NAME})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BUILD_DIR}/$<CONFIG>)
 
@@ -28,7 +28,10 @@ target_link_libraries(${PROJECT_NAME} ${CMAKE_DL_LIBS} glfw ${GLFW_LIBRARIES})
 # Copy resources
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/assets ${PROJECT_BUILD_DIR}/assets)
 
+# Other option
+# file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/assets DESTINATION ${PROJECT_BUILD_DIR}/)
+
+# Set correct CWD
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    # Set correct CWD for debugger
     set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src)
 endif()
