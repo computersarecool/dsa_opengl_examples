@@ -35,14 +35,16 @@ Most of the examples in this project are API examples with limited graphical out
 ## To Build
 This project uses [Git LFS](https://git-lfs.github.com/) for assets and CMAKE to build
 - From the root of this project update all the submodules with: `git submodule update --init --recursive`
-- `cd` into the `build` directory and type: `cmake -G "${GENERATOR_TYPE}"`
+- From the root of this project type `cmake -G ${GENERATOR} -DCMAKE_BUILD_TYPE=Debug`
 
-NOTE: The only `${GENERATOR_TYPE}` that has been tested is `Visual Studio 15 2017 Win64` as Clion reads the CMAKE file directly
+Where `${GENERATOR}` is the platform (i.e. `"Unix Makefiles"`)
 
 ## To Use
 - Build and run the individual examples
 
-NOTE: Asset paths are relative and expect your current working directory to be where the binary is (i.e. relative to `/bin/basic_cube/Debug`)
+NOTE: Asset paths are relative and expect your current working directory to a directory below the assets folder.
+
+i.e. the `basic_cube` example should be run from `/bin/basic_cube/Debug`
 
 ## Project Structure
 - `bin`: This is where the final binary applications are put
