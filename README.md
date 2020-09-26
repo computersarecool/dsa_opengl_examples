@@ -42,7 +42,7 @@ Where `${GENERATOR}` is the platform (i.e. `"Unix Makefiles"`)
 ## To Use
 - Build and run the individual examples
 
-NOTE: Asset paths are relative and expect your current working directory to a directory below the assets folder.
+NOTE: Asset paths are relative and expect your current working directory to be a directory below the assets folder.
 
 i.e. the `basic_cube` example should be run from `/bin/basic_cube/Debug`
 
