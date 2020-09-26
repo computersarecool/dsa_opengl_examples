@@ -34,8 +34,9 @@ Most of the examples in this project are API examples with limited graphical out
 
 ## To Build
 This project uses [Git LFS](https://git-lfs.github.com/) for assets and CMAKE to build
+- Clone this project using git
 - From the root of this project update all the submodules with: `git submodule update --init --recursive`
-- From the root of this project type `cmake -G ${GENERATOR} -DCMAKE_BUILD_TYPE=Debug`
+- From the root of this project type `cmake -G ${GENERATOR} -DCMAKE_BUILD_TYPE=Debug` or open the project in an editor that directly supports CMAKE files
 
 Where `${GENERATOR}` is the platform (i.e. `"Unix Makefiles"`)
 
